@@ -219,6 +219,41 @@ DESTTYPE_BROADCAST=0 # Send message/notice to all players (All)
 DESTTYPE_TEAM=1      # Send message/notice to everyone playing the same company (Team)
 DESTTYPE_CLIENT=2    # Send message/notice to only a certain player (Private)
 
+NETWORK_ERROR_GENERAL=0 # Generally unused
+# Signals from clients
+NETWORK_ERROR_DESYNC=1
+NETWORK_ERROR_SAVEGAME_FAILED=2
+NETWORK_ERROR_CONNECTION_LOST=3
+NETWORK_ERROR_ILLEGAL_PACKET=4
+NETWORK_ERROR_NEWGRF_MISMATCH=5
+# Signals from servers
+NETWORK_ERROR_NOT_AUTHORIZED=6
+NETWORK_ERROR_NOT_EXPECTED=7
+NETWORK_ERROR_WRONG_REVISION=8
+NETWORK_ERROR_NAME_IN_USE=9
+NETWORK_ERROR_WRONG_PASSWORD=10
+NETWORK_ERROR_PLAYER_MISMATCH=11 # Happens in CLIENT_COMMAND
+NETWORK_ERROR_KICKED=12
+NETWORK_ERROR_CHEATER=13
+NETWORK_ERROR_FULL=14
+
+error_names={
+	0:['NETWORK_ERROR_GENERAL', 'unknown reason'],
+	1:['NETWORK_ERROR_DESYNC', 'desynced'],
+	2:['NETWORK_SAVEGAME_FAILED', 'couldn\t load savegame'],
+	3:['NETWORK_CONNECTION_LOST', 'connection lost'],
+	4:['NETWORK_ILLEGAL_PACKET', 'illegal packet'],
+	5:['NETWORK_ERROR_NEWGRF_MISMATCH', 'newgrf mismatch'],
+	6:['NETWORK_ERROR_NOT_AUTHORIZED', 'not autohorized'],
+	7:['NETWORK_ERROR_NOT_EXPECTED', 'unexpected packet'],
+	8:['NETWORK_ERROR_WRONG_REVISION', 'wrong revision'],
+	9:['NETWORK_ERROR_NAME_IN_USE', 'Name in use'],
+	10:['NETWORK_ERROR_WRONG_PASSWORD', 'wrong password'],
+	11:['NETWORK_ERROR_PLAYER_MISMATCH', 'incorrect player id in command'],
+	12:['NETWORK_ERROR_KICKED', 'kicked'],
+	13:['NETWORK_ERROR_CHEATER', 'cheater'],
+	14:['NETWORK_ERROR_FULL', 'server full'],
+}
 
 OWNER_BEGIN     = 0x00 # First Owner
 PLAYER_FIRST    = 0x00 # First Player, same as owner
