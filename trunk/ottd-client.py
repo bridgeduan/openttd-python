@@ -228,6 +228,7 @@ class SpectatorClient(Client):
 					self.handlePacket(command, content)
 					
 					if command == PACKET_SERVER_WAIT:
+						pass
 						# wait in line :)
 					
 					if command == PACKET_SERVER_MAP:
