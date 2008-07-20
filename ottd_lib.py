@@ -106,21 +106,21 @@ class Client(threading.Thread):
 		if command == PACKET_UDP_MASTER_RESPONSE_LIST:
 			offset = 0
 			#print "BUFFER: \n%s" % (content[offset:offset+4].encode("hex"))
-			protocol_version = struct.unpack_from('B', content[offset:])[0]
+			protocol_version = unpackFromExt('B', content[offset:])[0]
 			offset += struct.calcsize("B")
 
 			#print "BUFFER: \n%s" % (content[offset:offset+struct.calcsize("B")].encode("hex"))
-			number = struct.unpack_from('H', content[offset:])[0]
+			number = unpackFromExt('H', content[offset:])[0]
 			offset += struct.calcsize("H")
 			if protocol_version == 1:
 				servers = []
 				LOG.debug("protocol version %d" % protocol_version)
 				LOG.debug("master server knows %d servers:" % number)
 				for i in range(0, number):
-					ip = struct.unpack_from('4s', content[offset:])[0]
+					ip = unpackFromExt('4s', content[offset:])[0]
 					offset += struct.calcsize("I")
 					
-					port = struct.unpack_from('H', content[offset:])[0]
+					port = unpackFromExt('H', content[offset:])[0]
 					offset += struct.calcsize("H")
 					servers.append((socket.inet_ntoa(ip), port))
 					LOG.debug(" %s:%d" % (socket.inet_ntoa(ip), port))
@@ -139,17 +139,17 @@ class Client(threading.Thread):
 		size, command, content = result
 		if command == PACKET_UDP_SERVER_RESPONSE:
 			offset = 0
-			command2 = struct.unpack_from('B', content, offset)[0]
+			command2 = unpackFromExt('B', content, offset)[0]
 			offset += struct.calcsize('B')
 			
 			if command2 == NETWORK_GAME_INFO_VERSION:
-				grfcount = struct.unpack_from('B', content, offset)[0]
+				grfcount = unpackFromExt('B', content, offset)[0]
 				offset += struct.calcsize('B')
 
 				grfs = []
 				if grfcount != 0:
 					for i in range(0, grfcount):
-						grfid, md5sum = struct.unpack_from('4s16s', content[offset:])
+						grfid, md5sum = unpackFromExt('4s16s', content[offset:])
 						offset += struct.calcsize('4s16s')
 						grfs.append((grfid, md5sum))
 						LOG.debug("installed grfs:")
@@ -234,7 +234,7 @@ class Client(threading.Thread):
 			headersize = struct.calcsize(headerformat)
 			data = self.socket_udp.recv(4096)
 			#print data
-			(size, command) = struct.unpack_from('hb', data, 0)
+			(size, command) = unpackFromExt('hb', data, 0)
 			LOG.debug("received size: %d, command: %d"% (size, command))
 			content = data[headersize:]
 			
