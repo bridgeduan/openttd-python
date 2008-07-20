@@ -105,7 +105,7 @@ class IRC(threading.Thread):
 		self.irc.connect ( ( self.network, self.network_port ) )
 		self.irc.send ( 'NICK %s\r\n'%self.botname )
 		self.irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
-		self.sendThread = IRCSendThread(irc, self.channel)
+		self.sendThread = IRCSendThread(self.irc, self.channel)
 		self.sendThread.start()
 		connected = False
 		while self.runCond:
