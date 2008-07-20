@@ -98,7 +98,7 @@ class SpectatorClient(Client):
 			self.irc = None
 			self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!quit':
-			payload = packExt('z', "The ottd-bot flies away!")
+			payload = packExt('z', config.get("openttd", "quitmessage"))
 			payload_size = len(payload)
 			self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
 		elif msg == '!showplayers':
