@@ -87,6 +87,7 @@ class IRC(threading.Thread):
 		"""
 		if self.sendThread:
 			self.sendThread.dequeue()
+
 		self.runCond = False
 		
 	def run(self):
@@ -96,20 +97,20 @@ class IRC(threading.Thread):
 		LOG.info("IRC| IRC connecting ...")
 		self.in_queue.append(('server', "IRC connecting"))
 		#network = 'blueyonder.uk.quakenet.org'
-		#network = 'irc.oftc.net'
+		#network = 'self.irc.oftc.net'
 		#self.channel = "#ap+"
 		#self.channel = "#openttdserver.de"
 		#port = 6667
-		irc = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-		irc.connect ( ( self.network, self.network_port ) )
-		irc.send ( 'NICK %s\r\n'%self.botname )
-		irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
+		self.irc = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
+		self.irc.connect ( ( self.network, self.network_port ) )
+		self.irc.send ( 'NICK %s\r\n'%self.botname )
+		self.irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
 		self.sendThread = IRCSendThread(irc, self.channel)
 		self.sendThread.start()
 		connected = False
 		while self.runCond:
 			try:
-				data = irc.recv ( 4096 )
+				data = self.irc.recv ( 4096 )
 			except:
 				continue
 			if len(data.strip()) == 0:
@@ -119,16 +120,16 @@ class IRC(threading.Thread):
 			if pp != -1:
 				msg = 'PONG ' + data[pp+5:pp+17] + '\r\n'
 				#print ">>>>",msg
-				irc.send ( msg )
+				self.irc.send ( msg )
 
 			pp = data.find ('/QUOTE PONG')
 			if pp != -1:
 				msg = '/QUOTE PONG ' + data[pp+12:pp+24] + '\r\n'
 				#print ">>>>",msg
-				irc.send ( msg )
+				self.irc.send ( msg )
 			
 			if data.find ("End Of MOTD") != -1 or data.find ("End of /MOTD") != -1:
-				irc.send ( 'JOIN %s\r\n'%self.channel )
+				self.irc.send ( 'JOIN %s\r\n'%self.channel )
 				self.in_queue.append(('server', "IRC connected, activating chat bridge!"))
 				connected=True
 				
@@ -137,7 +138,7 @@ class IRC(threading.Thread):
 				if not self.sendThread.status:
 					self.sendThread.status=True
 					LOG.debug("IRC| we are connected!")
-					irc.settimeout(2)
+					self.irc.settimeout(2)
 
 				pp=data.find ("PRIVMSG %s :"%self.channel)
 				if pp != -1:
@@ -150,8 +151,9 @@ class IRC(threading.Thread):
 					self.in_queue.append((nickname, msg))
 			
 			if data.strip() != "":
-				LOG.debug("IRC| %s" % data)
-		irc.close()
+				LOG.debug("IRC| %s" % data)		
+		self.irc.send ( 'QUIT bot shutting down...\r\n')
+		self.irc.close()
 		
 	def say(self, msg, type):
 		"""
