@@ -1,5 +1,6 @@
 from ottd_lib import *
 from irc_lib import *
+from webserver import *
 
 class BasicFileLogger:
 	def __init__(self, file = "log.log"):
@@ -15,6 +16,7 @@ class SpectatorClient(Client):
 	irc_network = 'irc.oftc.net'
 	irc_channel = '#openttd-python'
 	playerlist = {}
+	webserver = None
 	
 	# this class implements the thread start method
 	def run(self):
@@ -101,6 +103,16 @@ class SpectatorClient(Client):
 		elif msg == '!showplayers':
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
+		elif msg == '!startwebserver':
+			port = 8080
+			self.webserver = myWebServer(self, port)
+			self.webserver.start()
+			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
+		elif msg == '!stopwebserver':
+			if self.webserver:
+				self.webserver.stop()
+				self.webserver = None
+				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
 
 	def DispatchEvent(self, message):
 		if not self.irc is None:
