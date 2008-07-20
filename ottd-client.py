@@ -82,7 +82,7 @@ class SpectatorClient(Client):
 			CMD_PLACE_SIGN = 60
 			self.sendCommand(CMD_PLACE_SIGN, 0)
 		elif msg == '!loadirc' and self.irc is None:
-			self.irc = IRC(debug=False, network=self.irc_network, channel=self.irc_channel)
+			self.irc = IRC(network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!unloadirc' and not self.irc is None:

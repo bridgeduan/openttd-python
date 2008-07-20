@@ -2,10 +2,20 @@ import socket, time, threading, copy
 from log import *
 
 class IRCSendThread(threading.Thread):
+	"""
+	This class will be used to sent data to the active IRC connection
+	"""
 	runCond = True
 	out_queue = []
 	
 	def __init__(self, socket, channel):
+		"""
+		constructor
+		@type  socket: socket
+		@param socket: the socket that already got connected to the IRC server
+		@type  channel: string
+		@param channel: the name of the channel to join
+		"""
 		self.socket = socket
 		self.channel=channel
 		self.status=False
@@ -13,6 +23,9 @@ class IRCSendThread(threading.Thread):
 		threading.Thread.__init__(self)
 	
 	def run(self):
+		"""
+		thread entry point, called with start()
+		"""
 		LOG.debug("send thread started ...")
 		while self.runCond:
 			time.sleep(0.5)
@@ -25,22 +38,42 @@ class IRCSendThread(threading.Thread):
 
 
 class IRC(threading.Thread):
+	"""
+	This class provides a connection to an IRC server and the ability to read and write string from and to it
+	"""
 	in_queue = []
 	runCond = True
 	
-	def __init__(self, debug=True,network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
+	def __init__(self, network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
+		"""
+		constructor
+		@type  network: string
+		@param network: the hostname/ip of the IRC server to connect to
+		@type  channel: string
+		@param channel: the name of the channel to join
+		@type  network_port: number
+		@param network_port: the port where the server listens
+		@type  botname: string
+		@param botname: name of the bot to join IRC
+		"""
 		self.network=network
 		self.botname=botname
 		self.network_port=network_port
 		self.channel=channel
-		self.debug = debug
 		self.sendThread = None
 		threading.Thread.__init__(self)
 	
 	def stop(self):
+		"""
+		this disconnects from IRC
+		@todo: add proper disconnectionm, atm its only timing out
+		"""
 		self.runCond = False
 		
 	def run(self):
+		"""
+		thread entry point, called with start()
+		"""
 		LOG.info("IRC| IRC connecting ...")
 		self.in_queue.append(('server', "IRC connecting"))
 		#network = 'blueyonder.uk.quakenet.org'
@@ -87,16 +120,26 @@ class IRC(threading.Thread):
 					msg = data[pp+len("PRIVMSG %s :"%self.channel):].strip()
 					self.in_queue.append((nickname, msg))
 			
-			if self.debug and data.strip() != "":
+			if data.strip() != "":
 				LOG.debug("IRC| %s" % data)
 		irc.close()
 		
 	def say(self, msg):
+		"""
+		called to sent something to IRC
+		@type  msg: string
+		@param msg: string to say
+		"""
 		if self.sendThread:
 			LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
 			self.sendThread.out_queue.append(msg)
 		
 	def getSaid(self):
+		"""
+		called to get message queue
+		@rtype:  list
+		@return: list with things said
+		"""
 		list = copy.copy(self.in_queue)
 		self.in_queue = []
 		return list
