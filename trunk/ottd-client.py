@@ -66,41 +66,45 @@ class SpectatorClient(Client):
 		elif msg == "!time":
 			print "FOOO"
 			self.sendChat(time.ctime().__str__())
-		elif msg == "!test1":
-			payload = packExt('bbHz', NETWORK_ACTION_NAME_CHANGE, DESTTYPE_BROADCAST, 0, "foobar")
-			payload_size = len(payload)
-			self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-		elif msg == "!test2":
-			payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "1783424")
-			payload_size = len(payload)
-			self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-		elif msg == "!test3":
-			payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "-1783424534")
-			payload_size = len(payload)
-			self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-		elif msg == "!test4":
-			payload = packExt('bbHz', NETWORK_ACTION_SERVER_MESSAGE, DESTTYPE_BROADCAST, 0, "I AM IMPOSING THE SERVER PIEP PIEP")
-			payload_size = len(payload)
-			self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-		elif msg == "!test5":
-			CMD_PLACE_SIGN = 60
-			self.sendCommand(CMD_PLACE_SIGN, 0)
-		elif msg == "!test6":
-			self.sendChat("Leaving", type=NETWORK_ACTION_LEAVE)
-		elif msg == "!test7":
-			self.sendChat("Joining", type=NETWORK_ACTION_JOIN)
-		elif msg == '!loadirc' and self.irc is None:
+		
+		if config.getint("main", "productive") == 0:
+			#remove useless commands
+			if msg == "!test1":
+				payload = packExt('bbHz', NETWORK_ACTION_NAME_CHANGE, DESTTYPE_BROADCAST, 0, "foobar")
+				payload_size = len(payload)
+				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
+			elif msg == "!test2":
+				payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "1783424")
+				payload_size = len(payload)
+				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
+			elif msg == "!test3":
+				payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "-1783424534")
+				payload_size = len(payload)
+				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
+			elif msg == "!test4":
+				payload = packExt('bbHz', NETWORK_ACTION_SERVER_MESSAGE, DESTTYPE_BROADCAST, 0, "I AM IMPOSING THE SERVER PIEP PIEP")
+				payload_size = len(payload)
+				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
+			elif msg == "!test5":
+				CMD_PLACE_SIGN = 60
+				self.sendCommand(CMD_PLACE_SIGN, 0)
+			elif msg == "!test6":
+				self.sendChat("Leaving", type=NETWORK_ACTION_LEAVE)
+			elif msg == "!test7":
+				self.sendChat("Joining", type=NETWORK_ACTION_JOIN)
+			elif msg == '!quit':
+				payload = packExt('z', config.get("openttd", "quitmessage"))
+				payload_size = len(payload)
+				self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+			elif msg == '!unloadirc' and not self.irc is None:
+				self.irc.stop()
+				self.irc = None
+				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
+		
+		if msg == '!loadirc' and self.irc is None:
 			self.irc = IRC(network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!unloadirc' and not self.irc is None:
-			self.irc.stop()
-			self.irc = None
-			self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!quit':
-			payload = packExt('z', config.get("openttd", "quitmessage"))
-			payload_size = len(payload)
-			self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
 		elif msg == '!showplayers':
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
@@ -131,7 +135,7 @@ class SpectatorClient(Client):
 				del self.playerlist[res[0]]
 		
 		elif command == PACKET_SERVER_ERROR:
-			res = struct.unpack_from('B', content, 0)[0]
+			res = unpackFromExt('B', content, 0)[0]
 			if not res is None:
 				if res in error_names.keys():
 					self.dispatchEvent("Disconnected from server: %s" % error_names[res][1], 1)
@@ -161,7 +165,7 @@ class SpectatorClient(Client):
 				self.playerlist[res[0]] = [res[2], res[1]]
 		
 		elif command == PACKET_SERVER_JOIN:
-			res = struct.unpack_from('H', content, 0)[0]
+			res = unpackFromExt('H', content, 0)[0]
 			if res in self.playerlist:
 				self.dispatchEvent("%s has joined the game" % self.playerlist[res][0], 1)
 		
@@ -193,13 +197,13 @@ class SpectatorClient(Client):
 			LOG.debug("got command %s" % packet_names[command])
 			if command == PACKET_SERVER_CHECK_NEWGRFS:
 				offset = 0
-				grfcount = struct.unpack_from('B', content, offset)[0]
+				grfcount = unpackFromExt('B', content, offset)[0]
 				offset += struct.calcsize('B')
 
 				grfs = []
 				if grfcount != 0:
 					for i in range(0, grfcount):
-						grfid, md5sum = struct.unpack_from('4s16s', content[offset:])
+						grfid, md5sum = unpackFromExt('4s16s', content[offset:])
 						offset += struct.calcsize('4s16s')
 						grfs.append((grfid, md5sum))
 					LOG.debug("installed grfs (%d):" % len(grfs))
@@ -237,21 +241,21 @@ class SpectatorClient(Client):
 					self.handlePacket(command, content)
 					
 					if command == PACKET_SERVER_WAIT:
-						res = struct.unpack_from('B', content)[0]
+						res = unpackFromExt('B', content)[0]
 						if not res is None:
 							self.dispatchEvent("Waiting for map download...%d in line" % res)
 					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
-						command2 = struct.unpack_from('B', content[offset:])[0]
+						command2 = unpackFromExt('B', content[offset:])[0]
 						offset += struct.calcsize("B")
 						
 						if command2 == MAP_PACKET_START:
 							LOG.info("starting downloading map!")
-							framecounter = struct.unpack_from('I', content[offset:])[0]
+							framecounter = unpackFromExt('I', content[offset:])[0]
 							offset += struct.calcsize("I")
 							
-							position = struct.unpack_from('I', content[offset:])[0]
+							position = unpackFromExt('I', content[offset:])[0]
 							offset += struct.calcsize("I")
 						elif command2 == MAP_PACKET_NORMAL:
 							mapsize_done += size
@@ -272,7 +276,7 @@ class SpectatorClient(Client):
 				# init IRC bridge
 				self.irc = None
 				
-				self.sendChat("hey i am a bot :|")
+				#self.sendChat("hey i am a bot :|")
 				
 				# auto start IRC
 				#self.processCommand("!loadirc")
@@ -283,7 +287,7 @@ class SpectatorClient(Client):
 					#print content
 					self.handlePacket(command, content)
 					if command == PACKET_SERVER_FRAME:
-						self.frame_server, self.frame_max = struct.unpack_from('II', content)
+						self.frame_server, self.frame_max = unpackFromExt('II', content)
 						#if self.debug:
 						#	print "got frame %d, %d" % (frame_server, frame_max)
 						frameCounter += 1

@@ -37,6 +37,12 @@ def packExt(fmt, *args):
 			format_buffer=""
 		return result
 
+# like unpack_from just with extension, this also enables you to use something unpack_from equivalent in python 2.4
+def unpackFromExt(fmt, buffer, offset=0):
+	size = struct.calcsize(fmt)
+	buf = buffer[offset:offset+size]
+	return unpackExt(fmt, buf)
+	
 def unpackExt(fmt, string):
 	if fmt.find("z") < 0:
 		# normal unpack
@@ -52,7 +58,7 @@ def unpackExt(fmt, string):
 				size = 0
 				if len(format_buffer) > 0:
 					size = struct.calcsize(format_buffer)
-					result_this = struct.unpack_from(format_buffer, string, offset)
+					result_this = unpackFromExt(format_buffer, string, offset)
 					offset += size
 					#print " '%s, %s' => "%(format_buffer, size), result_this
 					result += result_this
@@ -76,7 +82,7 @@ def unpackExt(fmt, string):
 			
 		#process last buffer
 		size = struct.calcsize(format_buffer)
-		result_this = struct.unpack_from(format_buffer, string, offset)
+		result_this = unpackFromExt(format_buffer, string, offset)
 		#print " '%s' => "%format_buffer, result_this
 		result += result_this
 		format_buffer = ""
