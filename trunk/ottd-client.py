@@ -1,6 +1,7 @@
 from ottd_lib import *
 from irc_lib import *
 from webserver import *
+from ottd_config import *
 
 class BasicFileLogger:
 	def __init__(self, file = "log.log"):
@@ -13,8 +14,8 @@ class BasicFileLogger:
 
 class SpectatorClient(Client):
 	irc = None
-	irc_network = 'irc.oftc.net'
-	irc_channel = '#openttd-python'
+	irc_network = config.get("irc", "server")
+	irc_channel = config.get("irc", "channel")
 	playerlist = {}
 	webserver = None
 	
@@ -32,6 +33,9 @@ class SpectatorClient(Client):
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
 		self.dispatchEvent(msg, type, irc=relayToIRC)
+		
+	def sendTCPmsg(self, msg, payload):
+		self.sendMsg(msg, len(payload), payload, type=M_TCP)
 		
 	def sendCommand(self, command):
 		"""
@@ -105,7 +109,7 @@ class SpectatorClient(Client):
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
 		elif msg == '!startwebserver':
-			port = 8080
+			port = config.get("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
 			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
@@ -168,16 +172,21 @@ class SpectatorClient(Client):
 		if command == PACKET_SERVER_SHUTDOWN:
 			self.dispatchEvent("Server shutting down...have a nice day!", 1)
 			self.runCond = False
+		
+		if command == PACKET_SERVER_NEWGAME:
+			self.dispatchEvent("Server loading new map...", 1)
+			# TODO: RECONNECT
+			self.runCond = False
 
 	def joinGame(self):
 		#construct join packet
-		cversion = "norev000" # 0.6.1
+		cversion = config.get("openttd", "revision") # 0.6.1
 		#cversion = "r13683"
-		self.playername = "ottd-bot"
+		self.playername =  config.get("openttd", "nickname")
 		password = 'citrus'
 		self.playas = PLAYER_SPECTATOR
 		language = NETLANG_ANY
-		network_id = "a4782b224f3cc3fb94743f992f19fb40"
+		network_id =  config.get("openttd", "uniqueid")
 		payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
 		payload_size = len(payload)
 		#print "buffer size: %d" % payload_size
@@ -232,8 +241,9 @@ class SpectatorClient(Client):
 					self.handlePacket(command, content)
 					
 					if command == PACKET_SERVER_WAIT:
-						pass
-						# wait in line :)
+						res = struct.unpack_from('B', content)[0]
+						if not res is None:
+							self.dispatchEvent("Waiting for map download...%d in line" % res)
 					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
