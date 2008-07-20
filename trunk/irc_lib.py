@@ -129,7 +129,7 @@ class IRC(threading.Thread):
 				#print ">>>>",msg
 				self.irc.send ( msg )
 			
-			if data.find ("End Of MOTD") != -1 or data.find ("End of /MOTD") != -1:
+			if data.find ("End Of MOTD") != -1 or data.find ("End of /MOTD") != -1 and not connected:
 				self.irc.send ( 'JOIN %s\r\n'%self.channel )
 				self.in_queue.append(('server', "IRC connected, activating chat bridge!", 0))
 				connected=True
