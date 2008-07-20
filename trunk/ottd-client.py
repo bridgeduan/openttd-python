@@ -96,6 +96,11 @@ class SpectatorClient(Client):
 		elif msg == '!showplayers':
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
+
+	def DispatchEvent(self, message):
+		if not self.irc is None:
+			self.irc.say(message)
+		LOG.info(message)
 	
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
@@ -104,12 +109,13 @@ class SpectatorClient(Client):
 				if res[0] == self.client_id:
 					self.runCond = False
 			if res[0] in self.playerlist:
+				self.DispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], res[1]))
 				del self.playerlist[res[0]]
 		if command == PACKET_SERVER_ERROR:
 			res = struct.unpack_from('B', content, 0)
 			if not res is None:
 				if res in error_names.keys():
-					LOG.info("Disconnected from server: %s" % error_names[res][1])
+					self.DispatchEvent("Disconnected from server: %s" % error_names[res][1])
 			self.runCond = False
 		if command == PACKET_SERVER_ERROR_QUIT:
 			res = unpackExt('HB', content)
@@ -118,7 +124,8 @@ class SpectatorClient(Client):
 					self.doingloop = False
 					LOG.info("Disconnected from server")
 				if res[0] in self.playerlist:
-					LOG.info("%s quit: %s" % (self.playerlist[res[0]][0], error_names[res[1]][1]))
+					self.DispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], error_names[res[1]][1]))
+					del self.playerlist[res[0]]
 
 		if command == PACKET_SERVER_CLIENT_INFO:
 			res, size = unpackExt('HBz', content)
@@ -126,14 +133,19 @@ class SpectatorClient(Client):
 				if res[0] == self.client_id:
 					self.playername = res[2]
 					self.playas = res[1]
+				if res[0] in self.playerlist:
+					if res[2] != self.playerlist[res[0]][0]:
+						self.DispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]][0], res[2]))
+					if res[1] != self.playerlist[res[0]][1]:
+						self.DispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]][0], res[1]))
 				self.playerlist[res[0]] = [res[2], res[1]]
 		if command == PACKET_SERVER_JOIN:
 			res = struct.unpack_from('H', content, 0)[0]
 			if res in self.playerlist:
-				LOG.info("%s joined the game" % self.playerlist[res][0])
+				self.DispatchEvent("%s has joined the game" % self.playerlist[res][0])
 		
 		if command == PACKET_SERVER_SHUTDOWN:
-			LOG.info("Server shutting down...have a nice day!")
+			self.DispatchEvent("Server shutting down...have a nice day!")
 			self.runCond = False
 
 	def joinGame(self):
