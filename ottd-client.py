@@ -59,7 +59,7 @@ class SpectatorClient(Client):
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
-		if config.has_option('irccommands', msg[1:]) is True:
+		if config.has_option('irccommands', msg[1:]):
 			self.sendChat(config.get('irccommands', msg[1:]))
 		elif msg == "!frame":
 			self.sendChat("we are at frame number %d" % self.frame_server)
