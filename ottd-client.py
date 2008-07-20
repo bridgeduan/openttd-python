@@ -89,9 +89,17 @@ class SpectatorClient(Client):
 			self.irc.stop()
 			self.irc = None
 			self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
+		elif msg == '!quit':
+			payload = packExt('z', "The ottd-bot flies away!")
+			payload_size = len(payload)
+			self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
 	
 	def handlePacket(self, command, content):
-		
+		if command == PACKET_SERVER_QUIT:
+			res, size = unpackExt('Hz', content)
+			if not res is None:
+				if res[0] == self.client_id:
+					self.runCond = False
 
 	def joinGame(self):
 		#construct join packet
@@ -223,12 +231,12 @@ class SpectatorClient(Client):
 					if command == PACKET_SERVER_CHAT:
 						res, size = unpackExt('bbHz', content)
 						if not res is None:
-							palyerid, actionid, msg = res
 							actionid = res[0]
+							playerid = res[1] # possibly wrong!
 							msg = res[3]
 							if actionid == NETWORK_ACTION_CHAT:
 								self.processCommand(msg)
-								msgtxt = "%s: %s" % (self.playerlist[res[2]][0], msg)
+								msgtxt = "%s" % (msg)
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
 									self.irc.say(msg)
 
