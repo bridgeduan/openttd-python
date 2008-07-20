@@ -15,7 +15,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				
 			content= """
 <HTML><BODY>
-<h1>Openttd Client Webserver</h1>
+<h1>OpenTTD python bot</h1>
 <pre>
 %s
 </pre>
@@ -28,21 +28,43 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.wfile.write(content)
 
 class myHTTPServer(BaseHTTPServer.HTTPServer):
-    def __init__(self, addr, handlerClass, cls):
-        BaseHTTPServer.HTTPServer.__init__(self, addr, handlerClass)
-        self._callbackclass = cls
+	def __init__(self, addr, handlerClass, cls):
+		"""
+		constructor
+		@type  cls: SpectatorClient
+		@param cls: class to get the data from
+		"""
+		BaseHTTPServer.HTTPServer.__init__(self, addr, handlerClass)
+		self._callbackclass = cls
 
 	
 class myWebServer(threading.Thread):
+	"""
+	webserver that display the currently connected clients
+	"""
 	def __init__(self, cls, port):
+		"""
+		constructor
+		@type  cls: SpectatorClient
+		@param cls: class to get the data from
+		@type  port: number
+		@param port: the port on which to start the webserver
+		"""
 		self.cls = cls
 		self.port = port
 		threading.Thread.__init__(self)
 	
 	def run(self):
+		"""
+		thread entry point for the webserver
+		"""
 		LOG.debug('started httpserver...')
-		server = myHTTPServer(('', self.port), MyHandler, self.cls)
-		server.serve_forever()
+		self.server = myHTTPServer(('', self.port), MyHandler, self.cls)
+		self.server.serve_forever()
 
-
+	def stop(self):
+		"""
+		this stops the webserver
+		"""
+		self.server.server_close()
 
