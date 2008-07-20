@@ -93,6 +93,9 @@ class SpectatorClient(Client):
 			payload = packExt('z', "The ottd-bot flies away!")
 			payload_size = len(payload)
 			self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+		elif msg == '!showplayers':
+			for client in self.playerlist:
+				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
 	
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
@@ -100,17 +103,49 @@ class SpectatorClient(Client):
 			if not res is None:
 				if res[0] == self.client_id:
 					self.runCond = False
+			if res[0] in self.playerlist:
+				del self.playerlist[res[0]]
+		if command == PACKET_SERVER_ERROR:
+			res = struct.unpack_from('B', content, 0)
+			if not res is None:
+				if res in error_names.keys():
+					LOG.info("Disconnected from server: %s" % error_names[res][1])
+			self.runCond = False
+		if command == PACKET_SERVER_ERROR_QUIT:
+			res = unpackExt('HB', content)
+			if not res is None:
+				if res[0] == self.client_id:
+					self.doingloop = False
+					LOG.info("Disconnected from server")
+				if res[0] in self.playerlist:
+					LOG.info("%s quit: %s" % (self.playerlist[res[0]][0], error_names[res[1]][1]))
+
+		if command == PACKET_SERVER_CLIENT_INFO:
+			res, size = unpackExt('HBz', content)
+			if not res is None:
+				if res[0] == self.client_id:
+					self.playername = res[2]
+					self.playas = res[1]
+				self.playerlist[res[0]] = [res[2], res[1]]
+		if command == PACKET_SERVER_JOIN:
+			res = struct.unpack_from('H', content, 0)[0]
+			if res in self.playerlist:
+				LOG.info("%s joined the game" % self.playerlist[res][0])
+		
+		if command == PACKET_SERVER_SHUTDOWN:
+			LOG.info("Server shutting down...have a nice day!")
+			self.runCond = False
 
 	def joinGame(self):
 		#construct join packet
 		cversion = "norev000" # 0.6.1
 		#cversion = "r13683"
-		playername = "ottd-bot"
+		self.playername = "ottd-bot"
 		password = 'citrus'
-		playas = PLAYER_SPECTATOR
+		self.playas = PLAYER_SPECTATOR
 		language = NETLANG_ANY
 		network_id = "a4782b224f3cc3fb94743f992f19fb40"
-		payload = packExt('zzBBz', cversion, playername, playas, language, network_id)
+		payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
 		payload_size = len(payload)
 		#print "buffer size: %d" % payload_size
 		self.sendMsg(PACKET_CLIENT_JOIN, payload_size, payload, type=M_TCP)
@@ -217,11 +252,6 @@ class SpectatorClient(Client):
 						self.sendMsg(PACKET_CLIENT_ACK, payload_size, payload, type=M_TCP)
 						frameCounter=0
 
-					if command == PACKET_SERVER_CLIENT_INFO:
-						res, size = unpackExt('HBz', content)
-						uniqueid, playas, name = res
-						LOG.info("player '%s' (%d) playing in company %d" % (playername, uniqueid, playas))
-						self.playerlist[uniqueid] = (name, playas)
 						
 					if command == PACKET_SERVER_COMMAND:
 						res, size = unpackExt('bIIIIzB', content)
@@ -236,7 +266,10 @@ class SpectatorClient(Client):
 							msg = res[3]
 							if actionid == NETWORK_ACTION_CHAT:
 								self.processCommand(msg)
-								msgtxt = "%s" % (msg)
+								if playerid in self.playerlist:
+									msgtxt = "%s: %s" % (self.playerlist[playerid][0], msg)
+								else:
+									msgtxt = msg
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
 									self.irc.say(msg)
 
