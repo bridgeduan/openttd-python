@@ -131,7 +131,7 @@ class SpectatorClient(Client):
 				del self.playerlist[res[0]]
 		
 		elif command == PACKET_SERVER_ERROR:
-			res = struct.unpack_from('B', content, 0)
+			res = struct.unpack_from('B', content, 0)[0]
 			if not res is None:
 				if res in error_names.keys():
 					self.dispatchEvent("Disconnected from server: %s" % error_names[res][1], 1)
