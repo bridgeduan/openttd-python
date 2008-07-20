@@ -108,7 +108,12 @@ class IRC(threading.Thread):
 		self.sendThread.start()
 		connected = False
 		while self.runCond:
-			data = irc.recv ( 4096 )
+			try:
+				data = irc.recv ( 4096 )
+			except:
+				pass
+			if len(data.strip()) == 0:
+				continue
 			
 			pp = data.find ('PING')
 			if pp != -1:
@@ -132,6 +137,7 @@ class IRC(threading.Thread):
 				if not self.sendThread.status:
 					self.sendThread.status=True
 					LOG.debug("IRC| we are connected!")
+					self.irc.settimeout(2)
 
 				pp=data.find ("PRIVMSG %s :"%self.channel)
 				if pp != -1:

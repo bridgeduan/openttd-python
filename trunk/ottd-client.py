@@ -8,7 +8,7 @@ class BasicFileLogger:
 		self.filehandle = open(file, 'a')
 	def log(self, message, flush = True):
 		self.filehandle.write(time.ctime().__str__() + ': ' + message + "\n")
-		if flush == True:
+		if flush:
 			self.filehandle.flush()
 
 class SpectatorClient(Client):
@@ -321,7 +321,7 @@ class SpectatorClient(Client):
 								else:
 									handlecommand = False
 									msg = ""
-								if not msg.startswith("!") == True:
+								if not msg.startswith("!"):
 									handlecommand = False
 								if handlecommand:
 									self.processCommand(msg)
@@ -336,7 +336,7 @@ class SpectatorClient(Client):
 						for msg in self.irc.getSaid():
 							msgtxt = "%s: %s" % (msg[0], msg[1])
 							self.sendChat(msgtxt, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
-							if msg[1].strip().startswith("!") == True:
+							if msg[1].strip().startswith("!"):
 								self.processCommand(msg[1].strip())
 						
 
