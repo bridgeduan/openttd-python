@@ -59,12 +59,8 @@ class SpectatorClient(Client):
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
-		if msg == "!ping":
-			self.sendChat("pong!")
-		if msg == "!ding":
-			self.sendChat("dong!")
-		if msg == "!pong":
-			self.sendChat("ping!")
+		if config.has_option('irccommands', msg[1:]) is True:
+			self.sendChat(config.get('irccommands', msg[1:]))
 		elif msg == "!frame":
 			self.sendChat("we are at frame number %d" % self.frame_server)
 		elif msg == "!time":
@@ -109,7 +105,7 @@ class SpectatorClient(Client):
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
 		elif msg == '!startwebserver':
-			port = config.get("webserver", "port")
+			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
 			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
