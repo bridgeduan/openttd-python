@@ -1,4 +1,5 @@
 import socket, time, threading, copy
+from log import *
 
 class IRCSendThread(threading.Thread):
 	runCond = True
@@ -12,7 +13,7 @@ class IRCSendThread(threading.Thread):
 		threading.Thread.__init__(self)
 	
 	def run(self):
-		print "send thread started ..."
+		LOG.debug("send thread started ...")
 		while self.runCond:
 			time.sleep(0.5)
 			if self.status:
@@ -27,8 +28,9 @@ class IRC(threading.Thread):
 	in_queue = []
 	runCond = True
 	
-	def __init__(self, debug=True,network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667):
+	def __init__(self, debug=True,network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
 		self.network=network
+		self.botname=botname
 		self.network_port=network_port
 		self.channel=channel
 		self.debug = debug
@@ -39,7 +41,7 @@ class IRC(threading.Thread):
 		self.runCond = False
 		
 	def run(self):
-		print "connecting ..."
+		LOG.info("IRC| IRC connecting ...")
 		self.in_queue.append(('server', "IRC connecting"))
 		#network = 'blueyonder.uk.quakenet.org'
 		#network = 'irc.oftc.net'
@@ -48,8 +50,8 @@ class IRC(threading.Thread):
 		#port = 6667
 		irc = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 		irc.connect ( ( self.network, self.network_port ) )
-		irc.send ( 'NICK openttd-bot\r\n' )
-		irc.send ( 'USER openttd-bot openttd-bot1 openttd-bot2 :Python IRC\r\n' )
+		irc.send ( 'NICK %s\r\n'%self.botname )
+		irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
 		self.sendThread = IRCSendThread(irc, self.channel)
 		self.sendThread.start()
 		connected = False
@@ -75,7 +77,9 @@ class IRC(threading.Thread):
 				
 			if connected:
 				#self.in_queue = []
-				self.sendThread.status=True
+				if not self.sendThread.status:
+					self.sendThread.status=True
+					LOG.debug("IRC| we are connected!")
 
 				pp=data.find ("PRIVMSG %s :"%self.channel)
 				if pp != -1:
@@ -84,18 +88,15 @@ class IRC(threading.Thread):
 					self.in_queue.append((nickname, msg))
 			
 			if self.debug and data.strip() != "":
-				print data
+				LOG.debug("IRC| %s" % data)
 		irc.close()
 		
 	def say(self, msg):
 		if self.sendThread:
-			print "add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue))
+			LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
 			self.sendThread.out_queue.append(msg)
 		
 	def getSaid(self):
 		list = copy.copy(self.in_queue)
 		self.in_queue = []
 		return list
-
-#if __name__ == '__main__':
-#	IRC().start()

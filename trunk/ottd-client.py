@@ -54,7 +54,7 @@ class SpectatorClient(Client):
 		self.sendMsg(PACKET_CLIENT_COMMAND, payload_size, payload, type=M_TCP)
 		
 	def processCommand(self, msg):
-		print "processing command '%s'" % msg
+		LOG.debug("processing command '%s'" % msg)
 		if msg == "!ping":
 			self.sendChat("pong!")
 		elif msg == "!frame":
@@ -250,26 +250,28 @@ class SpectatorClient(Client):
 							self.processCommand(msg[1].strip())
 						
 
+def printUsage():
+	print "usage: %s <ip:port> <password>" % sys.argv[0]
+	sys.exit(1)
 
 def main():
 	# catch errors when we don't supply enough parameters  
-	pw = ''
-	try:
-		ip = sys.argv[1]
-		port = int(sys.argv[2])
-		if len(sys.argv) > 3:
-			pw = sys.argv[3]
-	except Exception, e:
-		LOG.error('main error: '+str(e))
-		errorMsg = StringIO.StringIO()
-		traceback.print_exc(file=errorMsg)
-		print "usage: script.py <ip> <port>"
-		#printhelp()
-		sys.exit(1)
+	password = ''
+	if len(sys.argv) == 0:
+		printUsage()
 	
+	try:
+		ip, port = sys.argv[1].split(':')
+		port = int(port)
+		if len(sys.argv) > 2:
+			password = sys.argv[2]
+	except Exception, e:
+		#LOG.error(e)
+		printUsage()
+
 	client = SpectatorClient(ip, port, True)
 	client.connect(M_BOTH)
-	client.password = pw
+	client.password = password
 	client.joinGame()
 	client.disconnect()
 	sys.exit(0)
