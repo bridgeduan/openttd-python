@@ -13,7 +13,7 @@ class BasicFileLogger:
 class SpectatorClient(Client):
 	irc = None
 	irc_network = 'irc.oftc.net'
-	irc_channel = '#ap+'
+	irc_channel = '#openttd-python'
 	playerlist = {}
 	
 	# this class implements the thread start method
@@ -269,9 +269,9 @@ class SpectatorClient(Client):
 								if playerid in self.playerlist:
 									msgtxt = "%s: %s" % (self.playerlist[playerid][0], msg)
 								else:
-									msgtxt = msg
+									msgtxt = "Unknown player: " + msg
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
-									self.irc.say(msg)
+									self.irc.say(msgtxt)
 
 						LOG.debug(res.__str__())
 						
