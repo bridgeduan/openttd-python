@@ -137,7 +137,7 @@ class IRC(threading.Thread):
 				if not self.sendThread.status:
 					self.sendThread.status=True
 					LOG.debug("IRC| we are connected!")
-					self.irc.settimeout(2)
+					irc.settimeout(2)
 
 				pp=data.find ("PRIVMSG %s :"%self.channel)
 				if pp != -1:
