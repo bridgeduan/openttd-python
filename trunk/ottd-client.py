@@ -1,6 +1,15 @@
 from ottd_lib import *
 from irc_lib import *
 
+class BasicFileLogger:
+	def __init__(self, file = "log.log"):
+		self.file = file
+		self.filehandle = open(file, 'a')
+	def log(self, message, flush = True):
+		self.filehandle.write(time.ctime().__str__() + ': ' + message + "\n")
+		if flush == True:
+			self.filehandle.flush()
+
 class SpectatorClient(Client):
 	irc = None
 	irc_network = 'irc.oftc.net'
