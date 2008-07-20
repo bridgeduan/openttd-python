@@ -96,7 +96,7 @@ class IRC(threading.Thread):
 		thread entry point, called with start()
 		"""
 		LOG.info("IRC| IRC connecting ...")
-		self.in_queue.append(('server', "IRC connecting"))
+		self.in_queue.append(('server', "IRC connecting", 0))
 		#network = 'blueyonder.uk.quakenet.org'
 		#network = 'self.irc.oftc.net'
 		#self.channel = "#ap+"
@@ -131,7 +131,7 @@ class IRC(threading.Thread):
 			
 			if data.find ("End Of MOTD") != -1 or data.find ("End of /MOTD") != -1:
 				self.irc.send ( 'JOIN %s\r\n'%self.channel )
-				self.in_queue.append(('server', "IRC connected, activating chat bridge!"))
+				self.in_queue.append(('server', "IRC connected, activating chat bridge!", 0))
 				connected=True
 				
 			if connected:
@@ -144,12 +144,14 @@ class IRC(threading.Thread):
 				pp=data.find ("PRIVMSG %s :"%self.channel)
 				if pp != -1:
 					nickname = data[1:data.find("!")]
+					type=0
 					msg = data[pp+len("PRIVMSG %s :"%self.channel):].strip()
 					if msg.startswith("\001ACTION"):
 						msg = msg.replace("\001", "")
 						msg = msg.replace("ACTION", "")
 						msg = msg.strip()
-					self.in_queue.append((nickname, msg))
+						type=1
+					self.in_queue.append((nickname, msg, type))
 			
 			if data.strip() != "":
 				LOG.debug("IRC| %s" % data)		

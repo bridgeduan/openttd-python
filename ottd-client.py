@@ -96,24 +96,24 @@ class SpectatorClient(Client):
 				payload = packExt('z', config.get("openttd", "quitmessage"))
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
-			elif msg == '!unloadirc' and not self.irc is None:
+			elif msg == '!unloadirc' and not self.irc is None and config.getint("webserver", "enabled")==1:
 				self.irc.stop()
 				self.irc = None
 				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		
-		if msg == '!loadirc' and self.irc is None:
+		if msg == '!loadirc' and self.irc is None and config.getint("irc", "enabled")==1:
 			self.irc = IRC(network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!showplayers':
 			for client in self.playerlist:
 				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
-		elif msg == '!startwebserver':
+		elif msg == '!startwebserver' and config.getint("webserver", "enabled")==1:
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
 			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!stopwebserver':
+		elif msg == '!stopwebserver' and config.getint("webserver", "enabled")==1:
 			if self.webserver:
 				self.webserver.stop()
 				self.webserver = None
@@ -344,10 +344,16 @@ class SpectatorClient(Client):
 					if not self.irc is None:
 						#check if there are msgs in the IRC to say
 						for msg in self.irc.getSaid():
-							msgtxt = "%s: %s" % (msg[0], msg[1])
-							self.sendChat(msgtxt, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
-							if msg[1].strip().startswith("!"):
-								self.processCommand(msg[1].strip())
+							nickname, msgtxt, type = msg
+							if type == 0:
+								#normal chat
+								txt_res = "%s: %s" % (nickname, msgtxt)
+							elif type == 1:
+								# action
+								txt_res = "%s %s" % (nickname, msgtxt)
+							self.sendChat(txt_res, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
+							if msgtxt.strip().startswith("!"):
+								self.processCommand(msgtxt.strip())
 						
 
 def printUsage():
