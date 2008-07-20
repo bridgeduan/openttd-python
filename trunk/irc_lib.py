@@ -111,7 +111,7 @@ class IRC(threading.Thread):
 			try:
 				data = irc.recv ( 4096 )
 			except:
-				pass
+				continue
 			if len(data.strip()) == 0:
 				continue
 			
