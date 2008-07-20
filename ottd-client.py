@@ -316,6 +316,7 @@ class SpectatorClient(Client):
 									msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
 								else:
 									handlecommand = False
+									msg = ""
 								if handlecommand:
 									self.processCommand(msg)
 								
