@@ -27,7 +27,7 @@ class SpectatorClient(Client):
 		
 		
 		
-	def sendChat(self, msg, player = -1, type=NETWORK_ACTION_CHAT, relayToIRC=True):
+	def sendChat(self, msg, player = -1, type=NETWORK_ACTION_CHAT, relayToIRC=False):
 		payload = packExt('bbHz', type, DESTTYPE_BROADCAST, 0, msg)
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
