@@ -1,5 +1,6 @@
 import socket, time, threading, copy
 from log import *
+from ottd_config import *
 
 class IRCSendThread(threading.Thread):
 	"""
@@ -152,7 +153,8 @@ class IRC(threading.Thread):
 			
 			if data.strip() != "":
 				LOG.debug("IRC| %s" % data)		
-		self.irc.send ( 'QUIT bot shutting down...\r\n')
+		
+		self.irc.send ( 'QUIT :%s\r\n'%config.get("irc", "quitmessage"))
 		self.irc.close()
 		
 	def say(self, msg, type):
