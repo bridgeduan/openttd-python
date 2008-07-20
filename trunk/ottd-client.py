@@ -90,9 +90,12 @@ class SpectatorClient(Client):
 			self.irc = None
 			self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 	
+	def handlePacket(self, command, content):
+		
+
 	def joinGame(self):
 		#construct join packet
-		cversion = "r13679" # 0.6.1
+		cversion = "norev000" # 0.6.1
 		#cversion = "r13683"
 		playername = "ottd-bot"
 		password = 'citrus'
@@ -103,8 +106,8 @@ class SpectatorClient(Client):
 		payload_size = len(payload)
 		#print "buffer size: %d" % payload_size
 		self.sendMsg(PACKET_CLIENT_JOIN, payload_size, payload, type=M_TCP)
-		runCond=True
-		while runCond:
+		self.runCond=True
+		while self.runCond:
 			size, command, content = self.receiveMsg_TCP()
 			LOG.debug("got command %s" % packet_names[command])
 			if command == PACKET_SERVER_CHECK_NEWGRFS:
@@ -132,10 +135,14 @@ class SpectatorClient(Client):
 					self.sendMsg(PACKET_CLIENT_PASSWORD, payload_size, payload, type=M_TCP)
 				else:
 					LOG.info("server is password protected, but no pass provided, exiting!")
-					runCond=False
+					self.runCond=False
 				
 			elif command == PACKET_SERVER_WELCOME:
 				LOG.info("yay, we are on the server :D (getting the map now ...)")
+				
+				res, size = unpackExt('HIz', content)
+				if not res is None:
+					self.client_id = res[0]
 				
 				self.socket_tcp.settimeout(600000000)
 				
@@ -144,6 +151,9 @@ class SpectatorClient(Client):
 				mapsize_done = 0
 				while not downloadDone:
 					size, command, content = self.receiveMsg_TCP()
+					
+					# first check if it is a command we need to run
+					self.handlePacket(command, content)
 					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
@@ -179,12 +189,13 @@ class SpectatorClient(Client):
 				self.sendChat("hey i am a bot :|")
 				
 				# auto start IRC
-				self.processCommand("!loadirc")
+				#self.processCommand("!loadirc")
 				
 				ignoremsgs = []
-				while runCond:
+				while self.runCond:
 					size, command, content = self.receiveMsg_TCP()
 					#print content
+					self.handlePacket(command, content)
 					if command == PACKET_SERVER_FRAME:
 						self.frame_server, self.frame_max = struct.unpack_from('II', content)
 						#if self.debug:
