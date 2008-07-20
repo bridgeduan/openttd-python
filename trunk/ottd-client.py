@@ -227,6 +227,9 @@ class SpectatorClient(Client):
 					# first check if it is a command we need to run
 					self.handlePacket(command, content)
 					
+					if command == PACKET_SERVER_WAIT:
+						# wait in line :)
+					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
 						command2 = struct.unpack_from('B', content[offset:])[0]
@@ -310,6 +313,10 @@ class SpectatorClient(Client):
 								elif actionid == NETWORK_ACTION_CHAT_CLIENT:
 									handlecommand = True
 									msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
+								else:
+									handlecommand = False
+								if handlecommand:
+									self.processCommand(msg)
 								
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
 									self.irc.say(msgtxt)
