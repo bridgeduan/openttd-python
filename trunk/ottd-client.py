@@ -182,7 +182,7 @@ class SpectatorClient(Client):
 				self.processCommand("!loadirc")
 				
 				ignoremsgs = []
-				while 1:
+				while runCond:
 					size, command, content = self.receiveMsg_TCP()
 					#print content
 					if command == PACKET_SERVER_FRAME:
@@ -210,22 +210,16 @@ class SpectatorClient(Client):
 							LOG.debug("got command: %s, %s, %s" % (res[0].__str__(), command_names[res[1]].__str__(), res.__str__()))
 
 					if command == PACKET_SERVER_CHAT:
-						"""
-						//    uint8:  ActionID (see network_data.h, NetworkAction)
-						//    uint8:  Destination Type (see network_data.h, DestType);
-						//    uint16: Destination Player
-						//    String: Message (max MAX_TEXT_MSG_LEN)
-						"""
-						res, size = unpackExt('BHz', content)
-						print res
-						#if not res is None:
-						#	actionid = res[0]
-						#	msg = res[3]
-						#	if actionid == NETWORK_ACTION_CHAT:
-						#		self.processCommand(msg)
-						#		#msgtxt = "%s: %s" % (self.playerlist[res[2]][0], msg)
-						#		if not self.irc is None and len(msg) >0 and msg[0] != '|':
-						#			self.irc.say(msg)
+						res, size = unpackExt('bbHz', content)
+						if not res is None:
+							palyerid, actionid, msg = res
+							actionid = res[0]
+							msg = res[3]
+							if actionid == NETWORK_ACTION_CHAT:
+								self.processCommand(msg)
+								msgtxt = "%s: %s" % (self.playerlist[res[2]][0], msg)
+								if not self.irc is None and len(msg) >0 and msg[0] != '|':
+									self.irc.say(msg)
 
 						LOG.debug(res.__str__())
 						
