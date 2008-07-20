@@ -57,6 +57,10 @@ class SpectatorClient(Client):
 		LOG.debug("processing command '%s'" % msg)
 		if msg == "!ping":
 			self.sendChat("pong!")
+		if msg == "!ding":
+			self.sendChat("dong!")
+		if msg == "!pong":
+			self.sendChat("ping!")
 		elif msg == "!frame":
 			self.sendChat("we are at frame number %d" % self.frame_server)
 		elif msg == "!time":
@@ -317,6 +321,8 @@ class SpectatorClient(Client):
 								else:
 									handlecommand = False
 									msg = ""
+								if not msg.startswith("!") == True:
+									handlecommand = False
 								if handlecommand:
 									self.processCommand(msg)
 								
@@ -330,7 +336,8 @@ class SpectatorClient(Client):
 						for msg in self.irc.getSaid():
 							msgtxt = "%s: %s" % (msg[0], msg[1])
 							self.sendChat(msgtxt, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
-							self.processCommand(msg[1].strip())
+							if msg[1].strip().startswith("!") == True:
+								self.processCommand(msg[1].strip())
 						
 
 def printUsage():
