@@ -44,7 +44,7 @@ class IRCSendThread(threading.Thread):
 				txt = msg[0]
 				type = msg[1]
 				if type == 1:
-					self.socket.send ('PRIVMSG %s :\001ACTION %s\001\r\n'%(self.channel, txt))
+					self.socket.send ('PRIVMSG %s :\001ACTION | %s\001\r\n'%(self.channel, txt))
 				else:
 					self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, txt))
 
@@ -137,6 +137,10 @@ class IRC(threading.Thread):
 				if pp != -1:
 					nickname = data[1:data.find("!")]
 					msg = data[pp+len("PRIVMSG %s :"%self.channel):].strip()
+					if msg.startswith("\001ACTION"):
+						msg = msg.replace("\001", "")
+						msg = msg.replace("ACTION", "")
+						msg = msg.strip()
 					self.in_queue.append((nickname, msg))
 			
 			if data.strip() != "":
