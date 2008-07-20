@@ -21,7 +21,7 @@ class IRCSendThread(threading.Thread):
 		self.status=False
 		self.runCond=True
 		threading.Thread.__init__(self)
-	
+
 	def run(self):
 		"""
 		thread entry point, called with start()
@@ -29,12 +29,19 @@ class IRCSendThread(threading.Thread):
 		LOG.debug("send thread started ...")
 		while self.runCond:
 			time.sleep(0.5)
-			if self.status:
-				#print "checking: %d" %(len(self.out_queue))
-				for msg in self.out_queue:
-					self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, msg))
-					time.sleep(0.2)
-				self.out_queue = []
+			self.dequeue()
+			#print "checking: %d" %(len(self.out_queue))
+	
+	def dequeue(self):
+		# todo: add real flow control checking
+		if self.status:
+			for msg in self.out_queue:
+				time.sleep(0.2)
+				self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, msg))
+			self.out_queue = []
+
+	
+		
 
 
 class IRC(threading.Thread):
@@ -62,12 +69,14 @@ class IRC(threading.Thread):
 		self.channel=channel
 		self.sendThread = None
 		threading.Thread.__init__(self)
-	
+
 	def stop(self):
 		"""
 		this disconnects from IRC
 		@todo: add proper disconnectionm, atm its only timing out
 		"""
+		if self.sendThread:
+			self.sendThread.dequeue()
 		self.runCond = False
 		
 	def run(self):
