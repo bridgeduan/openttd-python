@@ -114,7 +114,7 @@ class SpectatorClient(Client):
 				self.webserver = None
 				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
 
-	def DispatchEvent(self, message):
+	def dispatchEvent(self, message):
 		if not self.irc is None:
 			self.irc.say(message)
 		LOG.info(message)
@@ -126,13 +126,13 @@ class SpectatorClient(Client):
 				if res[0] == self.client_id:
 					self.runCond = False
 			if res[0] in self.playerlist:
-				self.DispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], res[1]))
+				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], res[1]))
 				del self.playerlist[res[0]]
 		if command == PACKET_SERVER_ERROR:
 			res = struct.unpack_from('B', content, 0)
 			if not res is None:
 				if res in error_names.keys():
-					self.DispatchEvent("Disconnected from server: %s" % error_names[res][1])
+					self.dispatchEvent("Disconnected from server: %s" % error_names[res][1])
 			self.runCond = False
 		if command == PACKET_SERVER_ERROR_QUIT:
 			res = unpackExt('HB', content)
@@ -141,7 +141,7 @@ class SpectatorClient(Client):
 					self.doingloop = False
 					LOG.info("Disconnected from server")
 				if res[0] in self.playerlist:
-					self.DispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], error_names[res[1]][1]))
+					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], error_names[res[1]][1]))
 					del self.playerlist[res[0]]
 
 		if command == PACKET_SERVER_CLIENT_INFO:
@@ -152,17 +152,17 @@ class SpectatorClient(Client):
 					self.playas = res[1]
 				if res[0] in self.playerlist:
 					if res[2] != self.playerlist[res[0]][0]:
-						self.DispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]][0], res[2]))
+						self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]][0], res[2]))
 					if res[1] != self.playerlist[res[0]][1]:
-						self.DispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]][0], res[1]))
+						self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]][0], res[1]))
 				self.playerlist[res[0]] = [res[2], res[1]]
 		if command == PACKET_SERVER_JOIN:
 			res = struct.unpack_from('H', content, 0)[0]
 			if res in self.playerlist:
-				self.DispatchEvent("%s has joined the game" % self.playerlist[res][0])
+				self.dispatchEvent("%s has joined the game" % self.playerlist[res][0])
 		
 		if command == PACKET_SERVER_SHUTDOWN:
-			self.DispatchEvent("Server shutting down...have a nice day!")
+			self.dispatchEvent("Server shutting down...have a nice day!")
 			self.runCond = False
 
 	def joinGame(self):
@@ -293,13 +293,24 @@ class SpectatorClient(Client):
 							actionid = res[0]
 							playerid = res[1] # possibly wrong!
 							msg = res[3]
-							self_send = (playerid == self.client_id)
-							if actionid == NETWORK_ACTION_CHAT:
-								self.processCommand(msg)
-								if playerid in self.playerlist:
-									msgtxt = "%s: %s" % (self.playerlist[playerid][0], msg)
-								else:
-									msgtxt = "Unknown player: " + msg
+							self_sent = (playerid == self.client_id)
+							if playerid in self.playerlist:
+								player_name = self.playerlist[playerid][0]
+								
+								if actionid == NETWORK_ACTION_CHAT:
+									if self_sent:
+										handlecommand = False
+										msgtxt = msg
+									else:
+										handlecommand = True
+										msgtxt = "%s: %s" % (player_name, msg)
+								elif actionid == NETWORK_ACTION_CHAT_COMPANY:
+									handlecommand = True
+									msgtxt = "[Team] %s: %s" % (player_name, msg)
+								elif actionid == NETWORK_ACTION_CHAT_CLIENT:
+									handlecommand = True
+									msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
+								
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
 									self.irc.say(msgtxt)
 
