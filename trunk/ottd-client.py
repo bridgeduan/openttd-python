@@ -34,7 +34,7 @@ class SpectatorClient(Client):
 		if relayToIRC and self.irc:
 			self.irc.say(msg)
 		
-	def sendCommand(self, player, command):
+	def sendCommand(self, command):
 		"""
 		//    uint8:  PlayerID (0..MAX_PLAYERS-1)
 		//    uint32: CommandID (see command.h)
@@ -49,6 +49,7 @@ class SpectatorClient(Client):
 		tile = 2000
 		text = "test123"
 		cbid=0
+		player = self.playas
 		payload = packExt('bIIIIzB', player, command, p1, p2, tile, text, cbid)
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_COMMAND, payload_size, payload, type=M_TCP)
@@ -81,6 +82,10 @@ class SpectatorClient(Client):
 		elif msg == "!test5":
 			CMD_PLACE_SIGN = 60
 			self.sendCommand(CMD_PLACE_SIGN, 0)
+		elif msg == "!test6":
+			self.sendChat("Leaving", type=NETWORK_ACTION_LEAVE)
+		elif msg == "!test7":
+			self.sendChat("Joining", type=NETWORK_ACTION_JOIN)
 		elif msg == '!loadirc' and self.irc is None:
 			self.irc = IRC(network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
@@ -276,6 +281,7 @@ class SpectatorClient(Client):
 							actionid = res[0]
 							playerid = res[1] # possibly wrong!
 							msg = res[3]
+							self_send = (playerid == self.client_id)
 							if actionid == NETWORK_ACTION_CHAT:
 								self.processCommand(msg)
 								if playerid in self.playerlist:
