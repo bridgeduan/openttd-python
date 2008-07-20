@@ -22,6 +22,9 @@ class IRCSendThread(threading.Thread):
 		self.runCond=True
 		threading.Thread.__init__(self)
 
+	def __del__(self):
+		self.runCond = False
+		
 	def run(self):
 		"""
 		thread entry point, called with start()
@@ -37,7 +40,14 @@ class IRCSendThread(threading.Thread):
 		if self.status:
 			for msg in self.out_queue:
 				time.sleep(0.2)
-				self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, msg))
+				
+				txt = msg[0]
+				type = msg[1]
+				if type == 1:
+					self.socket.send ('PRIVMSG %s :\001ACTION %s\001\r\n'%(self.channel, txt))
+				else:
+					self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, txt))
+
 			self.out_queue = []
 
 	
@@ -133,7 +143,7 @@ class IRC(threading.Thread):
 				LOG.debug("IRC| %s" % data)
 		irc.close()
 		
-	def say(self, msg):
+	def say(self, msg, type):
 		"""
 		called to sent something to IRC
 		@type  msg: string
@@ -141,7 +151,7 @@ class IRC(threading.Thread):
 		"""
 		if self.sendThread:
 			LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
-			self.sendThread.out_queue.append(msg)
+			self.sendThread.out_queue.append((msg, type))
 		
 	def getSaid(self):
 		"""
