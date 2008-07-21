@@ -348,8 +348,45 @@ class SpectatorClient(Client):
 
 						
 					if command == PACKET_SERVER_COMMAND:
-						res, size = unpackExt('bIIIIzB', content)
-						#print res
+						offset = 0
+						player = unpackFromExt('B', content, offset)[0]
+						offset += struct.calcsize('B')
+
+						command2 = unpackFromExt('I', content, offset)[0]
+						offset += struct.calcsize('I')
+						
+						p1 = unpackFromExt('I', content, offset)[0]
+						offset += struct.calcsize('I')
+						
+						p2 = unpackFromExt('I', content, offset)[0]
+						offset += struct.calcsize('I')
+
+						tile = unpackFromExt('I', content, offset)[0]
+						offset += struct.calcsize('I')
+
+						text = ''
+						#text = unpackFromExt('z', content, offset)[0]
+						#offset += struct.calcsize('z')
+						
+						callback = unpackFromExt('B', content, offset)[0]
+						offset += struct.calcsize('B')
+
+						frame = unpackFromExt('I', content, offset)[0]
+						offset += struct.calcsize('I')
+						
+						my_cmd = unpackFromExt('B', content, offset)[0]
+						offset += struct.calcsize('B')
+						
+						commandid = command2 & 0xff
+						#print commandid
+						if commandid in command_names.keys():
+							LOG.debug("got command: %d(%s) from company %d" % (commandid, command_names[commandid].__str__(), player))
+
+						print player, command2, p1, p2, tile, text, callback, frame, my_cmd
+						
+						"""
+						res, size = unpackExt('BIIIIzB', content)
+						print res
 						if res[0] >= 0 and res[0] < MAX_COMPANIES:
 							mytime = time.time()
 							for c in self.playerlist.keys():
@@ -359,8 +396,7 @@ class SpectatorClient(Client):
 									self.playerlist[c]['lastactive'] = mytime
 									
 							#LOG.info("command %d from company %d"%self.playerlist[playerid]['name'])
-						if res[1] in command_names.keys():
-							LOG.debug("got command: %s, %s, %s" % (res[0].__str__(), command_names[res[1]].__str__(), res.__str__()))
+						"""
 
 					if command == PACKET_SERVER_CHAT:
 						res, size = unpackExt('bbHz', content)

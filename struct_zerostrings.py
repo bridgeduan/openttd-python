@@ -39,6 +39,7 @@ def packExt(fmt, *args):
 
 # like unpack_from just with extension, this also enables you to use something unpack_from equivalent in python 2.4
 def unpackFromExt(fmt, buffer, offset=0):
+	#todo clac size of zero string correctly!
 	size = struct.calcsize(fmt)
 	buf = buffer[offset:offset+size]
 	return unpackExt(fmt, buf)
