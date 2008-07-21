@@ -266,6 +266,8 @@ class SpectatorClient(Client):
 				self.sendMsg(PACKET_CLIENT_NEWGRFS_CHECKED, type=M_TCP)
 				
 			elif command == PACKET_SERVER_NEED_PASSWORD:
+				[type,seed,uniqueid], size = unpackExt('BIz', content)
+				LOG.info([type,seed,uniqueid])
 				if self.password != '':
 					LOG.info("server is password protected, sending password ...")
 					payload = packExt('Bz', NETWORK_GAME_PASSWORD, self.password)
