@@ -129,6 +129,9 @@ class SpectatorClient(Client):
 				payload = packExt('z', config.get("openttd", "quitmessage"))
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+			elif command == 'reloadconfig':
+				LoadConfig()
+				self.dispatchEvent("Reloading config file...")
 			elif command == 'unloadirc' and not self.irc is None:
 				self.irc.stop()
 				self.irc = None
