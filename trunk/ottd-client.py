@@ -238,7 +238,7 @@ class SpectatorClient(Client):
 		#cversion = "r13683"
 		self.playername =  config.get("openttd", "nickname")
 		password = 'citrus'
-		self.playas = PLAYER_SPECTATOR
+		self.playas = 0
 		language = NETLANG_ANY
 		network_id =  config.get("openttd", "uniqueid")
 		payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
@@ -273,11 +273,18 @@ class SpectatorClient(Client):
 						payload = packExt('Bz', NETWORK_GAME_PASSWORD, self.password)
 						payload_size = len(payload)
 						self.sendMsg(PACKET_CLIENT_PASSWORD, payload_size, payload, type=M_TCP)
-					elif type == NETWORK_COMPANY_PASSWORD:
+					else:
 						LOG.info("server is password protected, but no pass provided, exiting!")
 						self.runCond=False
-				else:
-					LOG.info("company is password protected, which isn't supported, exiting!")
+				elif type == NETWORK_COMPANY_PASSWORD:
+					#if self.password != '':
+					#salted_password=""
+					#for i in range(1,32):
+					#	salted_password[i] ^= uniqueid[i] ^ (seed >> i)
+					#	LOG.info(i)
+					#LOG.info(salted_password)
+					#else:
+					LOG.info("company is password protected, not supported, exiting!")
 					self.runCond=False
 
 				
