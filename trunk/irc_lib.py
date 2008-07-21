@@ -36,7 +36,7 @@ class IRCSendThread(threading.Thread):
 		while self.runCond:
 			time.sleep(0.5)
 			self.dequeue()
-			#print "checking: %d" %(len(self.out_queue))
+			# "checking: %d" %(len(self.out_queue))
 	
 	def dequeue(self):
 		# todo: add real flow control checking
@@ -49,7 +49,7 @@ class IRCSendThread(threading.Thread):
 				if type == 1:
 					self.socket.send ('PRIVMSG %s :\001ACTION | %s\001\r\n'%(self.channel, txt))
 				else:
-					print type, txt
+					#print type, txt
 					txt_out = 'PRIVMSG %s :%s\r\n'%(self.channel, txt)
 					if self.usecolors and type == 0 and txt.find(":")>=0:
 						nickname = txt[:txt.find(":")].strip()
@@ -57,14 +57,13 @@ class IRCSendThread(threading.Thread):
 						found=False
 						for nick in self.client.playerlist.values():
 							#print nick
-							if str(nick[0]).lower().strip() == nickname.lower().strip():
+							if str(nick['name']).lower().strip() == nickname.lower().strip():
 								found=True
 								break
 						if found:
 							txt_out = 'PRIVMSG %s :\x032%s\x031: \x033%s\r\n'%(self.channel, nickname, usrmsg)
 					LOG.debug("sent to irc server: %s"%txt_out)
 					self.socket.send (txt_out)
-					
 
 			self.out_queue = []
 
