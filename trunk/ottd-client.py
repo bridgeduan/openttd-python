@@ -382,7 +382,7 @@ class SpectatorClient(Client):
 						if commandid in command_names.keys():
 							LOG.debug("got command: %d(%s) from company %d" % (commandid, command_names[commandid].__str__(), player))
 
-						print player, command2, p1, p2, tile, text, callback, frame, my_cmd
+						#print player, command2, p1, p2, tile, text, callback, frame, my_cmd
 						
 						"""
 						res, size = unpackExt('BIIIIzB', content)
@@ -432,7 +432,7 @@ class SpectatorClient(Client):
 								if not self.irc is None and len(msg) >0 and msg[0] != '|':
 									self.dispatchEvent(msgtxt)
 
-						LOG.debug(res.__str__())
+						#LOG.debug(res.__str__())
 						
 					if not self.irc is None:
 						#check if there are msgs in the IRC to say
