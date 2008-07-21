@@ -184,14 +184,12 @@ class SpectatorClient(Client):
 	
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
-			res, size = unpackExt('Hz', content)
-			if not res is None:
-				
-				if res[0] == self.client_id:
-					self.runCond = False
-				if res[0] in self.playerlist:
-					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], res[1]), 1)
-					del self.playerlist[res[0]]
+			[cid, msg], size = unpackExt('Hz', content)
+			if cid == self.client_id:
+				self.runCond = False
+			if cid in self.playerlist:
+				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[cid]['name'], msg), 1)
+				del self.playerlist[cid]
 		
 		elif command == PACKET_SERVER_ERROR:
 			[errornum], size = unpackFromExt('B', content, 0)
@@ -200,15 +198,13 @@ class SpectatorClient(Client):
 			self.runCond = False
 		
 		elif command == PACKET_SERVER_ERROR_QUIT:
-			res = unpackExt('HB', content)
-			if not res is None:
-				
-				if res[0] == self.client_id:
-					self.doingloop = False
-					LOG.info("Disconnected from server")
-				if res[0] in self.playerlist:
-					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], error_names[res[1]][1]), 1)
-					del self.playerlist[res[0]]
+			[cid, errornum] = unpackExt('HB', content)
+			if cid == self.client_id:
+				self.doingloop = False
+				LOG.info("Disconnected from server")
+			if cid in self.playerlist:
+				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[cid]['name'], error_names[errornum][1]), 1)
+				del self.playerlist[cid]
 
 		elif command == PACKET_SERVER_CLIENT_INFO:
 			[cid, playas, name], size = unpackExt('HBz', content)
@@ -282,10 +278,7 @@ class SpectatorClient(Client):
 			elif command == PACKET_SERVER_WELCOME:
 				LOG.info("yay, we are on the server :D (getting the map now ...)")
 				
-				res, size = unpackExt('HIz', content)
-				if not res is None:
-					
-					self.client_id = res[0]
+				[self.client_id, self.generation_seed, self.servernetworkid], size = unpackExt('HIz', content)
 				
 				self.socket_tcp.settimeout(600000000)
 				
