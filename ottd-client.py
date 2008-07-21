@@ -74,15 +74,18 @@ class SpectatorClient(Client):
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
-		if config.has_option('irccommands', msg[1:]):
-			self.sendChat(config.get('irccommands', msg[1:]))
-		elif msg == "!frame":
+		if not msg.startswith(config.get("main", "commandprefix")):
+			return
+		command = msg[1:]
+		if config.has_option('irccommands', command):
+			self.sendChat(config.get('irccommands', command))
+		elif command == "frame":
 			self.sendChat("we are at frame number %d" % self.frame_server)
-		elif msg == "!time":
+		elif command == "time":
 			self.sendChat(time.ctime().__str__())
-		elif msg in ["!address", '!port', '!ip']:
+		elif command in ["address", 'port', 'ip']:
 			self.sendChat("%s:%d"%(self.ip, self.port))
-		elif msg == "!activeplayers":
+		elif command == "activeplayers":
 			#clients = []
 			mytime = time.time()
 			counter = 0
@@ -99,59 +102,59 @@ class SpectatorClient(Client):
 		
 		if not config.getboolean("main", "productive"):
 			#remove useless commands
-			if msg == "!test1":
+			if command == "test1":
 				payload = packExt('bbHz', NETWORK_ACTION_NAME_CHANGE, DESTTYPE_BROADCAST, 0, "foobar")
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-			elif msg == "!test2":
+			elif command == "test2":
 				payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "1783424")
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-			elif msg == "!test3":
+			elif command == "test3":
 				payload = packExt('bbHz', NETWORK_ACTION_GIVE_MONEY, DESTTYPE_BROADCAST, 0, "-1783424534")
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-			elif msg == "!test4":
+			elif command == "test4":
 				payload = packExt('bbHz', NETWORK_ACTION_SERVER_MESSAGE, DESTTYPE_BROADCAST, 0, "I AM IMPOSING THE SERVER PIEP PIEP")
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-			elif msg == "!test5":
+			elif command == "test5":
 				CMD_PLACE_SIGN = 60
 				self.sendCommand(CMD_PLACE_SIGN, 0)
-			elif msg == "!test6":
+			elif command == "test6":
 				self.sendChat("Leaving", type=NETWORK_ACTION_LEAVE)
-			elif msg == "!test7":
+			elif command == "test7":
 				self.sendChat("Joining", type=NETWORK_ACTION_JOIN)
-			elif msg == '!quit':
+			elif command == 'quit':
 				payload = packExt('z', config.get("openttd", "quitmessage"))
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
-			elif msg == '!unloadirc' and not self.irc is None:
+			elif command == 'unloadirc' and not self.irc is None:
 				self.irc.stop()
 				self.irc = None
 				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		
-		if msg == '!loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
+		if command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
 			self.irc = IRC(self, network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!showplayers':
+		elif command == 'showplayers':
 			for clientid in self.playerlist.keys():
 				self.sendChat("Client #%d: %s, playing in company %d" % (clientid, self.playerlist[clientid]['name'], self.playerlist[clientid]['company']))
-		elif msg == '!startwebserver' and config.getboolean("main", "enablewebserver"):
+		elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
 			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!stopwebserver':
+		elif command == 'stopwebserver':
 			if self.webserver:
 				self.webserver.stop()
 				self.webserver = None
 				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
 
 		# cases not using if/elif
-		if msg.startswith("!lastactive") and len(msg) >12:
-			arg = msg[12:]
+		if command.startswith("lastactive") and len(command) >11:
+			arg = command[11:]
 			companyid=-1
 			if len(arg)<3:
 				companyid = int(arg)
@@ -329,7 +332,7 @@ class SpectatorClient(Client):
 				
 				# auto start IRC
 				if config.getboolean("irc", "autojoin"):
-					self.processCommand("!loadirc")
+					self.processCommand(config.get("main", "commandprefix") + "loadirc")
 				
 				ignoremsgs = []
 				while self.runCond:
@@ -432,8 +435,6 @@ class SpectatorClient(Client):
 								else:
 									handlecommand = False
 									msg = ""
-								if not msg.startswith("!"):
-									handlecommand = False
 								if handlecommand:
 									self.processCommand(msg)
 								
@@ -453,8 +454,7 @@ class SpectatorClient(Client):
 								# action
 								txt_res = "%s %s" % (nickname, msgtxt)
 							self.sendChat(txt_res, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
-							if msgtxt.strip().startswith("!"):
-								self.processCommand(msgtxt.strip())
+							self.processCommand(msgtxt.strip())
 						
 
 def printUsage():
