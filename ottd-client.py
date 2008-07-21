@@ -211,19 +211,16 @@ class SpectatorClient(Client):
 					del self.playerlist[res[0]]
 
 		elif command == PACKET_SERVER_CLIENT_INFO:
-			res, size = unpackExt('HBz', content)
-			if not res is None:
-				print res
-				
-				if res[0] == self.client_id:
-					self.playername = res[2]
-					self.playas = res[1]
-				if res[0] in self.playerlist:
-					if res[2] != self.playerlist[res[0]]['name']:
-						self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]]['name'], res[2]), 1)
-					if res[1] != self.playerlist[res[0]]['company']:
-						self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]]['name'], res[1]), 1)
-				self.playerlist[res[0]] = {'name':res[2], 'company':res[1], 'lastactive':-1}
+			[cid, playas, name], size = unpackExt('HBz', content)
+			if cid == self.client_id:
+				self.playername = name
+				self.playas = playas
+			if cid in self.playerlist:
+				if name != self.playerlist[cid]['name']:
+					self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[cid]['name'], name), 1)
+				if playas != self.playerlist[cid]['company']:
+					self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas, 1))
+			self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1}
 		
 		elif command == PACKET_SERVER_JOIN:
 			[playerid], size = unpackFromExt('H', content, 0)
@@ -389,9 +386,7 @@ class SpectatorClient(Client):
 							
 	
 					if command == PACKET_SERVER_CHAT:
-						res = unpackExt('bbHz', content)
-						print res
-						[actionid, playerid, unused, msg], size = res
+						[actionid, playerid, unused, msg], size = unpackExt('bbHz', content)
 						self_sent = (playerid == self.client_id)
 						if playerid in self.playerlist:
 							player_name = self.playerlist[playerid]['name']
