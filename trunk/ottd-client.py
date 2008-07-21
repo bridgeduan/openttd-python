@@ -81,13 +81,18 @@ class SpectatorClient(Client):
 			counter = 0
 			for clientid in self.playerlist.keys():
 				this_time = mytime - self.playerlist[clientid]['lastactive']
-				if this_time < 60:
+				if this_time < 60*5:
 					counter+=1
+					players = []
+					for clientid2 in self.playerlist.keys():
+						if self.playerlist[clientid2]['company'] == self.playerlist[clientid]['company']:
+							players.append(self.playerlist[clientid2]['name'])
+					playerstr = ", ".join(players)
 					timestr = "%d seconds ago" % (this_time)
-					self.sendChat("company %d last active: %s"%(self.playerlist[clientid]['company'], timestr))
+					self.sendChat("company %d (%s) last active: %s"%(self.playerlist[clientid]['company'], playerstr, timestr))
 				#clients.append[this_time] = self.playerlist[clientid]
 			if counter == 0:
-				self.sendChat("no companies actively playing"))
+				self.sendChat("no companies actively playing in the last 5 minutes")
 		
 		if config.getint("main", "productive") == 0:
 			#remove useless commands
@@ -345,10 +350,12 @@ class SpectatorClient(Client):
 					if command == PACKET_SERVER_COMMAND:
 						res, size = unpackExt('bIIIIzB', content)
 						#print res
-						if res[0] > 0 and res[0] < MAX_COMPANIES:
+						if res[0] >= 0 and res[0] < MAX_COMPANIES:
 							mytime = time.time()
 							for c in self.playerlist.keys():
+								#print res[0], self.playerlist[c]
 								if self.playerlist[c]['company'] == res[0]:
+									#print 'updated', self.playerlist[c]['name']
 									self.playerlist[c]['lastactive'] = mytime
 									
 							#LOG.info("command %d from company %d"%self.playerlist[playerid]['name'])
