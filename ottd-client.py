@@ -75,6 +75,19 @@ class SpectatorClient(Client):
 			self.sendChat(time.ctime().__str__())
 		elif msg in ["!address", '!port', '!ip']:
 			self.sendChat("%s:%d"%(self.ip, self.port))
+		elif msg == "!activeplayers":
+			#clients = []
+			mytime = time.time()
+			counter = 0
+			for clientid in self.playerlist.keys():
+				this_time = mytime - self.playerlist[clientid]['lastactive']
+				if this_time < 60:
+					counter+=1
+					timestr = "%d seconds ago" % (this_time)
+					self.sendChat("company %d last active: %s"%(self.playerlist[clientid]['company'], timestr))
+				#clients.append[this_time] = self.playerlist[clientid]
+			if counter == 0:
+				self.sendChat("no companies actively playing"))
 		
 		if config.getint("main", "productive") == 0:
 			#remove useless commands
@@ -115,8 +128,8 @@ class SpectatorClient(Client):
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!showplayers':
-			for client in self.playerlist:
-				self.sendChat("Client #%d: %s, playing in company %d" % (client, self.playerlist[client][0], self.playerlist[client][1]))
+			for clientid in self.playerlist.keys():
+				self.sendChat("Client #%d: %s, playing in company %d" % (clientid, self.playerlist[clientid]['name'], self.playerlist[clientid]['company']))
 		elif msg == '!startwebserver' and config.getint("webserver", "enabled")==1:
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
@@ -128,7 +141,29 @@ class SpectatorClient(Client):
 				self.webserver = None
 				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
 
-
+		# cases not using if/elif
+		if msg.startswith("!lastactive") and len(msg) >12:
+			arg = msg[12:]
+			companyid=-1
+			if len(arg)<3:
+				companyid = int(arg)
+			else:
+				for clientid in self.playerlist.keys():
+					if self.playerlist[clientid]['name'].lower().strip() == arg.lower().strip():
+						companyid=self.playerlist[clientid]['company']
+			if companyid == -1:
+				self.sendChat("company unkown")
+			else:
+				ltime = 0
+				for clientid in self.playerlist.keys():
+					if self.playerlist[clientid]['company'] == companyid and self.playerlist[clientid]['lastactive'] > ltime:
+						ltime = self.playerlist[clientid]['lastactive']
+				if ltime <=0:
+					timestr = " unkown"
+				else:
+					timestr = "%d seconds ago" % (time.time()-ltime)
+				self.sendChat("company %d last active: %s"%(companyid, timestr))
+		
 	
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
@@ -137,7 +172,7 @@ class SpectatorClient(Client):
 				if res[0] == self.client_id:
 					self.runCond = False
 			if res[0] in self.playerlist:
-				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], res[1]), 1)
+				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], res[1]), 1)
 				del self.playerlist[res[0]]
 		
 		elif command == PACKET_SERVER_ERROR:
@@ -154,7 +189,7 @@ class SpectatorClient(Client):
 					self.doingloop = False
 					LOG.info("Disconnected from server")
 				if res[0] in self.playerlist:
-					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]][0], error_names[res[1]][1]), 1)
+					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], error_names[res[1]][1]), 1)
 					del self.playerlist[res[0]]
 
 		elif command == PACKET_SERVER_CLIENT_INFO:
@@ -164,16 +199,16 @@ class SpectatorClient(Client):
 					self.playername = res[2]
 					self.playas = res[1]
 				if res[0] in self.playerlist:
-					if res[2] != self.playerlist[res[0]][0]:
-						self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]][0], res[2]), 1)
-					if res[1] != self.playerlist[res[0]][1]:
-						self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]][0], res[1]), 1)
-				self.playerlist[res[0]] = [res[2], res[1]]
+					if res[2] != self.playerlist[res[0]]['name']:
+						self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[res[0]]['name'], res[2]), 1)
+					if res[1] != self.playerlist[res[0]]['company']:
+						self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[res[0]]['name'], res[1]), 1)
+				self.playerlist[res[0]] = {'name':res[2], 'company':res[1], 'lastactive':-1}
 		
 		elif command == PACKET_SERVER_JOIN:
 			res = unpackFromExt('H', content, 0)[0]
 			if res in self.playerlist:
-				self.dispatchEvent("%s has joined the game" % self.playerlist[res][0], 1)
+				self.dispatchEvent("%s has joined the game" % self.playerlist[res]['name'], 1)
 		
 		if command == PACKET_SERVER_SHUTDOWN:
 			self.dispatchEvent("Server shutting down...have a nice day!", 1)
@@ -309,6 +344,14 @@ class SpectatorClient(Client):
 						
 					if command == PACKET_SERVER_COMMAND:
 						res, size = unpackExt('bIIIIzB', content)
+						#print res
+						if res[0] > 0 and res[0] < MAX_COMPANIES:
+							mytime = time.time()
+							for c in self.playerlist.keys():
+								if self.playerlist[c]['company'] == res[0]:
+									self.playerlist[c]['lastactive'] = mytime
+									
+							#LOG.info("command %d from company %d"%self.playerlist[playerid]['name'])
 						if res[1] in command_names.keys():
 							LOG.debug("got command: %s, %s, %s" % (res[0].__str__(), command_names[res[1]].__str__(), res.__str__()))
 
@@ -320,7 +363,7 @@ class SpectatorClient(Client):
 							msg = res[3]
 							self_sent = (playerid == self.client_id)
 							if playerid in self.playerlist:
-								player_name = self.playerlist[playerid][0]
+								player_name = self.playerlist[playerid]['name']
 								
 								if actionid == NETWORK_ACTION_CHAT:
 									if self_sent:

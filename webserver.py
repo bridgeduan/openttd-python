@@ -10,8 +10,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			print cls
 			if not cls is None:
 				playerlist=""
-				for client in cls.playerlist:
-					playerlist+= "Client #%d: %s, playing in company %d\n" % (client, cls.playerlist[client][0], cls.playerlist[client][1])
+				for clientid in cls.playerlist.keys():
+					playerlist+= "Client #%d: %s, playing in company %d\n" % (clientid, cls.playerlist[clientid]['name'], cls.playerlist[clientid]['company'])
 				
 			content= """
 <HTML><BODY>
