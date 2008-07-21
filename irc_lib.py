@@ -184,7 +184,7 @@ class IRC(threading.Thread):
 		@param msg: string to say
 		"""
 		if self.sendThread:
-			LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
+			#LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
 			self.sendThread.out_queue.append((msg, type))
 		
 	def getSaid(self):
