@@ -65,19 +65,23 @@ class SpectatorClient(Client):
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_COMMAND, payload_size, payload, type=M_TCP)
 		
-	def getCompanyString(self, id):
-		players = []
-		for clientid2 in self.playerlist.keys():
-			if self.playerlist[clientid2]['company'] == id:
-				players.append(self.playerlist[clientid2]['name'])
+	def getCompanyString(self, id, withplayers=True):
+		if withplayers:
+			players = []
+			for clientid2 in self.playerlist.keys():
+				if self.playerlist[clientid2]['company'] == id:
+					players.append(self.playerlist[clientid2]['name'])
 		if id == PLAYER_SPECTATOR:
 			companystring = "spectators"
 		else:
 			companystring = "company %d" % (id+1)
-		if len(players) < 4:
-			return "%s (%s)" % (companystring, (", ".join(players)))
+		if withplayers:
+			if len(players) < 4:
+				return "%s (%s)" % (companystring, (", ".join(players)))
+			else:
+				return "%s (%d players)" % (companystring, len(players))
 		else:
-			return "%s (%d players)" % (companystring, len(players))
+			return companystring
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
@@ -150,7 +154,7 @@ class SpectatorClient(Client):
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif command == 'showplayers':
 			for clientid in self.playerlist.keys():
-				self.sendChat("Client #%d: %s, playing in company %d" % (clientid, self.playerlist[clientid]['name'], self.playerlist[clientid]['company']))
+				self.sendChat("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)))
 		elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
