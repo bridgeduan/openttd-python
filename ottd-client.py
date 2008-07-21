@@ -70,7 +70,10 @@ class SpectatorClient(Client):
 		for clientid2 in self.playerlist.keys():
 			if self.playerlist[clientid2]['company'] == id:
 				players.append(self.playerlist[clientid2]['name'])
-		return "company %d (%s)" % (id, (", ".join(players)))
+		if len(players) < 4:
+			return "company %d (%s)" % (id, (", ".join(players)))
+		else:
+			return "company %d (%d players)" % (id, len(players))
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
