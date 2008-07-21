@@ -65,6 +65,13 @@ class SpectatorClient(Client):
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_COMMAND, payload_size, payload, type=M_TCP)
 		
+	def getCompanyString(self, id):
+		players = []
+		for clientid2 in self.playerlist.keys():
+			if self.playerlist[clientid2]['company'] == id:
+				players.append(self.playerlist[clientid2]['name'])
+		return "company %d (%s)" % (id, (", ".join(players)))
+		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
 		if config.has_option('irccommands', msg[1:]):
@@ -83,13 +90,9 @@ class SpectatorClient(Client):
 				this_time = mytime - self.playerlist[clientid]['lastactive']
 				if this_time < 60*5:
 					counter+=1
-					players = []
-					for clientid2 in self.playerlist.keys():
-						if self.playerlist[clientid2]['company'] == self.playerlist[clientid]['company']:
-							players.append(self.playerlist[clientid2]['name'])
-					playerstr = ", ".join(players)
+					compstr = self.getCompanyString(self.playerlist[clientid]['company'])
 					timestr = "%d seconds ago" % (this_time)
-					self.sendChat("company %d (%s) last active: %s"%(self.playerlist[clientid]['company'], playerstr, timestr))
+					self.sendChat("%s last active: %s"%(compstr, playerstr, timestr))
 				#clients.append[this_time] = self.playerlist[clientid]
 			if counter == 0:
 				self.sendChat("no companies actively playing in the last 5 minutes")
@@ -365,8 +368,10 @@ class SpectatorClient(Client):
 						offset += struct.calcsize('I')
 
 						text = ''
-						#text = unpackFromExt('z', content, offset)[0]
-						#offset += struct.calcsize('z')
+						res, size = unpackExt('z', content[offset:])
+						if not res is None:
+							text = res[0]
+							offset += size
 						
 						callback = unpackFromExt('B', content, offset)[0]
 						offset += struct.calcsize('B')
@@ -380,24 +385,27 @@ class SpectatorClient(Client):
 						commandid = command2 & 0xff
 						#print commandid
 						if commandid in command_names.keys():
-							LOG.debug("got command: %d(%s) from company %d" % (commandid, command_names[commandid].__str__(), player))
+							LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, command_names[commandid].__str__(), player, text))
 
 						#print player, command2, p1, p2, tile, text, callback, frame, my_cmd
+	
+						# some example  implementation
+						companystr = self.getCompanyString(player)
+						if commandid == 61: #CMD_RENAME_SIGN
+							self.sendChat("%s renames a sign: '%s'" % (companystr, text) )
+						elif commandid == 46: #CMD_SET_PLAYER_COLOR
+							self.sendChat("%s changed their color"%companystr)
+						elif commandid == 52: #CMD_CHANGE_COMPANY_NAME
+							self.sendChat("%s changed their company name to '%s'"%(companystr, text))
+						elif commandid == 53: #CMD_CHANGE_PRESIDENT_NAME
+							self.sendChat("%s changed their presidents name to '%s'"%(companystr, text))
+						elif commandid == 43: #CMD_BUILD_INDUSTRY
+							self.sendChat("%s built a new industry"%(companystr))
+						elif commandid == 44: #CMD_BUILD_COMPANY_HQ
+							self.sendChat("%s built their new HQ"%(companystr))
 						
-						"""
-						res, size = unpackExt('BIIIIzB', content)
-						print res
-						if res[0] >= 0 and res[0] < MAX_COMPANIES:
-							mytime = time.time()
-							for c in self.playerlist.keys():
-								#print res[0], self.playerlist[c]
-								if self.playerlist[c]['company'] == res[0]:
-									#print 'updated', self.playerlist[c]['name']
-									self.playerlist[c]['lastactive'] = mytime
-									
-							#LOG.info("command %d from company %d"%self.playerlist[playerid]['name'])
-						"""
-
+							
+	
 					if command == PACKET_SERVER_CHAT:
 						res, size = unpackExt('bbHz', content)
 						if not res is None:
