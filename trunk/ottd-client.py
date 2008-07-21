@@ -186,22 +186,23 @@ class SpectatorClient(Client):
 		if command == PACKET_SERVER_QUIT:
 			res, size = unpackExt('Hz', content)
 			if not res is None:
+				
 				if res[0] == self.client_id:
 					self.runCond = False
-			if res[0] in self.playerlist:
-				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], res[1]), 1)
-				del self.playerlist[res[0]]
+				if res[0] in self.playerlist:
+					self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[res[0]]['name'], res[1]), 1)
+					del self.playerlist[res[0]]
 		
 		elif command == PACKET_SERVER_ERROR:
-			res = unpackFromExt('B', content, 0)[0]
-			if not res is None:
-				if res in error_names.keys():
-					self.dispatchEvent("Disconnected from server: %s" % error_names[res][1], 1)
+			[errornum], size = unpackFromExt('B', content, 0)
+			if errornum in error_names.keys():
+				self.dispatchEvent("Disconnected from server: %s" % error_names[errornum][1], 1)
 			self.runCond = False
 		
 		elif command == PACKET_SERVER_ERROR_QUIT:
 			res = unpackExt('HB', content)
 			if not res is None:
+				
 				if res[0] == self.client_id:
 					self.doingloop = False
 					LOG.info("Disconnected from server")
@@ -212,6 +213,8 @@ class SpectatorClient(Client):
 		elif command == PACKET_SERVER_CLIENT_INFO:
 			res, size = unpackExt('HBz', content)
 			if not res is None:
+				print res
+				
 				if res[0] == self.client_id:
 					self.playername = res[2]
 					self.playas = res[1]
@@ -223,9 +226,9 @@ class SpectatorClient(Client):
 				self.playerlist[res[0]] = {'name':res[2], 'company':res[1], 'lastactive':-1}
 		
 		elif command == PACKET_SERVER_JOIN:
-			res = unpackFromExt('H', content, 0)[0]
-			if res in self.playerlist:
-				self.dispatchEvent("%s has joined the game" % self.playerlist[res]['name'], 1)
+			[playerid], size = unpackFromExt('H', content, 0)
+			if playerid in self.playerlist:
+				self.dispatchEvent("%s has joined the game" % self.playerlist[playerid]['name'], 1)
 		
 		if command == PACKET_SERVER_SHUTDOWN:
 			self.dispatchEvent("Server shutting down...have a nice day!", 1)
@@ -255,18 +258,17 @@ class SpectatorClient(Client):
 			LOG.debug("got command %s" % packet_names[command])
 			if command == PACKET_SERVER_CHECK_NEWGRFS:
 				offset = 0
-				grfcount = unpackFromExt('B', content, offset)[0]
-				offset += struct.calcsize('B')
-
+				[grfcount], size = unpackFromExt('B', content, offset)
+				offset += size
 				grfs = []
 				if grfcount != 0:
 					for i in range(0, grfcount):
-						grfid, md5sum = unpackFromExt('4s16s', content[offset:])
-						offset += struct.calcsize('4s16s')
+						[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
+						offset += size
 						grfs.append((grfid, md5sum))
 					LOG.debug("installed grfs (%d):" % len(grfs))
 					for grf in grfs:
-						LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex")))
+						LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].__str__().encode("hex")))
 				LOG.debug("step2 - got installed GRFs, joining ...")
 				self.sendMsg(PACKET_CLIENT_NEWGRFS_CHECKED, type=M_TCP)
 				
@@ -285,6 +287,7 @@ class SpectatorClient(Client):
 				
 				res, size = unpackExt('HIz', content)
 				if not res is None:
+					
 					self.client_id = res[0]
 				
 				self.socket_tcp.settimeout(600000000)
@@ -299,22 +302,21 @@ class SpectatorClient(Client):
 					self.handlePacket(command, content)
 					
 					if command == PACKET_SERVER_WAIT:
-						res = unpackFromExt('B', content)[0]
-						if not res is None:
-							self.dispatchEvent("Waiting for map download...%d in line" % res, 1)
+						[num], res = unpackFromExt('B', content)
+						self.dispatchEvent("Waiting for map download...%d in line" % num, 1)
 					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
-						command2 = unpackFromExt('B', content[offset:])[0]
-						offset += struct.calcsize("B")
+						[command2], size2 = unpackFromExt('B', content[offset:])
+						offset += size2
 						
 						if command2 == MAP_PACKET_START:
 							LOG.info("starting downloading map!")
-							framecounter = unpackFromExt('I', content[offset:])[0]
-							offset += struct.calcsize("I")
+							[framecounter], size2 = unpackFromExt('I', content[offset:])
+							offset += size2
 							
-							position = unpackFromExt('I', content[offset:])[0]
-							offset += struct.calcsize("I")
+							[position], size2 = unpackFromExt('I', content[offset:])
+							offset += size2
 						elif command2 == MAP_PACKET_NORMAL:
 							mapsize_done += size
 							if int(mapsize_done / 1024) % 100 == 0:
@@ -346,7 +348,7 @@ class SpectatorClient(Client):
 					#print content
 					self.handlePacket(command, content)
 					if command == PACKET_SERVER_FRAME:
-						self.frame_server, self.frame_max = unpackFromExt('II', content)
+						[self.frame_server, self.frame_max], size = unpackFromExt('II', content)
 						#if self.debug:
 						#	print "got frame %d, %d" % (frame_server, frame_max)
 						frameCounter += 1
@@ -360,37 +362,8 @@ class SpectatorClient(Client):
 
 						
 					if command == PACKET_SERVER_COMMAND:
-						offset = 0
-						player = unpackFromExt('B', content, offset)[0]
-						offset += struct.calcsize('B')
+						[player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
 
-						command2 = unpackFromExt('I', content, offset)[0]
-						offset += struct.calcsize('I')
-						
-						p1 = unpackFromExt('I', content, offset)[0]
-						offset += struct.calcsize('I')
-						
-						p2 = unpackFromExt('I', content, offset)[0]
-						offset += struct.calcsize('I')
-
-						tile = unpackFromExt('I', content, offset)[0]
-						offset += struct.calcsize('I')
-
-						text = ''
-						res, size = unpackExt('z', content[offset:])
-						if not res is None:
-							text = res[0]
-							offset += size
-						
-						callback = unpackFromExt('B', content, offset)[0]
-						offset += struct.calcsize('B')
-
-						frame = unpackFromExt('I', content, offset)[0]
-						offset += struct.calcsize('I')
-						
-						my_cmd = unpackFromExt('B', content, offset)[0]
-						offset += struct.calcsize('B')
-						
 						commandid = command2 & 0xff
 						#print commandid
 						if commandid in command_names.keys():
@@ -416,36 +389,34 @@ class SpectatorClient(Client):
 							
 	
 					if command == PACKET_SERVER_CHAT:
-						res, size = unpackExt('bbHz', content)
-						if not res is None:
-							actionid = res[0]
-							playerid = res[1] # possibly wrong!
-							msg = res[3]
-							self_sent = (playerid == self.client_id)
-							if playerid in self.playerlist:
-								player_name = self.playerlist[playerid]['name']
-								
-								if actionid == NETWORK_ACTION_CHAT:
-									if self_sent:
-										handlecommand = False
-										msgtxt = msg
-									else:
-										handlecommand = True
-										msgtxt = "%s: %s" % (player_name, msg)
-								elif actionid == NETWORK_ACTION_CHAT_COMPANY:
-									handlecommand = True
-									msgtxt = "[Team] %s: %s" % (player_name, msg)
-								elif actionid == NETWORK_ACTION_CHAT_CLIENT:
-									handlecommand = True
-									msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
-								else:
+						res = unpackExt('bbHz', content)
+						print res
+						[actionid, playerid, unused, msg], size = res
+						self_sent = (playerid == self.client_id)
+						if playerid in self.playerlist:
+							player_name = self.playerlist[playerid]['name']
+							
+							if actionid == NETWORK_ACTION_CHAT:
+								if self_sent:
 									handlecommand = False
-									msg = ""
-								if handlecommand:
-									self.processCommand(msg)
-								
-								if not self.irc is None and len(msg) >0 and msg[0] != '|':
-									self.dispatchEvent(msgtxt)
+									msgtxt = msg
+								else:
+									handlecommand = True
+									msgtxt = "%s: %s" % (player_name, msg)
+							elif actionid == NETWORK_ACTION_CHAT_COMPANY:
+								handlecommand = True
+								msgtxt = "[Team] %s: %s" % (player_name, msg)
+							elif actionid == NETWORK_ACTION_CHAT_CLIENT:
+								handlecommand = True
+								msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
+							else:
+								handlecommand = False
+								msg = ""
+							if handlecommand:
+								self.processCommand(msg)
+							
+							if not self.irc is None and len(msg) >0 and msg[0] != '|':
+								self.dispatchEvent(msgtxt)
 
 						#LOG.debug(res.__str__())
 						

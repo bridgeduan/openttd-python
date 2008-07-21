@@ -45,17 +45,30 @@ def packExt(fmt, *args):
 		return result
 
 # like unpack_from just with extension, this also enables you to use something unpack_from equivalent in python 2.4
-def unpackFromExt(fmt, buffer, offset=0):
+def unpackFromExt(fmt, buffer, offset=0, format=''):
 	#todo clac size of zero string correctly!
-	size = calcSizeExt(fmt, buffer[offset:])
+	#print "$$$  unpackFromExt('%s',# , %d, '%s')"%(fmt, offset, format)
+	fmt, format = getEFormat(fmt)
+	size = calcSizeExt(fmt, buffer[offset:], format)
 	buf = buffer[offset:offset+size]
-	return unpackExt(fmt, buf)
+	return unpackExt(fmt, buf, format)
+
+
+def getEFormat(fmt):
+	format='='
+	if len(fmt) > 0:
+		if fmt[0] in ['@','=','<','>','!']:
+			format = fmt[0]
+			fmt = fmt[1:]
+	return fmt, format
 	
-def calcSizeExt(fmt, string=""):
+def calcSizeExt(fmt, string="", eformat=''):
+	#print "$$$  calcSizeExt('%s',# , '%s')"%(fmt, eformat)
 	default_string_size = 255
 	if fmt.find("z") < 0:
 		# normal unpack
-		return struct.calcsize(fmt)
+		#print "normal calc: ['%s']"%eformat, eformat+fmt, struct.calcsize(eformat+fmt)
+		return struct.calcsize(eformat+fmt)
 	else:
 		# contains zero terminated string
 		size_all = 0
@@ -65,7 +78,7 @@ def calcSizeExt(fmt, string=""):
 			if fmt[i] == 'z':
 				#process buffer
 				if len(format_buffer) > 0:
-					size_all += struct.calcsize(format_buffer)
+					size_all += struct.calcsize(eformat+format_buffer)
 					format_buffer = ""
 				
 				if string != '':
@@ -86,13 +99,18 @@ def calcSizeExt(fmt, string=""):
 				format_buffer += fmt[i]
 			
 		#process last buffer
-		size_all += struct.calcsize(format_buffer)
+		size_all += struct.calcsize(eformat+format_buffer)
 		return size_all
 
-def unpackExt(fmt, string):
+def unpackExt(fmt, string, myeformat=''):
+	if myeformat == '':
+		fmt, myeformat = getEFormat(fmt)
+	#print "$$$ unpackExt('%s',# , '%s')"%(fmt, myeformat)
 	if fmt.find("z") < 0:
 		# normal unpack
-		return struct.unpack(fmt, string), calcSizeExt(fmt)
+		size = calcSizeExt(fmt, eformat=myeformat)
+		#print "### unpacking from '%s', size: %d / %d"%(fmt, size, len(string))
+		return struct.unpack(myeformat+fmt, string), size
 	else:
 		# contains zero terminated string
 		offset = 0
@@ -103,10 +121,12 @@ def unpackExt(fmt, string):
 				#process buffer
 				size = 0
 				if len(format_buffer) > 0:
-					size = calcSizeExt(format_buffer)
-					result_this = unpackFromExt(format_buffer, string, offset)
+					#size = calcSizeExt(format_buffer)
+					#print ">>> unpacking from offset ", offset, " format: ", fmt, len(string)
+					result_this, size = unpackFromExt(format_buffer, string, offset, myeformat)
 					offset += size
 					#print " '%s, %s' => "%(format_buffer, size), result_this
+					#print string[offset:offset+size].encode("hex")
 					result += result_this
 					format_buffer = ""
 				
@@ -125,18 +145,24 @@ def unpackExt(fmt, string):
 					
 				result += [str]
 				offset += strsize + 1 # 1 = \0
+				
+				#print "string size: ",strsize, str
 			else:
 				# cache all chars for later processing
 				format_buffer += fmt[i]
 			
 		#process last buffer
-		size = calcSizeExt(format_buffer, string[offset:])
-		result_this = unpackFromExt(format_buffer, string, offset)
-		#print " '%s, %s' => "%(format_buffer, size), result_this
-		#print " '%s' => "%format_buffer, result_this
-		result += result_this
-		format_buffer = ""
-		return result, offset + size
+		#size = calcSizeExt(format_buffer, string[offset:])
+		if format_buffer != '':
+			#print ">>>>>>>>>>>>>>>>>>>>>>>>>>", myeformat
+			result_this, size = unpackFromExt(format_buffer, string, offset, myeformat)
+			#print " '%s, %s' => "%(format_buffer, size), result_this
+			#print " '%s' => "%format_buffer, result_this
+			result += result_this
+			format_buffer = ""
+			return result, offset + size
+		else:
+			return result, offset
 
 if __name__ == '__main__':
 	print "some basic tests: "
@@ -145,6 +171,13 @@ if __name__ == '__main__':
 	print unpackExt("z", packExt("z", "test1\0test2"))
 	print unpackExt("ibzi", packExt("ibzi", 200, 3, "test1\0test2", 34))
 	print unpackExt("ibzizf", packExt("ibzizf", 200, 3, "test1\0test2", 34, "test string", 0.234))
+
+	print "size test 1:", calcSizeExt("BIIIIzBIB")
+	print "size test 2:", calcSizeExt("bIIIIzbIb", packExt("BIIIIzBIB",[2, 1234253, 2435436, 76543, 9876523, '', 128, 11111, 127]))
+	print "size test 3:", calcSizeExt("BIIIIBIB")
+	print "size test 4:", struct.calcsize("=BIIII")
+	print "size test 5:", struct.calcsize("I")
+	print "size test 6:", struct.calcsize("<BI"), struct.calcsize(">BI"), struct.calcsize("@BI"), struct.calcsize("=BI"), struct.calcsize("!BI")
 	
 	printOK=False
 	# add your test cases below :)
