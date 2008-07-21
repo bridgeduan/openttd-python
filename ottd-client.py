@@ -238,7 +238,7 @@ class SpectatorClient(Client):
 		#cversion = "r13683"
 		self.playername =  config.get("openttd", "nickname")
 		password = 'citrus'
-		self.playas = 0
+		self.playas = PLAYER_SPECTATOR
 		language = NETLANG_ANY
 		network_id =  config.get("openttd", "uniqueid")
 		payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
@@ -278,9 +278,10 @@ class SpectatorClient(Client):
 						self.runCond=False
 				elif type == NETWORK_COMPANY_PASSWORD:
 					#if self.password != '':
-					#salted_password=""
+					#salted_password=""*32
+					#password="apassword"
 					#for i in range(1,32):
-					#	salted_password[i] ^= uniqueid[i] ^ (seed >> i)
+					#	salted_password[i] = int(password[i]) ^ uniqueid[i] ^ (seed >> i)
 					#	LOG.info(i)
 					#LOG.info(salted_password)
 					#else:
