@@ -22,7 +22,7 @@ class IRCSendThread(threading.Thread):
 		self.channel=channel
 		self.status=False
 		self.runCond=True
-		self.usecolors = (config.getint("irc", "usecolors")==1)
+		self.usecolors = (config.getboolean("irc", "usecolors"))
 		threading.Thread.__init__(self)
 
 	def __del__(self):
@@ -96,7 +96,7 @@ class IRC(threading.Thread):
 		self.network_port=network_port
 		self.channel=channel
 		self.sendThread = None
-		self.usecolors = (config.getint("irc", "usecolors")==1)
+		self.usecolors = (config.getboolean("irc", "usecolors"))
 		threading.Thread.__init__(self)
 
 	def stop(self):
