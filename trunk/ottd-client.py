@@ -393,7 +393,7 @@ class SpectatorClient(Client):
 							
 	
 					if command == PACKET_SERVER_CHAT:
-						[actionid, playerid, unused, msg], size = unpackExt('bbHz', content)
+						[actionid, playerid, unused, msg], size = unpackExt('bHbz', content)
 						self_sent = (playerid == self.client_id)
 						if playerid in self.playerlist:
 							player_name = self.playerlist[playerid]['name']
