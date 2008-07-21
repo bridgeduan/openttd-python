@@ -70,10 +70,14 @@ class SpectatorClient(Client):
 		for clientid2 in self.playerlist.keys():
 			if self.playerlist[clientid2]['company'] == id:
 				players.append(self.playerlist[clientid2]['name'])
-		if len(players) < 4:
-			return "company %d (%s)" % (id, (", ".join(players)))
+		if id == PLAYER_SPECTATOR:
+			companystring = "spectators"
 		else:
-			return "company %d (%d players)" % (id, len(players))
+			companystring = "company %d" % (id+1)
+		if len(players) < 4:
+			return "%s (%s)" % (companystring, (", ".join(players)))
+		else:
+			return "%s (%d players)" % (companystring, len(players))
 		
 	def processCommand(self, msg):
 		LOG.debug("processing command '%s'" % msg)
@@ -198,7 +202,7 @@ class SpectatorClient(Client):
 			self.runCond = False
 		
 		elif command == PACKET_SERVER_ERROR_QUIT:
-			[cid, errornum] = unpackExt('HB', content)
+			[cid, errornum], size = unpackExt('HB', content)
 			if cid == self.client_id:
 				self.doingloop = False
 				LOG.info("Disconnected from server")
@@ -249,6 +253,12 @@ class SpectatorClient(Client):
 		while self.runCond:
 			size, command, content = self.receiveMsg_TCP()
 			LOG.debug("got command %s" % packet_names[command])
+			if command == PACKET_SERVER_FULL:
+				LOG.info("Couldn't join server...it's full. Exiting!")
+				self.runCond=False
+			if command == PACKET_SERVER_BANNED:
+				LOG.info("Couldn't join server...banned from it. Exiting!")
+				self.runCond=False
 			if command == PACKET_SERVER_CHECK_NEWGRFS:
 				offset = 0
 				[grfcount], size = unpackFromExt('B', content, offset)
