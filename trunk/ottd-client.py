@@ -97,7 +97,7 @@ class SpectatorClient(Client):
 			if counter == 0:
 				self.sendChat("no companies actively playing in the last 5 minutes")
 		
-		if config.getint("main", "productive") == 0:
+		if not config.getboolean("main", "productive"):
 			#remove useless commands
 			if msg == "!test1":
 				payload = packExt('bbHz', NETWORK_ACTION_NAME_CHANGE, DESTTYPE_BROADCAST, 0, "foobar")
@@ -126,24 +126,24 @@ class SpectatorClient(Client):
 				payload = packExt('z', config.get("openttd", "quitmessage"))
 				payload_size = len(payload)
 				self.sendMsg(PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
-			elif msg == '!unloadirc' and not self.irc is None and config.getint("webserver", "enabled")==1:
+			elif msg == '!unloadirc' and not self.irc is None:
 				self.irc.stop()
 				self.irc = None
 				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		
-		if msg == '!loadirc' and self.irc is None and config.getint("irc", "enabled")==1:
+		if msg == '!loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
 			self.irc = IRC(self, network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!showplayers':
 			for clientid in self.playerlist.keys():
 				self.sendChat("Client #%d: %s, playing in company %d" % (clientid, self.playerlist[clientid]['name'], self.playerlist[clientid]['company']))
-		elif msg == '!startwebserver' and config.getint("webserver", "enabled")==1:
+		elif msg == '!startwebserver' and config.getboolean("main", "enablewebserver"):
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
 			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
-		elif msg == '!stopwebserver' and config.getint("webserver", "enabled")==1:
+		elif msg == '!stopwebserver':
 			if self.webserver:
 				self.webserver.stop()
 				self.webserver = None
@@ -328,7 +328,7 @@ class SpectatorClient(Client):
 				#self.sendChat("hey i am a bot :|")
 				
 				# auto start IRC
-				if config.getint("irc", "autojoin") == 1:
+				if config.getboolean("irc", "autojoin"):
 					self.processCommand("!loadirc")
 				
 				ignoremsgs = []
