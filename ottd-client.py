@@ -28,11 +28,19 @@ class SpectatorClient(Client):
 			SERVERS[self.number] = ", ".join(self.errors)
 		self.disconnect()
 	
-	def sendChat(self, msg, player = -1, type=NETWORK_ACTION_CHAT, relayToIRC=False):
+	def dispatchEvent(self, message, type=0, irc=True):
+		if irc and not self.irc is None:
+			self.irc.say(message, type)
+		LOG.info(message)
+
+	def sendChat(self, msg, player = -1, type=NETWORK_ACTION_CHAT, relayToIRC=False, strtype=2):
+		# sent to ottd server
 		payload = packExt('bbHz', type, DESTTYPE_BROADCAST, 0, msg)
 		payload_size = len(payload)
 		self.sendMsg(PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-		self.dispatchEvent(msg, type, irc=relayToIRC)
+		
+		#sent to irc and log
+		self.dispatchEvent(msg, strtype, irc=relayToIRC)
 		
 	def sendTCPmsg(self, msg, payload):
 		self.sendMsg(msg, len(payload), payload, type=M_TCP)
@@ -64,8 +72,9 @@ class SpectatorClient(Client):
 		elif msg == "!frame":
 			self.sendChat("we are at frame number %d" % self.frame_server)
 		elif msg == "!time":
-			print "FOOO"
 			self.sendChat(time.ctime().__str__())
+		elif msg in ["!address", '!port', '!ip']:
+			self.sendChat("%s:%d"%(self.ip, self.port))
 		
 		if config.getint("main", "productive") == 0:
 			#remove useless commands
@@ -102,7 +111,7 @@ class SpectatorClient(Client):
 				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		
 		if msg == '!loadirc' and self.irc is None and config.getint("irc", "enabled")==1:
-			self.irc = IRC(network=self.irc_network, channel=self.irc_channel)
+			self.irc = IRC(self, network=self.irc_network, channel=self.irc_channel)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif msg == '!showplayers':
@@ -119,10 +128,7 @@ class SpectatorClient(Client):
 				self.webserver = None
 				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
 
-	def dispatchEvent(self, message, type=NETWORK_ACTION_CHAT, irc=True):
-		if irc and not self.irc is None:
-			self.irc.say(message, type)
-		LOG.info(message)
+
 	
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
@@ -243,7 +249,7 @@ class SpectatorClient(Client):
 					if command == PACKET_SERVER_WAIT:
 						res = unpackFromExt('B', content)[0]
 						if not res is None:
-							self.dispatchEvent("Waiting for map download...%d in line" % res)
+							self.dispatchEvent("Waiting for map download...%d in line" % res, 1)
 					
 					if command == PACKET_SERVER_MAP:
 						offset = 0
@@ -279,7 +285,8 @@ class SpectatorClient(Client):
 				#self.sendChat("hey i am a bot :|")
 				
 				# auto start IRC
-				#self.processCommand("!loadirc")
+				if config.getint("irc", "autojoin") == 1:
+					self.processCommand("!loadirc")
 				
 				ignoremsgs = []
 				while self.runCond:

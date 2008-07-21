@@ -262,10 +262,11 @@ class Client(threading.Thread):
 			note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
 		
 		(size, command) = struct.unpack('hb', data)
-		if command in packet_names.keys():
-			LOG.debug("received size: %d, command: %s (%d)"% (size, packet_names[command], command))
-		else:
-			LOG.debug("received size: %d, command: %d"% (size, command))
+		if command != PACKET_SERVER_FRAME:
+			if command in packet_names.keys():
+				LOG.debug("received size: %d, command: %s (%d)"% (size, packet_names[command], command))
+			else:
+				LOG.debug("received size: %d, command: %d"% (size, command))
 		size -= headersize # remove size of the header ...
 		data = ""
 		readcounter = 0

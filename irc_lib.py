@@ -9,7 +9,7 @@ class IRCSendThread(threading.Thread):
 	runCond = True
 	out_queue = []
 	
-	def __init__(self, socket, channel):
+	def __init__(self, client, socket, channel):
 		"""
 		constructor
 		@type  socket: socket
@@ -17,10 +17,12 @@ class IRCSendThread(threading.Thread):
 		@type  channel: string
 		@param channel: the name of the channel to join
 		"""
-		self.socket = socket
+		self.client=client
+		self.socket=socket
 		self.channel=channel
 		self.status=False
 		self.runCond=True
+		self.usecolors = (config.getint("irc", "usecolors")==1)
 		threading.Thread.__init__(self)
 
 	def __del__(self):
@@ -47,7 +49,22 @@ class IRCSendThread(threading.Thread):
 				if type == 1:
 					self.socket.send ('PRIVMSG %s :\001ACTION | %s\001\r\n'%(self.channel, txt))
 				else:
-					self.socket.send ('PRIVMSG %s :%s\r\n'%(self.channel, txt))
+					print type, txt
+					txt_out = 'PRIVMSG %s :%s\r\n'%(self.channel, txt)
+					if self.usecolors and type == 0 and txt.find(":")>=0:
+						nickname = txt[:txt.find(":")].strip()
+						usrmsg = txt[txt.find(":")+1:].strip()
+						found=False
+						for nick in self.client.playerlist.values():
+							#print nick
+							if str(nick[0]).lower().strip() == nickname.lower().strip():
+								found=True
+								break
+						if found:
+							txt_out = 'PRIVMSG %s :\x032%s\x031: \x033%s\r\n'%(self.channel, nickname, usrmsg)
+					LOG.debug("sent to irc server: %s"%txt_out)
+					self.socket.send (txt_out)
+					
 
 			self.out_queue = []
 
@@ -62,7 +79,7 @@ class IRC(threading.Thread):
 	in_queue = []
 	runCond = True
 	
-	def __init__(self, network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
+	def __init__(self, client, network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
 		"""
 		constructor
 		@type  network: string
@@ -74,11 +91,13 @@ class IRC(threading.Thread):
 		@type  botname: string
 		@param botname: name of the bot to join IRC
 		"""
+		self.client=client
 		self.network=network
 		self.botname=botname
 		self.network_port=network_port
 		self.channel=channel
 		self.sendThread = None
+		self.usecolors = (config.getint("irc", "usecolors")==1)
 		threading.Thread.__init__(self)
 
 	def stop(self):
@@ -106,7 +125,7 @@ class IRC(threading.Thread):
 		self.irc.connect ( ( self.network, self.network_port ) )
 		self.irc.send ( 'NICK %s\r\n'%self.botname )
 		self.irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
-		self.sendThread = IRCSendThread(self.irc, self.channel)
+		self.sendThread = IRCSendThread(self.client, self.irc, self.channel)
 		self.sendThread.start()
 		connected = False
 		while self.runCond:
