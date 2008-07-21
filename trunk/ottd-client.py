@@ -215,7 +215,7 @@ class SpectatorClient(Client):
 				if name != self.playerlist[cid]['name']:
 					self.dispatchEvent("%s has changed his/her nick to %s" % (self.playerlist[cid]['name'], name), 1)
 				if playas != self.playerlist[cid]['company']:
-					self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas, 1))
+					self.dispatchEvent("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), 1)
 			self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1}
 		
 		elif command == PACKET_SERVER_JOIN:
@@ -267,15 +267,19 @@ class SpectatorClient(Client):
 				
 			elif command == PACKET_SERVER_NEED_PASSWORD:
 				[type,seed,uniqueid], size = unpackExt('BIz', content)
-				LOG.info([type,seed,uniqueid])
-				if self.password != '':
-					LOG.info("server is password protected, sending password ...")
-					payload = packExt('Bz', NETWORK_GAME_PASSWORD, self.password)
-					payload_size = len(payload)
-					self.sendMsg(PACKET_CLIENT_PASSWORD, payload_size, payload, type=M_TCP)
+				if type == NETWORK_GAME_PASSWORD:
+					if self.password != '':
+						LOG.info("server is password protected, sending password ...")
+						payload = packExt('Bz', NETWORK_GAME_PASSWORD, self.password)
+						payload_size = len(payload)
+						self.sendMsg(PACKET_CLIENT_PASSWORD, payload_size, payload, type=M_TCP)
+					elif type == NETWORK_COMPANY_PASSWORD:
+						LOG.info("server is password protected, but no pass provided, exiting!")
+						self.runCond=False
 				else:
-					LOG.info("server is password protected, but no pass provided, exiting!")
+					LOG.info("company is password protected, which isn't supported, exiting!")
 					self.runCond=False
+
 				
 			elif command == PACKET_SERVER_WELCOME:
 				LOG.info("yay, we are on the server :D (getting the map now ...)")
