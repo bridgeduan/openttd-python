@@ -242,8 +242,7 @@ class SpectatorClient(Client):
 
 	def joinGame(self):
 		#construct join packet
-		cversion = config.get("openttd", "revision") # 0.6.1
-		#cversion = "r13683"
+		cversion = self.revision
 		self.playername =  config.get("openttd", "nickname")
 		password = 'citrus'
 		self.playas = PLAYER_SPECTATOR
@@ -403,7 +402,6 @@ class SpectatorClient(Client):
 							self.sendChat("%s built a new industry"%(companystr))
 						elif commandid == 44: #CMD_BUILD_COMPANY_HQ
 							self.sendChat("%s built their new HQ"%(companystr))
-						
 							
 	
 					if command == PACKET_SERVER_CHAT:
@@ -471,6 +469,8 @@ def main():
 
 	client = SpectatorClient(ip, port, True)
 	client.connect(M_BOTH)
+	[gameinfo, grflist] = client.getGameInfo()
+	client.revision = gameinfo[6]
 	client.password = password
 	client.joinGame()
 	client.disconnect()
