@@ -89,13 +89,24 @@ class SpectatorClient(Client):
 			return
 		command = msg[1:]
 		if config.has_option('irccommands', command):
-			self.sendChat(config.get('irccommands', command))
-		elif command == "frame":
-			self.sendChat("we are at frame number %d" % self.frame_server)
-		elif command == "time":
-			self.sendChat(time.ctime().__str__())
-		elif command in ["address", 'port', 'ip']:
-			self.sendChat("%s:%d"%(self.ip, self.port))
+			rawcommand = config.get('irccommands', command)
+			if not len(rawcommand) > 0:
+				return
+			interpolation = {
+				"frame": self.frame_server,
+				"time": time.ctime().__str__(),
+				"ip": self.ip,
+				"port": self.port,
+			}
+			command = rawcommand % interpolation
+			if len(command) > 0:
+				self.sendChat(command)
+		#elif command == "frame":
+		#	self.sendChat("we are at frame number %d" % self.frame_server)
+		#elif command == "time":
+		#	self.sendChat(time.ctime().__str__())
+		#elif command in ["address", 'port', 'ip']:
+		#	self.sendChat("%s:%d"%(self.ip, self.port))
 		elif command == "activeplayers":
 			#clients = []
 			mytime = time.time()

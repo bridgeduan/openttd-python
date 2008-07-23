@@ -1,5 +1,5 @@
 import ConfigParser
-config = ConfigParser.SafeConfigParser()
+config = ConfigParser.RawConfigParser()
 
 def LoadConfig():
 	config.read('config.cfg')
