@@ -6,6 +6,8 @@ from struct_zerostrings import *
 from ottd_constants import *
 import signal
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+
 logging.config.fileConfig('logging.cfg')
 #logging.basicConfig(level=logging.DEBUG, format='%(name)s: %(message)s', filename='ottd_lib.log', filemode='w')
 #logging.basicConfig(level=logging.DEBUG)
