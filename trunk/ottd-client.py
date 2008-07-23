@@ -14,7 +14,8 @@ class BasicFileLogger:
 
 class SpectatorClient(Client):
 	irc = None
-	irc_network = config.get("irc", "server")
+	irc_server = config.get("irc", "server")
+	irc_server_port = config.getint("irc", "serverport")
 	irc_channel = config.get("irc", "channel")
 	playerlist = {}
 	webserver = None
@@ -160,7 +161,8 @@ class SpectatorClient(Client):
 				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
 		
 		if command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
-			self.irc = IRC(self, network=self.irc_network, channel=self.irc_channel)
+			botnick=(config.get("irc", "nickname"))
+			self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
 			self.irc.start()
 			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
 		elif command == 'showplayers':
@@ -207,7 +209,7 @@ class SpectatorClient(Client):
 			if cid == self.client_id:
 				self.runCond = False
 			if cid in self.playerlist:
-				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[cid]['name'], msg), 1)
+				self.dispatchEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), 1)
 				del self.playerlist[cid]
 		
 		elif command == PACKET_SERVER_ERROR:
@@ -222,7 +224,7 @@ class SpectatorClient(Client):
 				self.doingloop = False
 				LOG.info("Disconnected from server")
 			if cid in self.playerlist:
-				self.dispatchEvent("%s has quit the game(%s)" % (self.playerlist[cid]['name'], error_names[errornum][1]), 1)
+				self.dispatchEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], error_names[errornum][1]), 1)
 				del self.playerlist[cid]
 
 		elif command == PACKET_SERVER_CLIENT_INFO:
@@ -448,11 +450,12 @@ class SpectatorClient(Client):
 					if not self.irc is None:
 						#check if there are msgs in the IRC to say
 						for msg in self.irc.getSaid():
+							print msg
 							nickname, msgtxt, type = msg
-							if type == 0:
+							if type == 'pubmsg':
 								#normal chat
 								txt_res = "%s: %s" % (nickname, msgtxt)
-							elif type == 1:
+							elif type == 'action':
 								# action
 								txt_res = "%s %s" % (nickname, msgtxt)
 							self.sendChat(txt_res, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)

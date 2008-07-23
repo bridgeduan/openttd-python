@@ -1,198 +1,56 @@
 import socket, time, threading, copy
+from ircbot import SingleServerIRCBot
+from irclib import nm_to_n, nm_to_h, irc_lower, ip_numstr_to_quad, ip_quad_to_numstr
 from log import *
 from ottd_config import *
 
-class IRCSendThread(threading.Thread):
-	"""
-	This class will be used to sent data to the active IRC connection
-	"""
-	runCond = True
-	out_queue = []
+class OTTDIRCBot(SingleServerIRCBot):
+	def __init__(self, channel, nickname, server, port=6667):
+		SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+		self.channel = channel
+		self.in_queue = []
+
+	def on_nicknameinuse(self, c, e):
+		c.nick(c.get_nickname() + "_")
+
+	def on_welcome(self, c, e):
+		c.join(self.channel)
+
+	def on_privmsg(self, c, e):
+		self.do_command(e, e.arguments()[0])
+
+	def on_action(self, c, e):
+		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
+
+	def on_pubmsg(self, c, e):
+		print e.source()
+		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
 	
-	def __init__(self, client, socket, channel):
-		"""
-		constructor
-		@type  socket: socket
-		@param socket: the socket that already got connected to the IRC server
-		@type  channel: string
-		@param channel: the name of the channel to join
-		"""
-		self.client=client
-		self.socket=socket
-		self.channel=channel
-		self.status=False
-		self.runCond=True
-		self.usecolors = (config.getboolean("irc", "usecolors"))
-		threading.Thread.__init__(self)
-
-	def __del__(self):
-		self.runCond = False
-		
-	def run(self):
-		"""
-		thread entry point, called with start()
-		"""
-		LOG.debug("send thread started ...")
-		while self.runCond:
-			time.sleep(0.5)
-			self.dequeue()
-			# "checking: %d" %(len(self.out_queue))
-	
-	def dequeue(self):
-		# todo: add real flow control checking
-		if self.status:
-			for msg in self.out_queue:
-				time.sleep(0.2)
-				
-				txt = msg[0]
-				type = msg[1]
-				if type == 1:
-					self.socket.send ('PRIVMSG %s :\001ACTION | %s\001\r\n'%(self.channel, txt))
-				else:
-					#print type, txt
-					txt_out = 'PRIVMSG %s :%s\r\n'%(self.channel, txt)
-					if self.usecolors and type == 0 and txt.find(":")>=0:
-						nickname = txt[:txt.find(":")].strip()
-						usrmsg = txt[txt.find(":")+1:].strip()
-						found=False
-						for nick in self.client.playerlist.values():
-							#print nick
-							if str(nick['name']).lower().strip() == nickname.lower().strip():
-								found=True
-								break
-						if found:
-							txt_out = 'PRIVMSG %s :\x032%s\x031: \x033%s\r\n'%(self.channel, nickname, usrmsg)
-					LOG.debug("sent to irc server: %s"%txt_out)
-					self.socket.send (txt_out)
-
-			self.out_queue = []
-
-	
-		
-
-
-class IRC(threading.Thread):
-	"""
-	This class provides a connection to an IRC server and the ability to read and write string from and to it
-	"""
-	in_queue = []
-	runCond = True
-	
-	def __init__(self, client, network='blueyonder.uk.quakenet.org', channel='#openttdserver.de', network_port=6667, botname='openttd-bot'):
-		"""
-		constructor
-		@type  network: string
-		@param network: the hostname/ip of the IRC server to connect to
-		@type  channel: string
-		@param channel: the name of the channel to join
-		@type  network_port: number
-		@param network_port: the port where the server listens
-		@type  botname: string
-		@param botname: name of the bot to join IRC
-		"""
-		self.client=client
-		self.network=network
-		self.botname=botname
-		self.network_port=network_port
-		self.channel=channel
-		self.sendThread = None
-		self.usecolors = (config.getboolean("irc", "usecolors"))
-		threading.Thread.__init__(self)
-
-	def stop(self):
-		"""
-		this disconnects from IRC
-		@todo: add proper disconnectionm, atm its only timing out
-		"""
-		if self.sendThread:
-			self.sendThread.dequeue()
-
-		self.runCond = False
-		
-	def run(self):
-		"""
-		thread entry point, called with start()
-		"""
-		LOG.info("IRC| IRC connecting ...")
-		self.in_queue.append(('server', "IRC connecting", 0))
-		#network = 'blueyonder.uk.quakenet.org'
-		#network = 'self.irc.oftc.net'
-		#self.channel = "#ap+"
-		#self.channel = "#openttdserver.de"
-		#port = 6667
-		self.irc = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
-		self.irc.connect ( ( self.network, self.network_port ) )
-		self.irc.send ( 'NICK %s\r\n'%self.botname )
-		self.irc.send ( 'USER %s %s1 %s2 :Python IRC\r\n'%(self.botname,self.botname,self.botname) )
-		self.sendThread = IRCSendThread(self.client, self.irc, self.channel)
-		self.sendThread.start()
-		connected = False
-		while self.runCond:
-			try:
-				data = self.irc.recv ( 4096 )
-			except:
-				continue
-			if len(data.strip()) == 0:
-				continue
-			
-			pp = data.find ('PING')
-			if pp != -1:
-				msg = 'PONG ' + data[pp+5:pp+17] + '\r\n'
-				#print ">>>>",msg
-				self.irc.send ( msg )
-
-			pp = data.find ('/QUOTE PONG')
-			if pp != -1:
-				msg = '/QUOTE PONG ' + data[pp+12:pp+24] + '\r\n'
-				#print ">>>>",msg
-				self.irc.send ( msg )
-			
-			if data.find ("End Of MOTD") != -1 or data.find ("End of /MOTD") != -1 and not connected:
-				self.irc.send ( 'JOIN %s\r\n'%self.channel )
-				self.in_queue.append(('server', "IRC connected, activating chat bridge!", 0))
-				connected=True
-				
-			if connected:
-				#self.in_queue = []
-				if not self.sendThread.status:
-					self.sendThread.status=True
-					LOG.debug("IRC| we are connected!")
-					self.irc.settimeout(2)
-
-				pp=data.find ("PRIVMSG %s :"%self.channel)
-				if pp != -1:
-					nickname = data[1:data.find("!")]
-					type=0
-					msg = data[pp+len("PRIVMSG %s :"%self.channel):].strip()
-					if msg.startswith("\001ACTION"):
-						msg = msg.replace("\001", "")
-						msg = msg.replace("ACTION", "")
-						msg = msg.strip()
-						type=1
-					self.in_queue.append((nickname, msg, type))
-			
-			if data.strip() != "":
-				LOG.debug("IRC| %s" % data)		
-		
-		self.irc.send ( 'QUIT :%s\r\n'%config.get("irc", "quitmessage"))
-		self.irc.close()
-		
 	def say(self, msg, type):
-		"""
-		called to sent something to IRC
-		@type  msg: string
-		@param msg: string to say
-		"""
-		if self.sendThread:
-			#LOG.debug("add chat msg: %s, %d" %(msg, len(self.sendThread.out_queue)))
-			self.sendThread.out_queue.append((msg, type))
+		if type == 0:
+			self.connection.privmsg(self.channel, msg)
+		elif type == 1:
+			self.connection.action(self.channel, msg)
 		
 	def getSaid(self):
-		"""
-		called to get message queue
-		@rtype:  list
-		@return: list with things said
-		"""
 		list = copy.copy(self.in_queue)
 		self.in_queue = []
 		return list
+
+class IRCBotThread(threading.Thread):
+	def __init__(self, channel, nickname, server, port=6667):
+		self.channel=channel
+		self.nickname=nickname
+		self.server=server
+		self.port=port
+		threading.Thread.__init__(self)
+		
+	def run(self):
+		self.bot = OTTDIRCBot(self.channel, self.nickname, self.server, self.port)
+		self.bot.start()
+		
+	def getSaid(self):
+		return self.bot.getSaid()
+		
+	def say(self, msg, type):
+		return self.bot.say(msg, type)
