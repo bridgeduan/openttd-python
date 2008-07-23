@@ -439,12 +439,12 @@ class SpectatorClient(Client):
 							else:
 								handlecommand = False
 								msg = ""
-							if handlecommand:
-								self.processCommand(msg, 'ingame', (playerid, player_name))
 							
 							if not self.irc is None and len(msg) >0 and msg[0] != '|':
 								self.dispatchEvent(msgtxt, irc=(not self_sent))
 
+							if handlecommand:
+								self.processCommand(msg, 'ingame', (playerid, player_name))
 						#LOG.debug(res.__str__())
 						
 					if not self.irc is None:
