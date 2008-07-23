@@ -17,20 +17,22 @@ class OTTDIRCBot(SingleServerIRCBot):
 		c.join(self.channel)
 
 	def on_privmsg(self, c, e):
-		self.do_command(e, e.arguments()[0])
+		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
 
 	def on_action(self, c, e):
 		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
 
 	def on_pubmsg(self, c, e):
-		print e.source()
 		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
 	
 	def say(self, msg, type):
-		if type == 0:
-			self.connection.privmsg(self.channel, msg)
-		elif type == 1:
-			self.connection.action(self.channel, msg)
+		try:
+			if type == 0:
+				self.connection.privmsg(self.channel, msg)
+			elif type == 1:
+				self.connection.action(self.channel, msg)
+		except:
+			pass
 		
 	def getSaid(self):
 		list = copy.copy(self.in_queue)
