@@ -84,7 +84,7 @@ class SpectatorClient(Client):
 		else:
 			return companystring
 		
-	def processCommand(self, msg):
+	def processCommand(self, msg, source='internal', arg1=None):
 		LOG.debug("processing command '%s'" % msg)
 		if not msg.startswith(config.get("main", "commandprefix")):
 			return
@@ -101,7 +101,7 @@ class SpectatorClient(Client):
 			}
 			command = rawcommand % interpolation
 			if len(command) > 0:
-				self.sendChat(command)
+				self.dispatchEvent(command)
 		#elif command == "frame":
 		#	self.sendChat("we are at frame number %d" % self.frame_server)
 		#elif command == "time":
@@ -118,7 +118,7 @@ class SpectatorClient(Client):
 					counter+=1
 					compstr = self.getCompanyString(self.playerlist[clientid]['company'])
 					timestr = "%d seconds ago" % (this_time)
-					self.sendChat("%s last active: %s"%(compstr, playerstr, timestr))
+					self.dispatchEvent("%s last active: %s"%(compstr, playerstr, timestr))
 				#clients.append[this_time] = self.playerlist[clientid]
 			if counter == 0:
 				self.sendChat("no companies actively playing in the last 5 minutes")
@@ -158,26 +158,26 @@ class SpectatorClient(Client):
 			elif command == 'unloadirc' and not self.irc is None:
 				self.irc.stop()
 				self.irc = None
-				self.sendChat("IRC unloaded", type=NETWORK_ACTION_SERVER_MESSAGE)
+				self.dispatchEvent("IRC unloaded")
 		
 		if command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
 			botnick=(config.get("irc", "nickname"))
 			self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
 			self.irc.start()
-			self.sendChat("loading IRC", type=NETWORK_ACTION_SERVER_MESSAGE)
+			self.dispatchEvent("loading IRC")
 		elif command == 'showplayers':
 			for clientid in self.playerlist.keys():
-				self.sendChat("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)))
+				self.dispatchEvent("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)))
 		elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
 			port = config.getint("webserver", "port")
 			self.webserver = myWebServer(self, port)
 			self.webserver.start()
-			self.sendChat("webserver started on port %d"%port, type=NETWORK_ACTION_SERVER_MESSAGE)
+			self.dispatchEvent("webserver started on port %d"%port)
 		elif command == 'stopwebserver':
 			if self.webserver:
 				self.webserver.stop()
 				self.webserver = None
-				self.sendChat("webserver stopped", type=NETWORK_ACTION_SERVER_MESSAGE)
+				self.dispatchEvent("webserver stopped")
 
 		# cases not using if/elif
 		if command.startswith("lastactive") and len(command) >11:
@@ -440,17 +440,17 @@ class SpectatorClient(Client):
 								handlecommand = False
 								msg = ""
 							if handlecommand:
-								self.processCommand(msg)
+								self.processCommand(msg, 'ingame', (playerid, player_name))
 							
 							if not self.irc is None and len(msg) >0 and msg[0] != '|':
-								self.dispatchEvent(msgtxt)
+								self.dispatchEvent(msgtxt, irc=(not self_sent))
 
 						#LOG.debug(res.__str__())
 						
 					if not self.irc is None:
 						#check if there are msgs in the IRC to say
 						for msg in self.irc.getSaid():
-							print msg
+							txt_res = ''
 							nickname, msgtxt, type = msg
 							if type == 'pubmsg':
 								#normal chat
@@ -458,8 +458,11 @@ class SpectatorClient(Client):
 							elif type == 'action':
 								# action
 								txt_res = "%s %s" % (nickname, msgtxt)
-							self.sendChat(txt_res, type=NETWORK_ACTION_SERVER_MESSAGE, relayToIRC=False)
-							self.processCommand(msgtxt.strip())
+							elif type == 'internal':
+								# action
+								txt_res = "%s" % (msgtxt)
+							self.sendChat(txt_res, relayToIRC=False)
+							self.processCommand(msgtxt.strip(), 'irc_'+type, nickname)
 						
 
 def printUsage():
