@@ -102,8 +102,6 @@ class SpectatorClient(Client):
 			command = rawcommand % interpolation
 			if len(command) > 0:
 				self.dispatchEvent(command)
-		else:
-			LOG.error('unkown command: %s'%command)
 		#elif command == "frame":
 		#	self.sendChat("we are at frame number %d" % self.frame_server)
 		#elif command == "time":
