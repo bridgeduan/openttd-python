@@ -102,6 +102,8 @@ class SpectatorClient(Client):
 			command = rawcommand % interpolation
 			if len(command) > 0:
 				self.dispatchEvent(command)
+		else:
+			LOG.error('unkown command: %s'%command)
 		#elif command == "frame":
 		#	self.sendChat("we are at frame number %d" % self.frame_server)
 		#elif command == "time":
@@ -122,7 +124,11 @@ class SpectatorClient(Client):
 				#clients.append[this_time] = self.playerlist[clientid]
 			if counter == 0:
 				self.sendChat("no companies actively playing in the last 5 minutes")
+		elif command == 'showplayers':
+			for clientid in self.playerlist.keys():
+				self.dispatchEvent("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)))
 		
+		# non-useful commands for productive servers
 		if not config.getboolean("main", "productive"):
 			#remove useless commands
 			if command == "test1":
@@ -155,29 +161,25 @@ class SpectatorClient(Client):
 			elif command == 'reloadconfig':
 				LoadConfig()
 				self.dispatchEvent("Reloading config file...")
+			elif command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
+				botnick=(config.get("irc", "nickname"))
+				self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
+				self.irc.start()
+				self.dispatchEvent("loading IRC")
 			elif command == 'unloadirc' and not self.irc is None:
 				self.irc.stop()
 				self.irc = None
 				self.dispatchEvent("IRC unloaded")
-		
-		if command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
-			botnick=(config.get("irc", "nickname"))
-			self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
-			self.irc.start()
-			self.dispatchEvent("loading IRC")
-		elif command == 'showplayers':
-			for clientid in self.playerlist.keys():
-				self.dispatchEvent("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)))
-		elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
-			port = config.getint("webserver", "port")
-			self.webserver = myWebServer(self, port)
-			self.webserver.start()
-			self.dispatchEvent("webserver started on port %d"%port)
-		elif command == 'stopwebserver':
-			if self.webserver:
-				self.webserver.stop()
-				self.webserver = None
-				self.dispatchEvent("webserver stopped")
+			elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
+				port = config.getint("webserver", "port")
+				self.webserver = myWebServer(self, port)
+				self.webserver.start()
+				self.dispatchEvent("webserver started on port %d"%port)
+			elif command == 'stopwebserver':
+				if self.webserver:
+					self.webserver.stop()
+					self.webserver = None
+					self.dispatchEvent("webserver stopped")
 
 		# cases not using if/elif
 		if command.startswith("lastactive") and len(command) >11:
