@@ -15,6 +15,7 @@ class OTTDIRCBot(SingleServerIRCBot):
 
 	def on_welcome(self, c, e):
 		c.join(self.channel)
+		self.in_queue.append(('', "IRC bridge running", 'internal'))
 
 	def on_privmsg(self, c, e):
 		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
@@ -45,6 +46,7 @@ class IRCBotThread(threading.Thread):
 		self.nickname=nickname
 		self.server=server
 		self.port=port
+		self.bot=None
 		threading.Thread.__init__(self)
 		
 	def run(self):
@@ -52,7 +54,9 @@ class IRCBotThread(threading.Thread):
 		self.bot.start()
 		
 	def getSaid(self):
-		return self.bot.getSaid()
+		if self.bot:
+			return self.bot.getSaid()
 		
 	def say(self, msg, type):
-		return self.bot.say(msg, type)
+		if self.bot:
+			return self.bot.say(msg, type)
