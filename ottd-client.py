@@ -388,10 +388,11 @@ class SpectatorClient(Client):
 					#print content
 					self.handlePacket(command, content)
 					if command == PACKET_SERVER_FRAME:
+						old_framecounter = self.frame_server
 						[self.frame_server, self.frame_max], size = unpackFromExt('II', content)
 						#if self.debug:
 						#	print "got frame %d, %d" % (frame_server, frame_max)
-						frameCounter += 1
+						frameCounter += (self.frame_server - old_framecounter)
 						
 					if frameCounter >= 74:
 						payload = packExt('I', self.frame_server)
