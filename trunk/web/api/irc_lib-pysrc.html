@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>irc_lib</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Module&nbsp;irc_lib
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="irc_lib-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="irc_lib-module.html">Module irc_lib</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">socket</tt><tt class="py-op">,</tt> <tt class="py-name">time</tt><tt class="py-op">,</tt> <tt class="py-name">threading</tt><tt class="py-op">,</tt> <tt class="py-name">copy</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">ircbot</tt> <tt class="py-keyword">import</tt> <tt class="py-name">SingleServerIRCBot</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">irclib</tt> <tt class="py-keyword">import</tt> <tt class="py-name">nm_to_n</tt><tt class="py-op">,</tt> <tt class="py-name">nm_to_h</tt><tt class="py-op">,</tt> <tt class="py-name">irc_lower</tt><tt class="py-op">,</tt> <tt class="py-name">ip_numstr_to_quad</tt><tt class="py-op">,</tt> <tt class="py-name">ip_quad_to_numstr</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Module log=log-module.html,Method script-ottd_client_py.BasicFileLogger.log()=script-ottd_client_py.BasicFileLogger-class.html#log"><a title="log
+script-ottd_client_py.BasicFileLogger.log" class="py-name" href="#" onclick="return doclink('link-0', 'log', 'link-0');">log</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Module ottd_config=ottd_config-module.html"><a title="ottd_config" class="py-name" href="#" onclick="return doclink('link-1', 'ottd_config', 'link-1');">ottd_config</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot"></a><div id="OTTDIRCBot-def"><a name="L7"></a><tt class="py-lineno"> 7</tt> <a class="py-toggle" href="#" id="OTTDIRCBot-toggle" onclick="return toggle('OTTDIRCBot');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html">OTTDIRCBot</a><tt class="py-op">(</tt><tt class="py-base-class">SingleServerIRCBot</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="OTTDIRCBot-expanded"><a name="OTTDIRCBot.__init__"></a><div id="OTTDIRCBot.__init__-def"><a name="L8"></a><tt class="py-lineno"> 8</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.__init__-toggle" onclick="return toggle('OTTDIRCBot.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">channel</tt><tt class="py-op">,</tt> <tt class="py-param">nickname</tt><tt class="py-op">,</tt> <tt class="py-param">server</tt><tt class="py-op">,</tt> <tt class="py-param">port</tt><tt class="py-op">=</tt><tt class="py-number">6667</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.__init__-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.__init__-expanded"><a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line">                <tt class="py-name">SingleServerIRCBot</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method irc_lib.IRCBotThread.__init__()=irc_lib.IRCBotThread-class.html#__init__,Method irc_lib.OTTDIRCBot.__init__()=irc_lib.OTTDIRCBot-class.html#__init__,Method ottd_lib.Client.__init__()=ottd_lib.Client-class.html#__init__,Method ottd_lib.DataPacket.__init__()=ottd_lib.DataPacket-class.html#__init__,Method script-ottd_client_py.BasicFileLogger.__init__()=script-ottd_client_py.BasicFileLogger-class.html#__init__,Method webserver.myHTTPServer.__init__()=webserver.myHTTPServer-class.html#__init__,Method webserver.myWebServer.__init__()=webserver.myWebServer-class.html#__init__"><a title="irc_lib.IRCBotThread.__init__
+irc_lib.OTTDIRCBot.__init__
+ottd_lib.Client.__init__
+ottd_lib.DataPacket.__init__
+script-ottd_client_py.BasicFileLogger.__init__
+webserver.myHTTPServer.__init__
+webserver.myWebServer.__init__" class="py-name" href="#" onclick="return doclink('link-2', '__init__', 'link-2');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-name">server</tt><tt class="py-op">,</tt> <tt class="py-name">port</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">nickname</tt><tt class="py-op">,</tt> <tt class="py-name">nickname</tt><tt class="py-op">)</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt> <tt class="py-op">=</tt> <tt class="py-name">channel</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot.on_nicknameinuse"></a><div id="OTTDIRCBot.on_nicknameinuse-def"><a name="L13"></a><tt class="py-lineno">13</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.on_nicknameinuse-toggle" onclick="return toggle('OTTDIRCBot.on_nicknameinuse');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#on_nicknameinuse">on_nicknameinuse</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">c</tt><tt class="py-op">,</tt> <tt class="py-param">e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.on_nicknameinuse-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.on_nicknameinuse-expanded"><a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">                <tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">nick</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">get_nickname</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">"_"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot.on_welcome"></a><div id="OTTDIRCBot.on_welcome-def"><a name="L16"></a><tt class="py-lineno">16</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.on_welcome-toggle" onclick="return toggle('OTTDIRCBot.on_welcome');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#on_welcome">on_welcome</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">c</tt><tt class="py-op">,</tt> <tt class="py-param">e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.on_welcome-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.on_welcome-expanded"><a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">                <tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt><tt class="py-op">)</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-string">''</tt><tt class="py-op">,</tt> <tt class="py-string">"IRC bridge running"</tt><tt class="py-op">,</tt> <tt class="py-string">'internal'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot.on_privmsg"></a><div id="OTTDIRCBot.on_privmsg-def"><a name="L20"></a><tt class="py-lineno">20</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.on_privmsg-toggle" onclick="return toggle('OTTDIRCBot.on_privmsg');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#on_privmsg">on_privmsg</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">c</tt><tt class="py-op">,</tt> <tt class="py-param">e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.on_privmsg-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.on_privmsg-expanded"><a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">nm_to_n</tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">source</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">arguments</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">eventtype</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot.on_action"></a><div id="OTTDIRCBot.on_action-def"><a name="L23"></a><tt class="py-lineno">23</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.on_action-toggle" onclick="return toggle('OTTDIRCBot.on_action');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#on_action">on_action</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">c</tt><tt class="py-op">,</tt> <tt class="py-param">e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.on_action-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.on_action-expanded"><a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">nm_to_n</tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">source</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">arguments</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">eventtype</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt>
+<a name="OTTDIRCBot.on_pubmsg"></a><div id="OTTDIRCBot.on_pubmsg-def"><a name="L26"></a><tt class="py-lineno">26</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.on_pubmsg-toggle" onclick="return toggle('OTTDIRCBot.on_pubmsg');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#on_pubmsg">on_pubmsg</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">c</tt><tt class="py-op">,</tt> <tt class="py-param">e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.on_pubmsg-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.on_pubmsg-expanded"><a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">nm_to_n</tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">source</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">arguments</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">eventtype</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">         </tt>
+<a name="OTTDIRCBot.say"></a><div id="OTTDIRCBot.say-def"><a name="L29"></a><tt class="py-lineno">29</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.say-toggle" onclick="return toggle('OTTDIRCBot.say');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#say">say</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">msg</tt><tt class="py-op">,</tt> <tt class="py-param">type</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.say-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.say-expanded"><a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">                <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt class="py-name">type</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">                                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">connection</tt><tt class="py-op">.</tt><tt class="py-name">privmsg</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt><tt class="py-op">,</tt> <tt class="py-name">msg</tt><tt class="py-op">)</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">                        <tt class="py-keyword">elif</tt> <tt class="py-name">type</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">                                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">connection</tt><tt class="py-op">.</tt><tt class="py-name">action</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt><tt class="py-op">,</tt> <tt class="py-name">msg</tt><tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">                <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">                        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">                 </tt>
+<a name="OTTDIRCBot.getSaid"></a><div id="OTTDIRCBot.getSaid-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="OTTDIRCBot.getSaid-toggle" onclick="return toggle('OTTDIRCBot.getSaid');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.OTTDIRCBot-class.html#getSaid">getSaid</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="OTTDIRCBot.getSaid-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="OTTDIRCBot.getSaid-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">                <tt class="py-name">list</tt> <tt class="py-op">=</tt> <tt class="py-name">copy</tt><tt class="py-op">.</tt><tt class="py-name">copy</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt><tt class="py-op">)</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_queue</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">list</tt> </tt>
+</div></div><a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line"> </tt>
+<a name="IRCBotThread"></a><div id="IRCBotThread-def"><a name="L43"></a><tt class="py-lineno">43</tt> <a class="py-toggle" href="#" id="IRCBotThread-toggle" onclick="return toggle('IRCBotThread');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="irc_lib.IRCBotThread-class.html">IRCBotThread</a><tt class="py-op">(</tt><tt class="py-base-class">threading</tt><tt class="py-op">.</tt><tt class="py-base-class">Thread</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IRCBotThread-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="IRCBotThread-expanded"><a name="IRCBotThread.__init__"></a><div id="IRCBotThread.__init__-def"><a name="L44"></a><tt class="py-lineno">44</tt> <a class="py-toggle" href="#" id="IRCBotThread.__init__-toggle" onclick="return toggle('IRCBotThread.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.IRCBotThread-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">channel</tt><tt class="py-op">,</tt> <tt class="py-param">nickname</tt><tt class="py-op">,</tt> <tt class="py-param">server</tt><tt class="py-op">,</tt> <tt class="py-param">port</tt><tt class="py-op">=</tt><tt class="py-number">6667</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IRCBotThread.__init__-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="IRCBotThread.__init__-expanded"><a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt><tt class="py-op">=</tt><tt class="py-name">channel</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">nickname</tt><tt class="py-op">=</tt><tt class="py-name">nickname</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server</tt><tt class="py-op">=</tt><tt class="py-name">server</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">port</tt><tt class="py-op">=</tt><tt class="py-name">port</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">=</tt><tt class="py-name">None</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">                <tt class="py-name">threading</tt><tt class="py-op">.</tt><tt class="py-name">Thread</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="irc_lib.IRCBotThread.__init__
+irc_lib.OTTDIRCBot.__init__
+ottd_lib.Client.__init__
+ottd_lib.DataPacket.__init__
+script-ottd_client_py.BasicFileLogger.__init__
+webserver.myHTTPServer.__init__
+webserver.myWebServer.__init__" class="py-name" href="#" onclick="return doclink('link-3', '__init__', 'link-2');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">                 </tt>
+<a name="IRCBotThread.run"></a><div id="IRCBotThread.run-def"><a name="L52"></a><tt class="py-lineno">52</tt> <a class="py-toggle" href="#" id="IRCBotThread.run-toggle" onclick="return toggle('IRCBotThread.run');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.IRCBotThread-class.html#run">run</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IRCBotThread.run-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="IRCBotThread.run-expanded"><a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt> <tt class="py-op">=</tt> <tt id="link-4" class="py-name" targets="Class irc_lib.OTTDIRCBot=irc_lib.OTTDIRCBot-class.html"><a title="irc_lib.OTTDIRCBot" class="py-name" href="#" onclick="return doclink('link-4', 'OTTDIRCBot', 'link-4');">OTTDIRCBot</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">channel</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">nickname</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">server</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">port</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">.</tt><tt class="py-name">start</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">                 </tt>
+<a name="IRCBotThread.getSaid"></a><div id="IRCBotThread.getSaid-def"><a name="L56"></a><tt class="py-lineno">56</tt> <a class="py-toggle" href="#" id="IRCBotThread.getSaid-toggle" onclick="return toggle('IRCBotThread.getSaid');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.IRCBotThread-class.html#getSaid">getSaid</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IRCBotThread.getSaid-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="IRCBotThread.getSaid-expanded"><a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">:</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">                        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Method irc_lib.IRCBotThread.getSaid()=irc_lib.IRCBotThread-class.html#getSaid,Method irc_lib.OTTDIRCBot.getSaid()=irc_lib.OTTDIRCBot-class.html#getSaid"><a title="irc_lib.IRCBotThread.getSaid
+irc_lib.OTTDIRCBot.getSaid" class="py-name" href="#" onclick="return doclink('link-5', 'getSaid', 'link-5');">getSaid</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">                 </tt>
+<a name="IRCBotThread.say"></a><div id="IRCBotThread.say-def"><a name="L60"></a><tt class="py-lineno">60</tt> <a class="py-toggle" href="#" id="IRCBotThread.say-toggle" onclick="return toggle('IRCBotThread.say');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="irc_lib.IRCBotThread-class.html#say">say</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">msg</tt><tt class="py-op">,</tt> <tt class="py-param">type</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IRCBotThread.say-collapsed" style="display:none;" pad="++" indent="++++++++++++"></div><div id="IRCBotThread.say-expanded"><a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line">                        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bot</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method irc_lib.IRCBotThread.say()=irc_lib.IRCBotThread-class.html#say,Method irc_lib.OTTDIRCBot.say()=irc_lib.OTTDIRCBot-class.html#say"><a title="irc_lib.IRCBotThread.say
+irc_lib.OTTDIRCBot.say" class="py-name" href="#" onclick="return doclink('link-6', 'say', 'link-6');">say</a></tt><tt class="py-op">(</tt><tt class="py-name">msg</tt><tt class="py-op">,</tt> <tt class="py-name">type</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Jul 24 06:48:44 2008
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
