@@ -157,6 +157,10 @@ class SpectatorClient(Client):
 				self.irc.stop()
 				self.irc = None
 				self.dispatchEvent("IRC unloaded")
+			elif command == 'startwebserver':
+				self.startWebserver()
+			elif command == 'stopwebserver':
+				self.stopWebserver()
 
 		# cases not using if/elif
 		if command.startswith("lastactive") and len(command) >11:
@@ -319,7 +323,7 @@ class SpectatorClient(Client):
 				downloadDone = False
 				self.sendMsg(PACKET_CLIENT_GETMAP, type=M_TCP)
 				mapsize_done = 0
-				while not downloadDone:
+				while not downloadDone and self.runCond:
 					size, command, content = self.receiveMsg_TCP()
 					
 					# first check if it is a command we need to run
