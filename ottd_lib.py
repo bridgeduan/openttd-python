@@ -224,6 +224,7 @@ class Client(threading.Thread):
 						[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
 						offset += size
 						info['grfs'].append((grfid, md5sum))
+				# the grf stuff is still wrong :|
 				[
 					info['game_date'],
 					info['start_date'],
