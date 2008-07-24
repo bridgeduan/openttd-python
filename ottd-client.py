@@ -94,15 +94,9 @@ class SpectatorClient(Client):
 				"ip": self.ip,
 				"port": self.port,
 			}
-			command = rawcommand % interpolation
+			proccommand = rawcommand % interpolation
 			if len(command) > 0:
-				self.dispatchEvent(command)
-		#elif command == "frame":
-		#	self.sendChat("we are at frame number %d" % self.frame_server)
-		#elif command == "time":
-		#	self.sendChat(time.ctime().__str__())
-		#elif command in ["address", 'port', 'ip']:
-		#	self.sendChat("%s:%d"%(self.ip, self.port))
+				self.dispatchEvent(proccommand)
 		elif command == "activeplayers":
 			#clients = []
 			mytime = time.time()
@@ -465,8 +459,10 @@ class SpectatorClient(Client):
 							elif type == 'internal':
 								# action
 								txt_res = "%s" % (msgtxt)
-							self.sendChat(txt_res, relayToIRC=False)
-							self.processCommand(msgtxt.strip(), 'irc_'+type, nickname)
+							if not msgtxt.startswith(config.get("main", "commandprefix")):
+								self.sendChat(txt_res, relayToIRC=False)
+							else:
+								self.processCommand(msgtxt.strip(), 'irc_'+type, nickname)
 						
 
 def printUsage():
