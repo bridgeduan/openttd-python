@@ -84,8 +84,15 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				path = path[:path.find("?")]
 			fn = os.path.normpath(os.path.join(basedir, path.lstrip('/')))
 			#print path, fn
+			if os.path.isdir(fn):
+				newindex = os.path.join(fn,'index.html')
+				if os.path.isfile(newindex):
+					fn = newindex
+				else:
+					self.sendError()
+					return
 
-			if  os.path.exists(fn):
+			if os.path.exists(fn):
 				self.send_response (200)
 				self.send_header ("Content-type", content_type(fn))
 				self.send_header ("Content-Length", os.path.getsize(fn))
