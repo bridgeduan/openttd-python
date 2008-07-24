@@ -45,13 +45,13 @@ def packExt(fmt, *args):
 		return result
 
 # like unpack_from just with extension, this also enables you to use something unpack_from equivalent in python 2.4
-def unpackFromExt(fmt, buffer, offset=0, format=''):
+def unpackFromExt(fmt, buffer, offset=0, format='', debug=False):
 	#todo clac size of zero string correctly!
 	#print "$$$  unpackFromExt('%s',# , %d, '%s')"%(fmt, offset, format)
 	fmt, format = getEFormat(fmt)
 	size = calcSizeExt(fmt, buffer[offset:], format)
 	buf = buffer[offset:offset+size]
-	return unpackExt(fmt, buf, format)
+	return unpackExt(fmt, buf, format, debug)
 
 
 def getEFormat(fmt):
@@ -102,10 +102,18 @@ def calcSizeExt(fmt, string="", eformat=''):
 		size_all += struct.calcsize(eformat+format_buffer)
 		return size_all
 
-def unpackExt(fmt, string, myeformat=''):
+def unpackExt(fmt, string, myeformat='', debug=False):
 	if myeformat == '':
 		fmt, myeformat = getEFormat(fmt)
 	#print "$$$ unpackExt('%s',# , '%s')"%(fmt, myeformat)
+	
+	if debug:
+		offset=0
+		for c in fmt:
+			size = calcSizeExt(c, string[offset:])
+			print " %c (%3d,%3d): %15s, result: '%s'" % (c, offset, size, string[offset:offset+size].encode("hex"), unpackExt(c, string[offset:offset+size], myeformat, debug=False).__str__())
+			offset += size
+	
 	if fmt.find("z") < 0:
 		# normal unpack
 		size = calcSizeExt(fmt, eformat=myeformat)

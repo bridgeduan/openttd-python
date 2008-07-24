@@ -20,25 +20,28 @@ def main():
 	client.connect(M_UDP)
 	print "getting game info ..."
 	gi=client.getGameInfo()
-	for k in gi.keys():
-		print "%20s: %s"%(k, gi[k])
+	if not gi is None:
+		for k in gi.keys():
+			print "%20s: %s"%(k, gi[k])
 	
 	print ""
 	print "getting company info ..."
 	cis=client.getCompanyInfo()
-	for ci in cis:
-		print " === company %d"%(ci['number'])
-		for k in ci.keys():
-			print "%20s: %s"%(k, ci[k])
+	if not cis is None:
+		for ci in cis:
+			print "\n === company %d"%(ci['number'])
+			for k in ci.keys():
+				print "%20s: %s"%(k, ci[k])
 	
 	print ""
 	print "getting grf info ..."
 	if len(gi['grfs']) > 0:
-		grfs=client.getGRFInfo()
-		for grf in grfs:
-			print " %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex"))
+		grfs=client.getGRFInfo(gi['grfs'])
+		if not grfs is None:
+			for grf in grfs:
+				print " %40s - %s - %s" % (grf[2], grf[0].encode("hex"), grf[1].encode("hex"))
 	else:
-		print " no grfs used!"
+		print " no grfs used"
 	
 	client.disconnect()
 
