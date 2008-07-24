@@ -22,12 +22,7 @@ class SpectatorClient(Client):
 	
 	# this class implements the thread start method
 	def run(self):
-		self.connect()
-		if len(self.errors) == 0:
-			SERVERS[self.number] = self.getGameInfo()
-		else:
-			SERVERS[self.number] = ", ".join(self.errors)
-		self.disconnect()
+		pass
 	
 	def dispatchEvent(self, message, type=0, irc=True):
 		if irc and not self.irc is None:
@@ -486,8 +481,8 @@ def main():
 
 	client = SpectatorClient(ip, port, True)
 	client.connect(M_BOTH)
-	[gameinfo, grflist] = client.getGameInfo()
-	client.revision = gameinfo[6]
+	gameinfo = client.getGameInfo()
+	client.revision = gameinfo['server_revision']
 	client.password = password
 	client.joinGame()
 	client.disconnect()

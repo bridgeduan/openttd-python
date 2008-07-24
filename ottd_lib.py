@@ -128,9 +128,69 @@ class Client(threading.Thread):
 				LOG.debug("unkown protocol version %d" % protocol_version)
 		return None
 
+	
+	def getGRFInfo(self):
+		self.sendMsg(PACKET_UDP_CLIENT_GET_NEWGRFS, type=M_UDP)
+		result = self.receiveMsg_UDP()
+		if result is None:
+			LOG.debug("unable to receive UDP packet")
+			return None
+		size, command, content = result
+		if command == PACKET_UDP_SERVER_DETAIL_INFO:
+			offset = 0
+			[reply_count], size = unpackFromExt('B', content[offset:])
+			print reply_count
+			offset += size
+			for i in range(0, reply_count):
+				[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
+				offset += size
+				grfs.append((grfid, md5sum))
+			LOG.debug("installed grfs:")
+			for grf in grfs:
+				LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex")))
+			return grfs
+		else:
+			LOG.error("unexpected reply on PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (command))
+
+	def getCompanyInfo(self):
+		self.sendMsg(PACKET_UDP_CLIENT_DETAIL_INFO, type=M_UDP)
+		size, command, content = self.receiveMsg_UDP()
+		if command == PACKET_UDP_SERVER_DETAIL_INFO:
+			offset = 0
+			[info_version, player_count], size = unpackFromExt('BB', content[offset:])
+			offset += size
+			if info_version == NETWORK_COMPANY_INFO_VERSION:
+				companies = []
+				
+				for i in range(0, player_count):
+					company = {}
+					[
+						company['number'], 
+						company['company_name'], 
+						company['inaugurated_year'], 
+						company['company_value'], 
+						company['money'], 
+						company['income'], 
+						company['performance'], 
+						company['password_protected'],
+					], size = unpackFromExt('BzIQQQHB', content[offset:])
+					offset += size
+					
+					company['vehicles'], size = unpackFromExt('H'*NETWORK_VEHICLE_TYPES, content[offset:])
+					offset += size
+					
+					company['stations'], size = unpackFromExt('H'*NETWORK_STATION_TYPES, content[offset:])
+					offset += size
+					
+					companies.append(company)
+				return companies
+			else:
+				LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
+		else:
+			LOG.error("unexpected reply on PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
 		
 	def getGameInfo(self):
-		self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER,type=M_UDP)
+		self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
 		result = self.receiveMsg_UDP()
 		if result is None:
 			LOG.debug("unable to receive UDP packet")
@@ -145,22 +205,41 @@ class Client(threading.Thread):
 				[grfcount], size = unpackFromExt('B', content, offset)
 				offset += size
 
-				grfs = []
+				info = {}
+				info['grfs'] = []
 				if grfcount != 0:
 					for i in range(0, grfcount):
 						[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
 						offset += size
-						grfs.append((grfid, md5sum))
+						info['grfs'].append((grfid, md5sum))
 						LOG.debug("installed grfs:")
 						for grf in grfs:
 							LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex")))
-
-				res, size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
-				#game_date, start_date, companies_max, companies_on, spectators_max, server_name, server_revision, server_lang, use_password, clients_max, clients_on, spectators_on, map_name, map_width, map_height, map_set, dedicated
-				LOG.debug("got Game Info (%d byes long):\n%s\n"%(size, res.__str__()))
-				return res, grfs
+				[
+					info['game_date'],
+					info['start_date'],
+					info['companies_max'],
+					info['companies_on'],
+					info['spectators_max'],
+					info['server_name'],
+					info['server_revision'],
+					info['server_lang'],
+					info['use_password'],
+					info['clients_max'],
+					info['clients_on'],
+					info['spectators_on'],
+					info['map_name'],
+					info['map_width'],
+					info['map_height'],
+					info['map_set'],
+					info['dedicated'],
+				], size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
+				#LOG.debug("got Game Info (%d byes long)\n"%(size))
+				return info
 			else:
 				LOG.debug("> old gameinfo version detected: %d" % command2)
+		else:
+			LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
 
 	def throwRandomData(self):
 		rsize = 128
