@@ -30,6 +30,38 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			return fc
 		else:
 			return None
+			
+	def updateChartData(self):
+		chart_template = self.loadTemplate('stats_money_template.xml')
+		if chart_template is None:
+			return
+		cls = self.server._callbackclass
+		LOG.debug('updating chart xml data...')
+		chartData=""
+		print len(cls.stats)
+		
+		# legend
+		chartData+="<row>\n\t<null/>\n"
+		for stat in cls.stats:
+			gameinfo = stat[0]
+			chartData+="\t<number>%d</number>\n" % gameinfo['game_date']
+		chartData+="</row>\n"
+		
+		# real data
+		companies = len(cls.stats[0][1])
+		for company in range(0, companies):
+			chartData+="<row>\n\t<string>Company %d</string>\n"%company
+			for stat in cls.stats:
+				companies_data = stat[1]
+				if len(companies_data)-1 >= company:
+					money = companies_data[company]['money']
+					chartData+="\t<number>%f</number>\n"%money
+			chartData+="</row>\n"
+		
+		basedir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
+		f = open(os.path.join(basedir, 'stats_money.xml'), "w")
+		f.write(chart_template%{'chartdata':chartData})
+		f.close()
 
 	def sendError(self, num=404):
 		txt = """\
@@ -48,6 +80,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self.path = urllib.quote (urllib.unquote (self.path))
 		basedir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
 		#print self.path
+		
+		self.updateChartData()
 		
 		if self.path == "/":
 			cls = self.server._callbackclass
