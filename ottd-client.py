@@ -19,6 +19,7 @@ class SpectatorClient(Client):
 	irc_channel = config.get("irc", "channel")
 	playerlist = {}
 	webserver = None
+	stats=[]
 	
 	# this class implements the thread start method
 	def run(self):
@@ -250,7 +251,12 @@ class SpectatorClient(Client):
 			self.dispatchEvent("Server loading new map...", 1)
 			# TODO: RECONNECT
 			self.runCond = False
-
+	
+	def getStats(self):
+		LOG.debug("updating stats...")
+		value = [self.getGameInfo(), self.getCompanyInfo()]
+		self.stats.append(value)
+	
 	def joinGame(self):
 		#construct join packet
 		cversion = self.revision
@@ -375,6 +381,8 @@ class SpectatorClient(Client):
 				
 				
 				ignoremsgs = []
+				companyrefresh_interval = 120 #every two minutes
+				companyrefresh_last = 0
 				while self.runCond:
 					size, command, content = self.receiveMsg_TCP()
 					#print content
@@ -391,7 +399,10 @@ class SpectatorClient(Client):
 						#print "sending ACK"
 						self.sendMsg(PACKET_CLIENT_ACK, payload_size, payload, type=M_TCP)
 						frameCounter=0
-
+					
+					if time.time() - companyrefresh_last > companyrefresh_interval:
+						self.getStats()
+						companyrefresh_last = time.time()
 						
 					if command == PACKET_SERVER_COMMAND:
 						[player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
