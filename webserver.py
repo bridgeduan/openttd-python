@@ -38,14 +38,15 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		cls = self.server._callbackclass
 		LOG.debug('updating chart xml data...')
 		chartData=""
-		print len(cls.stats)
+		#print len(cls.stats)
 		
 		# legend
 		chartData+="<row>\n\t<null/>\n"
+		first_date = cls.stats[0][0]['game_date']
 		for stat in cls.stats:
 			gameinfo = stat[0]
-			print gameinfo
-			chartData+="\t<number>%d</number>\n" % gameinfo['game_date']
+			#print gameinfo
+			chartData+="\t<number>%d</number>\n" % (gameinfo['game_date'] - first_date)
 		chartData+="</row>\n"
 		
 		# real data
