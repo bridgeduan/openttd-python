@@ -129,26 +129,35 @@ class Client(threading.Thread):
 		return None
 
 	
-	def getGRFInfo(self):
-		self.sendMsg(PACKET_UDP_CLIENT_GET_NEWGRFS, type=M_UDP)
+	def getGRFInfo(self, grfs):
+		payload_size = struct.calcsize("B")
+		payload = struct.pack("B", len(grfs))
+		for grf in grfs:
+			payload += packExt('4s16s', grf[0], grf[1])
+			payload_size += struct.calcsize('4s16s')
+		self.sendMsg(PACKET_UDP_CLIENT_GET_NEWGRFS, payload_size, payload, type=M_UDP)
 		result = self.receiveMsg_UDP()
 		if result is None:
 			LOG.debug("unable to receive UDP packet")
 			return None
+		newgrfs = []
 		size, command, content = result
-		if command == PACKET_UDP_SERVER_DETAIL_INFO:
+		if command == PACKET_UDP_SERVER_NEWGRFS:
 			offset = 0
 			[reply_count], size = unpackFromExt('B', content[offset:])
-			print reply_count
 			offset += size
 			for i in range(0, reply_count):
 				[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
 				offset += size
-				grfs.append((grfid, md5sum))
+				
+				[grfname], size = unpackFromExt('z', content[offset:])
+				offset += size
+				
+				newgrfs.append([grfid, md5sum, grfname])
 			LOG.debug("installed grfs:")
-			for grf in grfs:
-				LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex")))
-			return grfs
+			for grf in newgrfs:
+				LOG.debug(" %s - %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex"), grf[2]))
+			return newgrfs
 		else:
 			LOG.error("unexpected reply on PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (command))
 
@@ -159,10 +168,11 @@ class Client(threading.Thread):
 			offset = 0
 			[info_version, player_count], size = unpackFromExt('BB', content[offset:])
 			offset += size
-			if info_version == NETWORK_COMPANY_INFO_VERSION:
+			if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: # 4 = old version (pre rev 13712):
 				companies = []
 				
 				for i in range(0, player_count):
+					op = copy.copy(offset)
 					company = {}
 					[
 						company['number'], 
@@ -173,14 +183,16 @@ class Client(threading.Thread):
 						company['income'], 
 						company['performance'], 
 						company['password_protected'],
-					], size = unpackFromExt('BzIQQQHB', content[offset:])
+					], size = unpackFromExt('=BzIqqqHB', content[offset:], debug=False)
 					offset += size
 					
-					company['vehicles'], size = unpackFromExt('H'*NETWORK_VEHICLE_TYPES, content[offset:])
+					company['vehicles'], size = unpackFromExt('H'*5, content[offset:], debug=False)
 					offset += size
 					
-					company['stations'], size = unpackFromExt('H'*NETWORK_STATION_TYPES, content[offset:])
+					company['stations'], size = unpackFromExt('H'*5, content[offset:], debug=False)
 					offset += size
+					
+					# version4 has much more information, but we will ignore those ...
 					
 					companies.append(company)
 				return companies
@@ -212,9 +224,6 @@ class Client(threading.Thread):
 						[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
 						offset += size
 						info['grfs'].append((grfid, md5sum))
-						LOG.debug("installed grfs:")
-						for grf in grfs:
-							LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex")))
 				[
 					info['game_date'],
 					info['start_date'],
