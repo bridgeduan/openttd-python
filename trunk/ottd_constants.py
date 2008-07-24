@@ -12,6 +12,10 @@ PACKET_UDP_CLIENT_GET_NEWGRFS=9   #Requests the name for a list of GRFs (GRF_ID 
 PACKET_UDP_SERVER_NEWGRFS=10       #Sends the list of NewGRF's requested.
 PACKET_UDP_END=11                 #Must ALWAYS be on the end of this list!! (period)
 
+NETWORK_COMPANY_INFO_VERSION = 5
+NETWORK_VEHICLE_TYPES = 5
+NETWORK_STATION_TYPES = 5
+
 # packet IDs
 PACKET_SERVER_FULL=0
 PACKET_SERVER_BANNED=1
