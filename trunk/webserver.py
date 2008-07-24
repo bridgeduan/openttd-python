@@ -44,6 +44,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		chartData+="<row>\n\t<null/>\n"
 		for stat in cls.stats:
 			gameinfo = stat[0]
+			print gameinfo
 			chartData+="\t<number>%d</number>\n" % gameinfo['game_date']
 		chartData+="</row>\n"
 		
