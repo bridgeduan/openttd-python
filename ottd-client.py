@@ -154,7 +154,7 @@ class SpectatorClient(Client):
 			elif command == 'reloadconfig':
 				LoadConfig()
 				self.dispatchEvent("Reloading config file...")
-			elif command == 'loadirc' and self.irc is None and config.getboolean("main", "enableirc")==1:
+			elif command == 'loadirc' and self.irc is None and config.getboolean("irc", "enable")==1:
 				botnick=(config.get("irc", "nickname"))
 				self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
 				self.irc.start()
@@ -163,16 +163,6 @@ class SpectatorClient(Client):
 				self.irc.stop()
 				self.irc = None
 				self.dispatchEvent("IRC unloaded")
-			elif command == 'startwebserver' and config.getboolean("main", "enablewebserver"):
-				port = config.getint("webserver", "port")
-				self.webserver = myWebServer(self, port)
-				self.webserver.start()
-				self.dispatchEvent("webserver started on port %d"%port)
-			elif command == 'stopwebserver':
-				if self.webserver:
-					self.webserver.stop()
-					self.webserver = None
-					self.dispatchEvent("webserver stopped")
 
 		# cases not using if/elif
 		if command.startswith("lastactive") and len(command) >11:
@@ -197,7 +187,22 @@ class SpectatorClient(Client):
 					timestr = "%d seconds ago" % (time.time()-ltime)
 				self.sendChat("company %d last active: %s"%(companyid, timestr))
 		
+	def startWebserver(self):
+		if not config.getboolean("webserver", "enable") or not self.webserver is None:
+			return
+		LOG.debug("starting webserver ...")
+		port = config.getint("webserver", "port")
+		self.webserver = myWebServer(self, port)
+		self.webserver.start()
+		self.dispatchEvent("webserver started on port %d"%port)
 	
+	def stopWebserver(self):
+		if self.webserver:
+			LOG.debug("stopping webserver ...")
+			self.webserver.stop()
+			self.webserver = None
+			self.dispatchEvent("webserver stopped")
+		
 	def handlePacket(self, command, content):
 		if command == PACKET_SERVER_QUIT:
 			[cid, msg], size = unpackExt('Hz', content)
@@ -366,6 +371,10 @@ class SpectatorClient(Client):
 				# auto start IRC
 				if config.getboolean("irc", "autojoin"):
 					self.processCommand(config.get("main", "commandprefix") + "loadirc")
+				if config.getboolean("webserver", "autostart"):
+					self.startWebserver()
+				
+				
 				
 				ignoremsgs = []
 				while self.runCond:

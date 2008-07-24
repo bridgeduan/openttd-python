@@ -1,31 +1,103 @@
-import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer
+import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.path, urllib
 from log import *
 
+ext2conttype = {"jpg": "image/jpeg",
+                "jpeg": "image/jpeg",
+                "png": "image/png",
+                "gif": "image/gif",
+                "html": "text/html",
+                "htm": "text/html",
+                "swf": "application/x-shockwave-flash",
+				"xml": "text/xml",
+				}
+def content_type(filename):
+	ext = filename[filename.rfind(".")+1:].lower()
+	if ext in ext2conttype.keys():
+		return ext2conttype[ext]
+	else:
+		return "text/html"
+
+
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+	
+	def loadTemplate(self, name):
+		basedir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
+		fn = os.path.normpath(os.path.join(basedir, name.lstrip('/')))
+		if os.path.exists(fn):
+			f = open(fn, "r")
+			fc = f.read()
+			f.close()
+			return fc
+		else:
+			return None
+
+	def sendError(self, num=404):
+		txt = """\
+			<html>
+			   <head><title>404 file not found</title></head>
+			   <body>404 file not found</body>
+			</html>\n""" 
+		self.send_response(num)
+		self.send_header("Content-type", "text/html")
+		self.send_header("Content-Length", str (len (txt)))
+		self.end_headers()
+		self.wfile.write(txt)
+
 	def do_GET(self):
 		#print self.path
+		self.path = urllib.quote (urllib.unquote (self.path))
+		basedir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
+		#print self.path
+		
 		if self.path == "/":
 			cls = self.server._callbackclass
-			playerlist = "no information availabe, please check back later"
-			print cls
+			
+			content = "running on %s:%d<p/>" % (cls.ip, cls.port)
+
+			
+			playerlist = "no information availabe, please check back later<p/>"
 			if not cls is None:
-				playerlist=""
+				playerlist="<ul>"
 				for clientid in cls.playerlist.keys():
-					playerlist+= "Client #%d: %s, playing in company %d\n" % (clientid, cls.playerlist[clientid]['name'], cls.playerlist[clientid]['company'])
-				
-			content= """
-<HTML><BODY>
-<h1>OpenTTD python bot</h1>
-<pre>
-%s
-</pre>
-</BODY>
-</HTML>
-			""" % playerlist
+					playerlist+= "<li>Client #%d: %s, playing in company %d</li>" % (clientid, cls.playerlist[clientid]['name'], cls.playerlist[clientid]['company'])
+				playerlist+="</ul>"
+			content += playerlist
+
+			template = self.loadTemplate("index.html")
+			if not template is None:
+				output = template % { 
+					'content':content,
+					'server_ip': cls.ip,
+					'server_port': cls.port,
+					}
+			else:
+				self.sendError()
+				return
+
 			self.send_response(200)
 			self.send_header('Content-type', 'text/html')
 			self.end_headers()
-			self.wfile.write(content)
+			self.wfile.write(output)
+		else:
+			path = urllib.unquote(self.path)
+			if path.find("?") >= 0:
+				path = path[:path.find("?")]
+			fn = os.path.normpath(os.path.join(basedir, path.lstrip('/')))
+			#print path, fn
+
+			if  os.path.exists(fn):
+				self.send_response (200)
+				self.send_header ("Content-type", content_type(fn))
+				self.send_header ("Content-Length", os.path.getsize(fn))
+				self.end_headers()
+				f = open(fn, "rb")
+				self.wfile.write(f.read())
+				f.close()
+			else:
+				self.sendError()
+				return
+			
+
 
 class myHTTPServer(BaseHTTPServer.HTTPServer):
 	def __init__(self, addr, handlerClass, cls):
