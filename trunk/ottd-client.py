@@ -1,3 +1,4 @@
+import os, os.path
 from ottd_lib import *
 from irc_lib import *
 from webserver import *
@@ -19,7 +20,6 @@ class SpectatorClient(Client):
 	irc_channel = config.get("irc", "channel")
 	playerlist = {}
 	webserver = None
-	stats=[]
 	
 	# this class implements the thread start method
 	def run(self):
@@ -252,10 +252,52 @@ class SpectatorClient(Client):
 			# TODO: RECONNECT
 			self.runCond = False
 	
-	def getStats(self):
+	def updateStats(self):
+		available = True
+		try:
+			import pickle
+		except:
+			available=False
+		if not available:
+			LOG.error("error while loading pickle module, stats saving disabled!")
+			return
+
 		LOG.debug("updating stats...")
 		value = [self.getGameInfo(), self.getCompanyInfo()]
-		self.stats.append(value)
+		
+		tstart = time.time()
+		fn = config.get("stats", "cachefilename")
+		obj=[]
+		try:
+			f = open(fn, 'rb')
+			obj = pickle.load(f)
+			f.close()
+		except:
+			LOG.error("error while opening stats cache file!")
+			obj = []
+		
+		obj.append(value)
+		
+		try:
+			f = open(fn, 'wb')
+			#if you use python < 2.3 use this line:
+			#pickle.dump(obj, f)
+			pickle.dump(obj, f, 1)
+			f.close()
+		except:
+			LOG.error("error while saving stats cache file!")
+		
+		tdiff = time.time() - tstart
+		fs = float(os.path.getsize(fn)) / float(1024)
+		LOG.debug("stats updated in %0.5f seconds. File is %.2fKB big (%d lines)"%(tdiff, fs, len(obj)))
+	
+	def clearStats(self):
+		fn = config.get("stats", "cachefilename")
+		try:
+			os.remove(fn)
+			LOG.debug("stats cleared")
+		except:
+			pass
 	
 	def joinGame(self):
 		#construct join packet
@@ -383,6 +425,11 @@ class SpectatorClient(Client):
 				ignoremsgs = []
 				companyrefresh_interval = 120 #every two minutes
 				companyrefresh_last = 0
+				
+				doStats = config.getboolean("stats", "enable")
+				if doStats:
+					self.clearStats()
+				
 				while self.runCond:
 					size, command, content = self.receiveMsg_TCP()
 					#print content
@@ -401,8 +448,8 @@ class SpectatorClient(Client):
 						self.sendMsg(PACKET_CLIENT_ACK, payload_size, payload, type=M_TCP)
 						frameCounter=0
 					
-					if time.time() - companyrefresh_last > companyrefresh_interval:
-						self.getStats()
+					if doStats and time.time() - companyrefresh_last > companyrefresh_interval:
+						self.updateStats()
 						companyrefresh_last = time.time()
 						
 					if command == PACKET_SERVER_COMMAND:
@@ -418,7 +465,8 @@ class SpectatorClient(Client):
 						# some example  implementation
 						companystr = self.getCompanyString(player)
 						if commandid == 61: #CMD_RENAME_SIGN
-							self.sendChat("%s renames a sign: '%s'" % (companystr, text) )
+							if text != '':
+								self.sendChat("%s renames a sign: '%s'" % (companystr, text) )
 						elif commandid == 46: #CMD_SET_PLAYER_COLOR
 							self.sendChat("%s changed their color"%companystr)
 						elif commandid == 52: #CMD_CHANGE_COMPANY_NAME
@@ -503,7 +551,7 @@ def main():
 	client = SpectatorClient(ip, port, True)
 	client.connect(M_BOTH)
 	gameinfo = client.getGameInfo()
-	client.revision = gameinfo['server_revision']
+	client.revision = gameinfo.server_revision
 	client.password = password
 	client.joinGame()
 	client.disconnect()

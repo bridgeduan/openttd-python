@@ -6,6 +6,6 @@ def LoadConfig():
 
 LoadConfig()
 
-for section in ['openttd', 'irc', 'webserver', 'irccommands']:
+for section in ['openttd', 'irc', 'webserver', 'irccommands', 'stats']:
 	if not config.has_section(section):
 		config.add_section(section)
