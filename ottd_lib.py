@@ -18,6 +18,9 @@ M_TCP=1
 M_UDP=2
 M_BOTH=3
 
+class DataStorageClass:
+	pass
+
 class DataPacket:
 	size=0
 	command=0
@@ -163,7 +166,10 @@ class Client(threading.Thread):
 
 	def getCompanyInfo(self):
 		self.sendMsg(PACKET_UDP_CLIENT_DETAIL_INFO, type=M_UDP)
-		size, command, content = self.receiveMsg_UDP()
+		res = self.receiveMsg_UDP()
+		if res is None:
+			return None
+		size, command, content = res
 		if command == PACKET_UDP_SERVER_DETAIL_INFO:
 			offset = 0
 			[info_version, player_count], size = unpackFromExt('BB', content[offset:])
@@ -173,23 +179,23 @@ class Client(threading.Thread):
 				
 				for i in range(0, player_count):
 					op = copy.copy(offset)
-					company = {}
+					company = DataStorageClass()
 					[
-						company['number'], 
-						company['company_name'], 
-						company['inaugurated_year'], 
-						company['company_value'], 
-						company['money'], 
-						company['income'], 
-						company['performance'], 
-						company['password_protected'],
+						company.number, 
+						company.company_name, 
+						company.inaugurated_year, 
+						company.company_value, 
+						company.money, 
+						company.income, 
+						company.performance, 
+						company.password_protected,
 					], size = unpackFromExt('=BzIqqqHB', content[offset:], debug=False)
 					offset += size
 					
-					company['vehicles'], size = unpackFromExt('H'*5, content[offset:], debug=False)
+					company.vehicles, size = unpackFromExt('H'*5, content[offset:], debug=False)
 					offset += size
 					
-					company['stations'], size = unpackFromExt('H'*5, content[offset:], debug=False)
+					company.stations, size = unpackFromExt('H'*5, content[offset:], debug=False)
 					offset += size
 					
 					# version4 has much more information, but we will ignore those ...
@@ -217,32 +223,32 @@ class Client(threading.Thread):
 				[grfcount], size = unpackFromExt('B', content, offset)
 				offset += size
 
-				info = {}
-				info['grfs'] = []
+				info = DataStorageClass()
+				info.grfs = []
 				if grfcount != 0:
 					for i in range(0, grfcount):
 						[grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
 						offset += size
-						info['grfs'].append((grfid, md5sum))
+						info.grfs.append((grfid, md5sum))
 				# the grf stuff is still wrong :|
 				[
-					info['game_date'],
-					info['start_date'],
-					info['companies_max'],
-					info['companies_on'],
-					info['spectators_max'],
-					info['server_name'],
-					info['server_revision'],
-					info['server_lang'],
-					info['use_password'],
-					info['clients_max'],
-					info['clients_on'],
-					info['spectators_on'],
-					info['map_name'],
-					info['map_width'],
-					info['map_height'],
-					info['map_set'],
-					info['dedicated'],
+					info.game_date,
+					info.start_date,
+					info.companies_max,
+					info.companies_on,
+					info.spectators_max,
+					info.server_name,
+					info.server_revision,
+					info.server_lang,
+					info.use_password,
+					info.clients_max,
+					info.clients_on,
+					info.spectators_on,
+					info.map_name,
+					info.map_width,
+					info.map_height,
+					info.map_set,
+					info.dedicated,
 				], size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
 				#LOG.debug("got Game Info (%d byes long)\n"%(size))
 				return info
