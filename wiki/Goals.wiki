@@ -1,4 +1,5 @@
 #summary the goals of this project
+#labels Featured,Phase-Requirements,Phase-Design,Phase-Implementation
 
 = Goals =
 
