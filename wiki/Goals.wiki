@@ -1,0 +1,34 @@
+#summary the goals of this project
+
+= Goals =
+
+* This python module should prrovide easy access to the openttd Game.
+* This library will be used to code a bot that has certain functions (see below)
+* This library should help to improve certain security holes and issues with the current network protocol
+
+= Library =
+Requirements:
+* platform indepenndent
+* splitting into several layers of complexity (like basic communication class and complete client) to ease the usage
+* robust: the library may not crash servers or clients in any way
+* fast: it should not create lag when running on the same host as the server
+* easy to configure: 
+
+= Bot =
+* 3 way connection interface:
+ * per spectator account (not modifying the sources)
+ * per special connection to the server (not coded yet)
+ * per console wrapper (like autopilot)
+* Basic Functions:
+ * logging user statistics and actions into a file (partly working)
+ * providing a IRCbridge in order to connect the ingame chat and the IRC chat (working)
+ * webserver to view statistics (only basics done)
+* advanced Functions (nothing done of this):
+ * controlling the server via rcon 
+ * votes: enables users to vote for changed settings of the server and server reset
+ * user authentication: only certain users are able to give the bot important commands via ingame chat or IRC
+
+
+= Implementation Details =
+here we will discuss the design and implementation of several components:
+* EventSystem
