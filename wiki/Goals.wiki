@@ -2,7 +2,7 @@
 
 = Goals =
 
- * This python module should provide easy access to the openttd Game.
+ * This python module should provide easy access to the OpenTTD Game.
  * This library will be used to code a bot that has certain functions (see below)
  * This library should help to improve certain security holes and issues with the current network protocol
 
