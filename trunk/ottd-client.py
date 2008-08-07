@@ -4,7 +4,7 @@ from irc_lib import *
 from webserver import *
 from ottd_config import *
 
-SVNREVISION "$Rev$"
+SVNREVISION = "$Rev$"
 
 class Event:
 	msg=None	# the text
