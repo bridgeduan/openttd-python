@@ -264,7 +264,7 @@ class SpectatorClient(Client):
 				self.processEvent(BotEvent("no companies actively playing in the last 5 minutes", event))
 		elif command == 'showplayers':
 			for clientid in self.playerlist.keys():
-				eventstr = "Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'])
+				eventstr = "Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company']))
 				self.processEvent(BotEvent(eventstr, event))
 		
 		# non-useful commands for productive servers,, but the bot may use them itself all the time
