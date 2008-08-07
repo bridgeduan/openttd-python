@@ -246,7 +246,7 @@ class SpectatorClient(Client):
 				"time": time.ctime().__str__(),
 				"ip": self.ip,
 				"port": self.port,
-				"ottdversion": self.cversion,
+				"ottdversion": self.revision,
 				"botversion": SVNREVISION,
 			}
 			proccommand = rawcommand % interpolation
