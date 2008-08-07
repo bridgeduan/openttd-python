@@ -4,6 +4,8 @@ from irc_lib import *
 from webserver import *
 from ottd_config import *
 
+SVNREVISION "$Rev$"
+
 class Event:
 	msg=None	# the text
 	type=None	# type (not used yet)
@@ -244,6 +246,8 @@ class SpectatorClient(Client):
 				"time": time.ctime().__str__(),
 				"ip": self.ip,
 				"port": self.port,
+				"ottdversion": self.cversion,
+				"botversion": SVNREVISION,
 			}
 			proccommand = rawcommand % interpolation
 			if len(command) > 0:
