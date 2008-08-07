@@ -241,13 +241,14 @@ class SpectatorClient(Client):
 			rawcommand = config.get('irccommands', command)
 			if not len(rawcommand) > 0:
 				return
+			botrevision = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
 			interpolation = {
 				"frame": self.frame_server,
 				"time": time.ctime().__str__(),
 				"ip": self.ip,
 				"port": self.port,
 				"ottdversion": self.revision,
-				"botversion": SVNREVISION,
+				"botversion": botrevision,
 			}
 			proccommand = rawcommand % interpolation
 			if len(command) > 0:
