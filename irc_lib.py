@@ -25,6 +25,10 @@ class OTTDIRCBot(SingleServerIRCBot):
 
 	def on_pubmsg(self, c, e):
 		self.in_queue.append((nm_to_n(e.source()), e.arguments()[0], e.eventtype()))
+		
+	def on_kick(self, c, e):
+		self.in_queue.append(('', "we got kicked from the channel, trying to rejoin", 'internal'))
+		c.join(self.channel)
 	
 	def say(self, msg, type):
 		try:
