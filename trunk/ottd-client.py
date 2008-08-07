@@ -264,7 +264,7 @@ class SpectatorClient(Client):
 				self.processEvent(BotEvent("no companies actively playing in the last 5 minutes", event))
 		elif command == 'showplayers':
 			for clientid in self.playerlist.keys():
-				self.processEvent(BotEvent("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False), event)))
+				self.processEvent(BotEvent("Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company'], False)) event))
 		
 		# non-useful commands for productive servers,, but the bot may use them itself all the time
 		if not config.getboolean("main", "productive") or event.__name__() == 'BotEvent':
@@ -565,7 +565,7 @@ class SpectatorClient(Client):
 				# init IRC bridge
 				self.irc = None
 				
-				self.processEvent(BotEvent("hey i am a bot :|"))
+				#self.processEvent(BotEvent("hey i am a bot :|"))
 				
 				# auto start IRC
 				if config.getboolean("irc", "autojoin"):
