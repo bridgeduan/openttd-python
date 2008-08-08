@@ -311,6 +311,7 @@ class SpectatorClient(Client):
             if command == 'quit':
                 payload = packExt('z', config.get("openttd", "quitmessage"))
                 payload_size = len(payload)
+                self.reconnectCond = False
                 self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
             elif command == 'reloadconfig':
                 LoadConfig()
@@ -373,14 +374,15 @@ class SpectatorClient(Client):
             [cid, msg], size = unpackExt('Hz', content)
             if cid == self.client_id:
                 self.runCond = False
+                LOG.info("Quit from server")
             if cid in self.playerlist:
                 self.processEvent(BotEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg)))
                 del self.playerlist[cid]
         
         elif command == const.PACKET_SERVER_ERROR:
             [errornum], size = unpackFromExt('B', content, 0)
-            if errornum in error_names.keys():
-                self.processEvent(BotEvent("Disconnected from server: %s" % error_names[errornum][1]))
+            if errornum in const.error_names:
+                self.processEvent(BotEvent("Disconnected from server: %s" % const.error_names[errornum][1]))
             self.runCond = False
         
         elif command == const.PACKET_SERVER_ERROR_QUIT:
@@ -389,7 +391,7 @@ class SpectatorClient(Client):
                 self.doingloop = False
                 LOG.info("Disconnected from server")
             if cid in self.playerlist:
-                self.processEvent(BotEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], error_names[errornum][1])))
+                self.processEvent(BotEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1])))
                 del self.playerlist[cid]
 
         elif command == const.PACKET_SERVER_CLIENT_INFO:
@@ -486,6 +488,7 @@ class SpectatorClient(Client):
             if command == const.PACKET_SERVER_BANNED:
                 LOG.info("Couldn't join server...banned from it. Exiting!")
                 self.runCond=False
+                self.reconnectCond=False
             if command == const.PACKET_SERVER_CHECK_NEWGRFS:
                 offset = 0
                 [grfcount], size = unpackFromExt('B', content, offset)
@@ -712,11 +715,16 @@ def main():
 
     client = SpectatorClient(ip, port, True)
     
+    client.reconnectCond = True
+    
     # endless loop
-    while True:
+    while client.reconnectCond:
         # retry to connect every 20 seconds
         while not client.connect(M_BOTH):
             time.sleep(20)
+        
+        # sleep a second
+        time.sleep(1)
         
         # fetch any fatal errors and try to reconnect to the server
         try:
