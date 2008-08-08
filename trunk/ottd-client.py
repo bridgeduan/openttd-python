@@ -415,7 +415,6 @@ class SpectatorClient(Client):
         
         if command == const.PACKET_SERVER_NEWGAME:
             self.processEvent(BotEvent("Server loading new map..."))
-            # TODO: RECONNECT
             self.runCond = False
     
     def updateStats(self):
