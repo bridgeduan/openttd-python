@@ -90,6 +90,7 @@ class Client(threading.Thread):
 			#data=self.receiveMsg_UDP()
 			
 			LOG.debug( "connect finished" )
+			return True
 		except Exception, e:
 			LOG.error('receiveMsg_UDP error: '+str(e))
 			errorMsg = StringIO.StringIO()
@@ -97,6 +98,7 @@ class Client(threading.Thread):
 			LOG.error(errorMsg.getvalue())
 			if not str(e) in self.errors:
 				self.errors.append(str(e))
+			return False
 	
 	def run(self):
 		#overwrite
