@@ -703,12 +703,26 @@ def main():
 		printUsage()
 
 	client = SpectatorClient(ip, port, True)
-	client.connect(M_BOTH)
-	gameinfo = client.getGameInfo()
-	client.revision = gameinfo.server_revision
-	client.password = password
-	client.joinGame()
-	client.disconnect()
+	
+	# endless loop
+	while True:
+		# retry to connect every 10 seconds
+		connected = False
+		while not connected:
+			conected = client.connect(M_BOTH)
+			time.sleep(10)
+		try:
+			gameinfo = client.getGameInfo()
+			client.revision = gameinfo.server_revision
+			client.password = password
+			client.joinGame()
+			client.disconnect()
+		except Exception, e:
+			LOG.debug('main loop error: '+str(e))
+			errorMsg = StringIO.StringIO()
+			traceback.print_exc(file=errorMsg)
+			LOG.error(errorMsg.getvalue())
+
 	sys.exit(0)
 
 if __name__ == '__main__':
