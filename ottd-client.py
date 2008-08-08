@@ -706,11 +706,11 @@ def main():
 	
 	# endless loop
 	while True:
-		# retry to connect every 10 seconds
-		connected = False
-		while not connected:
-			conected = client.connect(M_BOTH)
-			time.sleep(10)
+		# retry to connect every 20 seconds
+		while not client.connect(M_BOTH):
+			time.sleep(20)
+		
+		# fetch any fatal errors and try to reconnect to the server
 		try:
 			gameinfo = client.getGameInfo()
 			client.revision = gameinfo.server_revision
@@ -718,10 +718,10 @@ def main():
 			client.joinGame()
 			client.disconnect()
 		except Exception, e:
-			LOG.debug('main loop error: '+str(e))
+			LOG.error('main loop error: '+str(e))
 			errorMsg = StringIO.StringIO()
 			traceback.print_exc(file=errorMsg)
-			LOG.error(errorMsg.getvalue())
+			LOG.debug(errorMsg.getvalue())
 
 	sys.exit(0)
 
