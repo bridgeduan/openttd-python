@@ -10,9 +10,11 @@ class Grf(DataStorageClass):
 		self.usedcount = 0
 		self.totalclients = 0
 		self.md5sum = md5
+		self.servers = []
 	def addServer(self, server):
 		self.usedcount += 1
 		self.totalclients += server.clients_on
+		self.servers += server
 	def getUsedPercent(self, totalcount):
 		return float(self.usedcount)/float(totalcount)*100
 	def __str__(self, grfcount):
@@ -27,6 +29,8 @@ class ClientGameInfo(Client):
 		self.connect()
 		if len(self.errors) == 0:
 			SERVERS[self.uid] = self.getGameInfo()
+			SERVERS[self.uid].ip = self.ip
+			SERVERS[self.uid].port = self.port
 		else:
 			SERVERS[self.uid] = ", ".join(self.errors)
 		self.disconnect()
