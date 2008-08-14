@@ -14,7 +14,7 @@ class Grf(DataStorageClass):
 	def addServer(self, server):
 		self.usedcount += 1
 		self.totalclients += server.clients_on
-		self.servers += server
+		self.servers.append(server)
 	def getUsedPercent(self, totalcount):
 		return float(self.usedcount)/float(totalcount)*100
 	def __str__(self, grfcount):
@@ -29,8 +29,11 @@ class ClientGameInfo(Client):
 		self.connect()
 		if len(self.errors) == 0:
 			SERVERS[self.uid] = self.getGameInfo()
-			SERVERS[self.uid].ip = self.ip
-			SERVERS[self.uid].port = self.port
+			if not SERVERS[self.uid] is None:
+				SERVERS[self.uid].ip = self.ip
+				SERVERS[self.uid].port = self.port
+				#if len(SERVERS[self.uid].grfs) != 0:
+				#	SERVERS[self.uid].newgrfs = self.getGRFInfo(SERVERS[self.uid].grfs)
 		else:
 			SERVERS[self.uid] = ", ".join(self.errors)
 		self.disconnect()
