@@ -408,12 +408,13 @@ class SpectatorClient(Client):
         
         elif command == const.PACKET_SERVER_JOIN:
             [playerid], size = unpackFromExt('H', content, 0)
-            if playerid in self.playerlist:
+            if playerid in self.playerlist && playerid != self.clientid:
                 self.processEvent(BotEvent("%s has joined the game" % self.playerlist[playerid]['name']))
         
         if command == const.PACKET_SERVER_SHUTDOWN:
             self.processEvent(BotEvent("Server shutting down...have a nice day!"))
             self.runCond = False
+            self.reconnectCond = False
         
         if command == const.PACKET_SERVER_NEWGAME:
             self.processEvent(BotEvent("Server loading new map..."))
