@@ -40,11 +40,11 @@ def main():
 	counters={}
 	sumcounter = 0
 	servererr=0
-	counters[6] = {} # server revision
-	counters[7] = {} # language
-	counters[12] = {} # map
-	counters[13] = {} # map-size
-	counters[15] = {} # landscape
+	counters["server_revision"] = {} # server revision
+	counters["server_lang"] = {} # language
+	counters["map_name"] = {} # map
+	counters["map_width"] = {} # map-size
+	counters["map_set"] = {} # landscape
 	used_grfs = {}
 	grfclients = {}
 	grfcount = 0
@@ -60,38 +60,38 @@ def main():
 				print "%3d: ERROR: %s" % (k, SERVERS[k])
 			continue
 		if not SERVERS[k] is None:
-			server = SERVERS[k][0]
+			server = SERVERS[k]
 			if VERBOSE:
 				print "%3d: %s"%(k,server.__str__())
-			for i in [0,1,2,3,4,8,9,10,11,16]:
+			for i in ["game_date","start_date","companies_max","companies_on","spectators_max","use_password","clients_max","clients_on","spectators_on","dedicated"]:
 				if not i in counters.keys():
 					counters[i] = 0
-				counters[i] += server[i]
+				counters[i] += getattr(server, i)
 			
 			# handle list fields
-			for i in [6,7,12,13,15]:
-				key = server[i]
-				if i == 13:
-					key = "%5d x %-5d" % (server[13], server[14])
+			for i in ["server_revision","server_lang","map_name","map_width","map_set"]:
+				key = getattr(server, i)
+				if i == "map_height":
+					key = "%5d x %-5d" % (server.map_width, server.map_height)
 				if not key in counters[i].keys():
 					# 0 = counter
 					# 1 = client counter
 					counters[i][key] = [0, 0]
 				counters[i][key][0] += 1
-				counters[i][key][1] += server[10]
+				counters[i][key][1] += server.clients_on
 			
-			if server[5].find("myottd.net") >= 0:
+			if server.server_name.find("myottd.net") >= 0:
 				myottdservers += 1
 				
 			# grf stats
-			grfs = SERVERS[k][1]
+			grfs = SERVERS[k].grfs
 			for grf in grfs:
 				grfname = grf[0]
 				if not grfname in used_grfs.keys():
 					used_grfs[grfname] = 0
 					grfclients[grfname] = 0
 				used_grfs[grfname] += 1
-				grfclients[grfname] += server[10]
+				grfclients[grfname] += server.clients_on
 				grfcount += 1
 			
 			if len(grfs) > 0:
@@ -101,8 +101,8 @@ def main():
 						valid = False
 				if valid:
 					newgrf_servers += 1
-					newgrf_clients += server[10]
-			clients_overall += server[10]
+					newgrf_clients += server.clients_on
+			clients_overall += server.clients_on
 			sumcounter+=1
 	#0 game_date
 	#1 start_date
@@ -124,11 +124,11 @@ def main():
 	if VERBOSE:
 		print '#'*80
 	print "OpenTTD Server statistics (%s):" % time.ctime()
-	print "companies: %d / %d" % (counters[3], counters[2])
-	print "spectators: %d / %d" % (counters[11], counters[4])
-	print "clients: %d / %d" % (counters[10], counters[9])
-	print "password protected servers: %d" % counters[8]
-	print "dedicated servers: %d / %d, %.2f %%" % (counters[16], sumcounter, (float(counters[16])/float(sumcounter))*100)
+	print "companies: %d / %d" % (counters["companies_on"], counters["companies_max"])
+	print "spectators: %d / %d" % (counters["spectators_on"], counters["spectators_max"])
+	print "clients: %d / %d" % (counters["clients_on"], counters["clients_max"])
+	print "password protected servers: %d" % counters["use_password"]
+	print "dedicated servers: %d / %d, %.2f %%" % (counters["dedicated"], sumcounter, (float(counters["dedicated"])/float(sumcounter))*100)
 	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, sumcounter, (float(newgrf_servers)/float(sumcounter))*100)
 	print "players on newGRF servers: %d / %d (%.2f%%)" % (newgrf_clients, clients_overall, (float(newgrf_clients)/float(clients_overall))*100)
 	print "responding servers: %d, not responding: %d" % (len(SERVERS.keys()) - servererr, servererr)
@@ -137,17 +137,17 @@ def main():
 	
 	print ""
 	print "used versions:"
-	for item in sorted(counters[6].items(), key=itemgetter(1), reverse=True):
+	for item in sorted(counters["server_revision"].items(), key=itemgetter(1), reverse=True):
 		print " % 16s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 	
 	print ""
 	print "used map sizes:"
-	for item in sorted(counters[13].items(), key=itemgetter(1), reverse=True):
+	for item in sorted(counters["map_width"].items(), key=itemgetter(1), reverse=True):
 		print " % 20s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 		
 	print ""
 	print "used languages:"
-	for item in sorted(counters[7].items(), key=itemgetter(1), reverse=True):
+	for item in sorted(counters["server_lang"].items(), key=itemgetter(1), reverse=True):
 		if item[0] <= len(known_languages):
 			langstr = known_languages[item[0]]
 		else:
@@ -157,7 +157,7 @@ def main():
 	print ""
 	print "used landscapes:"
 	landscapes = ['normal', 'arctic', 'tropic', 'toyland']
-	for item in  sorted(counters[15].items(), key=itemgetter(1), reverse=True):
+	for item in  sorted(counters["map_set"].items(), key=itemgetter(1), reverse=True):
 		if item[0] < 4:
 			lcs = landscapes[item[0]]
 		else:
@@ -166,7 +166,7 @@ def main():
 		
 	print ""
 	print "used maps:"
-	for item in sorted(counters[12].items(), key=itemgetter(1), reverse=True):
+	for item in sorted(counters["map_name"].items(), key=itemgetter(1), reverse=True):
 		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 
 	print ""
