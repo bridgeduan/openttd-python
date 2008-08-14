@@ -125,23 +125,6 @@ def main():
 					newgrf_clients += server.clients_on
 			clients_overall += server.clients_on
 			sumcounter+=1
-	#0 game_date
-	#1 start_date
-	#2 companies_max
-	#3 companies_on
-	#4 spectators_max
-	#5 server_name
-	#6 server_revision
-	#7 server_lang
-	#8 use_password
-	#9 clients_max
-	#10 clients_on
-	#11 spectators_on
-	#12 map_name
-	#13 map_width
-	#14 map_height
-	#15 map_set
-	#16 dedicated
 	if VERBOSE:
 		print '#'*80
 	print "OpenTTD Server statistics (%s):" % time.ctime()
@@ -192,8 +175,6 @@ def main():
 
 	print ""
 	print "used GRFs (%d used, %d unique known):" % (grfcount, len(total_grfs))
-	#for item in sorted(used_grfs.items(), key=itemgetter(1), reverse=True):
-		
 	for item in sorted(total_grfs.values(), reverse=True):
 		print item.__str__(grfcount)
 	sys.exit(0)
