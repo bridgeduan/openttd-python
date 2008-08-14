@@ -5,10 +5,11 @@ VERBOSE = False
 SERVERS = {}
 
 class Grf(DataStorageClass):
-	def __init__(self, name):
+	def __init__(self, name, md5):
 		self.grfid = name
 		self.usedcount = 0
 		self.totalclients = 0
+		self.md5sum = md5
 	def addServer(self, server):
 		self.usedcount += 1
 		self.totalclients += server.clients_on
@@ -103,9 +104,9 @@ def main():
 			# grf stats
 			grfs = SERVERS[k].grfs
 			for grf in grfs:
-				grfname = grf[0]
+				grfname = grf[1]
 				if not grfname in total_grfs:
-					total_grfs[grfname] = Grf(grfname)
+					total_grfs[grfname] = Grf(grf[0], grf[1])
 				if not grfname in used_grfs.keys():
 					used_grfs[grfname] = 0
 					grfclients[grfname] = 0
