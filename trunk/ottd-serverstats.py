@@ -4,6 +4,22 @@ from ottd_lib import *
 VERBOSE = False
 SERVERS = {}
 
+class Grf(DataStorageClass):
+	def __init__(self, name):
+		self.grfid = name
+		self.usedcount = 0
+		self.totalclients = 0
+	def addServer(self, server):
+		self.usedcount += 1
+		self.totalclients += server.clients_on
+	def getUsedPercent(self, totalcount):
+		return float(self.usedcount)/float(totalcount)*100
+	def __str__(self, grfcount):
+		return " % 10s: %3d (% 5.1f%%), %3d clients" % (self.grfid.encode('hex'), self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
+	def __cmp__(self, other):
+		return cmp(self.usedcount, other.usedcount)
+	
+
 class ClientGameInfo(Client):
 	# this class implements the thread start method
 	def run(self):
@@ -46,6 +62,7 @@ def main():
 	counters["map_width"] = {} # map-size
 	counters["map_set"] = {} # landscape
 	used_grfs = {}
+	total_grfs = {}
 	grfclients = {}
 	grfcount = 0
 	myottdservers = 0
@@ -87,11 +104,14 @@ def main():
 			grfs = SERVERS[k].grfs
 			for grf in grfs:
 				grfname = grf[0]
+				if not grfname in total_grfs:
+					total_grfs[grfname] = Grf(grfname)
 				if not grfname in used_grfs.keys():
 					used_grfs[grfname] = 0
 					grfclients[grfname] = 0
 				used_grfs[grfname] += 1
 				grfclients[grfname] += server.clients_on
+				total_grfs[grfname].addServer(server)
 				grfcount += 1
 			
 			if len(grfs) > 0:
@@ -170,10 +190,11 @@ def main():
 		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 
 	print ""
-	print "used GRFs (%d used, %d unique known):" % (grfcount, len(used_grfs))
-	for item in sorted(used_grfs.items(), key=itemgetter(1), reverse=True):
-		print " % 10s: %3d (% 5.1f%%), %3d clients" % (item[0].encode('hex'), item[1], (float(item[1])/float(grfcount))*100, grfclients[item[0]])
-	
+	print "used GRFs (%d used, %d unique known):" % (grfcount, len(total_grfs))
+	#for item in sorted(used_grfs.items(), key=itemgetter(1), reverse=True):
+		
+	for item in sorted(total_grfs.values(), reverse=True):
+		print item.__str__(grfcount)
 	sys.exit(0)
 
 if __name__ == '__main__':
