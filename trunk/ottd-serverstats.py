@@ -111,7 +111,7 @@ def main():
 	counters["server_revision"] = {} # server revision
 	counters["server_lang"] = {} # language
 	counters["map_name"] = {} # map
-	counters["map_width"] = {} # map-size
+	counters["map_size"] = {} # map-size
 	counters["map_set"] = {} # landscape
 	used_grfs = {}
 	grfcount = 0
@@ -136,9 +136,9 @@ def main():
 				counters[i] += getattr(server, i)
 			
 			# handle list fields
-			for i in ["server_revision","server_lang","map_name","map_width","map_set"]:
+			for i in ["server_revision","server_lang","map_name","map_size","map_set"]:
 				key = getattr(server, i)
-				if i == "map_height":
+				if i == "map_size":
 					key = "%5d x %-5d" % (server.map_width, server.map_height)
 				if not key in counters[i].keys():
 					# 0 = counter
