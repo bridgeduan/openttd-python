@@ -391,7 +391,9 @@ class SpectatorClient(Client):
                 self.doingloop = False
                 LOG.info("Disconnected from server")
             if cid in self.playerlist:
-                self.processEvent(BotEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1])))
+                event = BotEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1]))
+                event.distribution["ingame"] = False
+                self.processEvent(event)
                 del self.playerlist[cid]
 
         elif command == const.PACKET_SERVER_CLIENT_INFO:
@@ -408,8 +410,10 @@ class SpectatorClient(Client):
         
         elif command == const.PACKET_SERVER_JOIN:
             [playerid], size = unpackFromExt('H', content, 0)
-            if playerid in self.playerlist && playerid != self.clientid:
-                self.processEvent(BotEvent("%s has joined the game" % self.playerlist[playerid]['name']))
+            if playerid in self.playerlist and playerid != self.client_id:
+                event = BotEvent("%s has joined the game" % self.playerlist[playerid]['name'])
+                event.distribution["ingame"] = False
+                self.processEvent(event)
         
         if command == const.PACKET_SERVER_SHUTDOWN:
             self.processEvent(BotEvent("Server shutting down...have a nice day!"))
