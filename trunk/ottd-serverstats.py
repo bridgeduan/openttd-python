@@ -171,16 +171,18 @@ def main():
 					newgrf_clients += server.clients_on
 			clients_overall += server.clients_on
 			sumcounter+=1
+	def percent(value1, value2=100):
+		return float(value1)/float(value2)*100
 	if VERBOSE:
 		print '#'*80
 	print "OpenTTD Server statistics (%s):" % time.ctime()
-	print "companies: %d / %d" % (counters["companies_on"], counters["companies_max"])
-	print "spectators: %d / %d" % (counters["spectators_on"], counters["spectators_max"])
-	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], (float(counters["clients_on"])/float(counters["clients_max"]))*100)
-	print "password protected servers: %d" % counters["use_password"]
-	print "dedicated servers: %d / %d, %.2f %%" % (counters["dedicated"], sumcounter, (float(counters["dedicated"])/float(sumcounter))*100)
-	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, sumcounter, (float(newgrf_servers)/float(sumcounter))*100)
-	print "players on newGRF servers: %d / %d (%.2f%%)" % (newgrf_clients, clients_overall, (float(newgrf_clients)/float(clients_overall))*100)
+	print "companies: %d / %d (%.2f%%)" % (counters["companies_on"], counters["companies_max"], percent(counters["companies_on"], counters["companies_max"]))
+	print "spectators: %d / %d (%.2f%%)" % (counters["spectators_on"], counters["spectators_max"], percent(counters["spectators_on"], counters["spectators_max"]))
+	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
+	print "password protected servers: %d / %d (%.2f %%)" % (counters["use_password"], sumcounter, percent(counters["use_password"], sumcounter))
+	print "dedicated servers: %d / %d, (%.2f %%)" % (counters["dedicated"], sumcounter, percent(counters["dedicated"], sumcounter))
+	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, sumcounter, percent(newgrf_servers, sumcounter))
+	print "players on newGRF servers: %d / %d (%.2f%%)" % (newgrf_clients, clients_overall, percent(newgrf_clients, clients_overall))
 	print "responding servers: %d, not responding: %d" % (len(SERVERS.keys()) - servererr, servererr)
 	print "myottd.net servers online: %d" % (myottdservers)
 	
