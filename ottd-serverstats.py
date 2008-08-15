@@ -176,6 +176,7 @@ def main():
 	if VERBOSE:
 		print '#'*80
 	print "OpenTTD Server statistics (%s):" % time.ctime()
+	print "responding servers: %d, not responding: %d" % (len(SERVERS.keys()) - servererr, servererr)
 	print "companies: %d / %d (%.2f%%)" % (counters["companies_on"], counters["companies_max"], percent(counters["companies_on"], counters["companies_max"]))
 	print "spectators: %d / %d (%.2f%%)" % (counters["spectators_on"], counters["spectators_max"], percent(counters["spectators_on"], counters["spectators_max"]))
 	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
@@ -183,19 +184,18 @@ def main():
 	print "dedicated servers: %d / %d, (%.2f %%)" % (counters["dedicated"], sumcounter, percent(counters["dedicated"], sumcounter))
 	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, sumcounter, percent(newgrf_servers, sumcounter))
 	print "players on newGRF servers: %d / %d (%.2f%%)" % (newgrf_clients, clients_overall, percent(newgrf_clients, clients_overall))
-	print "responding servers: %d, not responding: %d" % (len(SERVERS.keys()) - servererr, servererr)
 	print "myottd.net servers online: %d" % (myottdservers)
 	
 	
 	print ""
 	print "used versions:"
 	for item in sorted(counters["server_revision"].items(), key=itemgetter(1), reverse=True):
-		print " % 16s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
+		print " % 16s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0], sumcounter), item[1][1])
 	
 	print ""
 	print "used map sizes:"
 	for item in sorted(counters["map_size"].items(), key=itemgetter(1), reverse=True):
-		print " % 20s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
+		print " % 20s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0], sumcounter), item[1][1])
 		
 	print ""
 	print "used languages:"
@@ -204,7 +204,7 @@ def main():
 			langstr = known_languages[item[0]]
 		else:
 			langstr = "unkown language: %d" % item[0]
-		print " % 20s: %3d (% 5.1f%%), %3d clients" % (langstr, item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
+		print " % 20s: %3d (% 5.1f%%), %3d clients" % (langstr, item[1][0], percent(item[1][0], sumcounter), item[1][1])
 	
 	print ""
 	print "used landscapes:"
@@ -214,12 +214,12 @@ def main():
 			lcs = landscapes[item[0]]
 		else:
 			lcs = "unkown landscape: %d" % item[0]
-		print " % 20s: %3d (% 5.1f%%), %3d clients" % (lcs, item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
+		print " % 20s: %3d (% 5.1f%%), %3d clients" % (lcs, item[1][0], percent(item[1][0], sumcounter), item[1][1])
 		
 	print ""
 	print "used maps:"
 	for item in sorted(counters["map_name"].items(), key=itemgetter(1), reverse=True):
-		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
+		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0], sumcounter), item[1][1])
 
 	print ""
 	print "used GRFs (%d used, %d unique known):" % (grfcount, len(used_grfs))
