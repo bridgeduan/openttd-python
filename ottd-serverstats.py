@@ -3,6 +3,48 @@
 from ottd_lib import *
 VERBOSE = False
 SERVERS = {}
+GRFS = None
+
+class GrfDB:
+	def __init__(self):
+		self.file = None
+		self.database = {}
+	def loadfromfile(self, filename):
+		try:
+			import pickle
+		except ImportError:
+			LOG.error("error while loading the pickle module...")
+			self.database = {}
+			self.canSaveLoad = False
+			return
+		try:
+			f = open(filename, 'rb')
+			self.database = pickle.load(f)
+			f.close()
+		except IOError:
+			LOG.error("error while opening newgrf cache file!")
+			self.database = {}
+	def savetofile(self, filename):
+		if not self.canSaveLoad:
+			return
+		import pickle
+		try:
+			f = open(filename, 'wb')
+			pickle.dump(self.database, f, 1)
+			f.close()
+		except IOError:
+			LOG.error("error while saving newgrf cache file!")
+	def hasgrf(self, md5):
+		if md5 in self.database:
+			return True
+		return False
+	def addgrf(self, md5, name, id):
+		self.database[md5] = [id, md5, name]
+	def getgrfname(self, md5):
+		if self.hasgrf(md5):
+			return self.database[md5][2]
+		else:
+			return "<unknown name>"
 
 class Grf(DataStorageClass):
 	def __init__(self, name, md5):
@@ -18,10 +60,11 @@ class Grf(DataStorageClass):
 	def getUsedPercent(self, totalcount):
 		return float(self.usedcount)/float(totalcount)*100
 	def __str__(self, grfcount):
-		return " % 10s: %3d (% 5.1f%%), %3d clients" % (self.grfid.encode('hex'), self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
+		return "%s % 10s: %3d (% 5.1f%%), %3d clients" % (self.name, self.grfid.encode('hex'), self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
 	def __cmp__(self, other):
 		return cmp(self.usedcount, other.usedcount)
-	
+		
+
 
 class ClientGameInfo(Client):
 	# this class implements the thread start method
@@ -32,13 +75,13 @@ class ClientGameInfo(Client):
 			if not SERVERS[self.uid] is None:
 				SERVERS[self.uid].ip = self.ip
 				SERVERS[self.uid].port = self.port
-				#if len(SERVERS[self.uid].grfs) != 0:
-				#	SERVERS[self.uid].newgrfs = self.getGRFInfo(SERVERS[self.uid].grfs)
 		else:
 			SERVERS[self.uid] = ", ".join(self.errors)
 		self.disconnect()
 
 def main():
+	GRFS = GrfDB()
+	GRFS.loadfromfile("newgrfs.grflist")
 	client_master = Client(NETWORK_MASTER_SERVER_HOST, NETWORK_MASTER_SERVER_PORT, False)
 	client_master.connect(M_UDP)
 	servers = client_master.getServerList()
@@ -70,8 +113,6 @@ def main():
 	counters["map_width"] = {} # map-size
 	counters["map_set"] = {} # landscape
 	used_grfs = {}
-	total_grfs = {}
-	grfclients = {}
 	grfcount = 0
 	myottdservers = 0
 	newgrf_servers = 0
@@ -112,14 +153,10 @@ def main():
 			grfs = SERVERS[k].grfs
 			for grf in grfs:
 				grfname = grf[1]
-				if not grfname in total_grfs:
-					total_grfs[grfname] = Grf(grf[0], grf[1])
-				if not grfname in used_grfs.keys():
-					used_grfs[grfname] = 0
-					grfclients[grfname] = 0
-				used_grfs[grfname] += 1
-				grfclients[grfname] += server.clients_on
-				total_grfs[grfname].addServer(server)
+				if not grfname in used_grfs:
+					used_grfs[grfname] = Grf(grf[0], grf[1])
+					used_grfs[grfname].name = GRFS.getgrfname(grf[1])
+				used_grfs[grfname].addServer(server)
 				grfcount += 1
 			
 			if len(grfs) > 0:
@@ -181,8 +218,8 @@ def main():
 		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 
 	print ""
-	print "used GRFs (%d used, %d unique known):" % (grfcount, len(total_grfs))
-	for item in sorted(total_grfs.values(), reverse=True):
+	print "used GRFs (%d used, %d unique known):" % (grfcount, len(used_grfs))
+	for item in sorted(used_grfs.values(), reverse=True):
 		print item.__str__(grfcount)
 	sys.exit(0)
 
