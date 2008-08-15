@@ -6,6 +6,8 @@ SERVERS = {}
 GRFS = None
 
 class GrfDB:
+	canSaveLoad = True
+	listchanged = False
 	def __init__(self):
 		self.file = None
 		self.database = {}
@@ -25,7 +27,7 @@ class GrfDB:
 			LOG.error("error while opening newgrf cache file!")
 			self.database = {}
 	def savetofile(self, filename):
-		if not self.canSaveLoad:
+		if not self.canSaveLoad or not self.listchanged:
 			return
 		import pickle
 		try:
@@ -38,13 +40,21 @@ class GrfDB:
 		if md5 in self.database:
 			return True
 		return False
-	def addgrf(self, md5, name, id):
+	def getgrfsnotinlist(self, list):
+		requestlist = []
+		for grf in list:
+			if not self.hasgrf(grf[1]):
+				requestlist.append(grf)
+		return requestlist
+	def addgrf(self, id, md5, name):
 		self.database[md5] = [id, md5, name]
+		self.listchanged = True
 	def getgrfname(self, md5):
 		if self.hasgrf(md5):
 			return self.database[md5][2]
 		else:
 			return "<unknown name>"
+GRFS = GrfDB()
 
 class Grf(DataStorageClass):
 	def __init__(self, name, md5):
@@ -76,12 +86,17 @@ class ClientGameInfo(Client):
 			if not SERVERS[self.uid] is None:
 				SERVERS[self.uid].ip = self.ip
 				SERVERS[self.uid].port = self.port
+				if len(SERVERS[self.uid].grfs) != 0:
+					SERVERS[self.uid].unknowngrfs = GRFS.getgrfsnotinlist(SERVERS[self.uid].grfs)
+					if len(SERVERS[self.uid].unknowngrfs) != 0:
+						SERVERS[self.uid].unknowngrfs = self.getGRFInfo(SERVERS[self.uid].unknowngrfs)
+					else:
+						SERVERS[self.uid].unknowngrfs = None
 		else:
 			SERVERS[self.uid] = ", ".join(self.errors)
 		self.disconnect()
 
 def main():
-	GRFS = GrfDB()
 	GRFS.loadfromfile("newgrfs.grflist")
 	client_master = Client(NETWORK_MASTER_SERVER_HOST, NETWORK_MASTER_SERVER_PORT, False)
 	client_master.connect(M_UDP)
@@ -157,6 +172,14 @@ def main():
 				grfname = grf[1]
 				if not grfname in used_grfs:
 					used_grfs[grfname] = Grf(grf[0], grf[1])
+					if not GRFS.hasgrf(grf[1]) and not server.unknowngrfs is None:
+						foundgrf = None
+						for unknowngrf in server.unknowngrfs:
+							if unknowngrf[0] == grf[0]:
+								foundgrf = unknowngrf
+								break
+						if not foundgrf is None:
+							GRFS.addgrf(grf[0], grf[1], foundgrf[2])
 					used_grfs[grfname].name = GRFS.getgrfname(grf[1])
 				used_grfs[grfname].addServer(server)
 				grfcount += 1
@@ -171,6 +194,7 @@ def main():
 					newgrf_clients += server.clients_on
 			clients_overall += server.clients_on
 			sumcounter+=1
+	GRFS.savetofile("newgrfs.grflist")
 	def percent(value1, value2=100):
 		return float(value1)/float(value2)*100
 	if VERBOSE:
