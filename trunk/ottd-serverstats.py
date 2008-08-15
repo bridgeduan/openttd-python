@@ -137,9 +137,10 @@ def main():
 			
 			# handle list fields
 			for i in ["server_revision","server_lang","map_name","map_size","map_set"]:
-				key = getattr(server, i)
 				if i == "map_size":
 					key = "%5d x %-5d" % (server.map_width, server.map_height)
+				else:
+					key = getattr(server, i)
 				if not key in counters[i].keys():
 					# 0 = counter
 					# 1 = client counter
@@ -175,7 +176,7 @@ def main():
 	print "OpenTTD Server statistics (%s):" % time.ctime()
 	print "companies: %d / %d" % (counters["companies_on"], counters["companies_max"])
 	print "spectators: %d / %d" % (counters["spectators_on"], counters["spectators_max"])
-	print "clients: %d / %d" % (counters["clients_on"], counters["clients_max"])
+	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], (float(counters["clients_on"])/float(counters["clients_max"]))*100)
 	print "password protected servers: %d" % counters["use_password"]
 	print "dedicated servers: %d / %d, %.2f %%" % (counters["dedicated"], sumcounter, (float(counters["dedicated"])/float(sumcounter))*100)
 	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, sumcounter, (float(newgrf_servers)/float(sumcounter))*100)
@@ -191,7 +192,7 @@ def main():
 	
 	print ""
 	print "used map sizes:"
-	for item in sorted(counters["map_width"].items(), key=itemgetter(1), reverse=True):
+	for item in sorted(counters["map_size"].items(), key=itemgetter(1), reverse=True):
 		print " % 20s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], (float(item[1][0])/float(sumcounter))*100, item[1][1])
 		
 	print ""
