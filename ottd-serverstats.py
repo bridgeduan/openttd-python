@@ -71,6 +71,7 @@ class ClientGameInfo(Client):
 	def run(self):
 		self.connect()
 		if len(self.errors) == 0:
+			self.socket_udp.settimeout(10)
 			SERVERS[self.uid] = self.getGameInfo()
 			if not SERVERS[self.uid] is None:
 				SERVERS[self.uid].ip = self.ip
