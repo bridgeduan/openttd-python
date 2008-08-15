@@ -60,7 +60,7 @@ class Grf(DataStorageClass):
 	def getUsedPercent(self, totalcount):
 		return float(self.usedcount)/float(totalcount)*100
 	def __str__(self, grfcount):
-		return "%s % 10s: %3d (% 5.1f%%), %3d clients" % (self.name, self.grfid.encode('hex'), self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
+		return "% 51s: %3d (% 5.1f%%), %3d clients" % (self.name[:51], self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
 	def __cmp__(self, other):
 		return cmp(self.usedcount, other.usedcount)
 		
