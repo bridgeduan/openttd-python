@@ -50,11 +50,18 @@ class GrfDB:
 	def addgrf(self, id, md5, name):
 		self.__database[md5] = [id, md5, name]
 		self.listchanged = True
-	def getgrfname(self, md5):
-		if self.hasgrf(md5):
-			return self.__database[md5][2]
+	def getgrfname(self, grf):
+		if self.hasgrf(grf[1]):
+			return self.__database[grf[1]][2]
 		else:
-			return "<unknown name>"
+			return "<unknown name(%s)>" % grf[0].encode('hex')
+	def addgrfinlist(self, list, grfid):
+		# comparing grfids is ok, because you can't have duplicates in one server
+		for unknowngrf in list:
+			if unknowngrf[0] == grfid:
+				self.addgrf(unknowngrf[0], unknowngrf[1], unknowngrf[2])
+				return unknowngrf
+		return None
 GRFS = GrfDB()
 
 class Grf(DataStorageClass):
@@ -83,18 +90,19 @@ class ClientGameInfo(Client):
 		self.connect(M_UDP)
 		if len(self.errors) == 0:
 			self.socket_udp.settimeout(10)
-			SERVERS[self.uid] = self.getGameInfo()
-			if not SERVERS[self.uid] is None:
-				SERVERS[self.uid].ip = self.ip
-				SERVERS[self.uid].port = self.port
-				if len(SERVERS[self.uid].grfs) != 0:
-					SERVERS[self.uid].unknowngrfs = GRFS.getgrfsnotinlist(SERVERS[self.uid].grfs)
-					if len(SERVERS[self.uid].unknowngrfs) != 0:
-						SERVERS[self.uid].unknowngrfs = self.getGRFInfo(SERVERS[self.uid].unknowngrfs)
+			info = self.getGameInfo()
+			SERVERS[self.ip + "%d" % self.port] = info
+			if not info is None:
+				info.ip = self.ip
+				info.port = self.port
+				if len(info.grfs) != 0:
+					info.unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
+					if len(info.unknowngrfs) != 0:
+						info.unknowngrfs = self.getGRFInfo(info.unknowngrfs)
 					else:
-						SERVERS[self.uid].unknowngrfs = None
+						info.unknowngrfs = None
 		else:
-			SERVERS[self.uid] = ", ".join(self.errors)
+			SERVERS[self.ip + "%d" % self.port] = ", ".join(self.errors)
 		self.disconnect()
 
 def main():
@@ -172,15 +180,10 @@ def main():
 				grfname = grf[1]
 				if not grfname in used_grfs:
 					used_grfs[grfname] = Grf(grf[0], grf[1])
+					# get the name
 					if not GRFS.hasgrf(grf[1]) and not server.unknowngrfs is None:
-						foundgrf = None
-						for unknowngrf in server.unknowngrfs:
-							if unknowngrf[0] == grf[0]:
-								foundgrf = unknowngrf
-								break
-						if not foundgrf is None:
-							GRFS.addgrf(grf[0], grf[1], foundgrf[2])
-					used_grfs[grfname].name = GRFS.getgrfname(grf[1])
+						GRFS.addgrfinlist(server.unknowngrfs, grf[0])
+					used_grfs[grfname].name = GRFS.getgrfname(grf)
 				used_grfs[grfname].addServer(server)
 				grfcount += 1
 				
