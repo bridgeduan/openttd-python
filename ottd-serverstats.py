@@ -3,41 +3,40 @@
 from ottd_lib import *
 VERBOSE = False
 SERVERS = {}
-GRFS = None
 
 class GrfDB:
 	canSaveLoad = True
 	listchanged = False
 	def __init__(self):
 		self.file = None
-		self.database = {}
+		self.__database = {}
 	def loadfromfile(self, filename):
 		try:
 			import pickle
 		except ImportError:
 			LOG.error("error while loading the pickle module...")
-			self.database = {}
+			self.__database = {}
 			self.canSaveLoad = False
 			return
 		try:
 			f = open(filename, 'rb')
-			self.database = pickle.load(f)
+			self.__database = pickle.load(f)
 			f.close()
 		except IOError:
 			LOG.error("error while opening newgrf cache file!")
-			self.database = {}
+			self.__database = {}
 	def savetofile(self, filename):
 		if not self.canSaveLoad or not self.listchanged:
 			return
 		import pickle
 		try:
 			f = open(filename, 'wb')
-			pickle.dump(self.database, f, 1)
+			pickle.dump(self.__database, f, 1)
 			f.close()
 		except IOError:
 			LOG.error("error while saving newgrf cache file!")
 	def hasgrf(self, md5):
-		if md5 in self.database:
+		if md5 in self.__database:
 			return True
 		return False
 	def getgrfsnotinlist(self, list):
@@ -47,11 +46,11 @@ class GrfDB:
 				requestlist.append(grf)
 		return requestlist
 	def addgrf(self, id, md5, name):
-		self.database[md5] = [id, md5, name]
+		self.__database[md5] = [id, md5, name]
 		self.listchanged = True
 	def getgrfname(self, md5):
 		if self.hasgrf(md5):
-			return self.database[md5][2]
+			return self.__database[md5][2]
 		else:
 			return "<unknown name>"
 GRFS = GrfDB()
