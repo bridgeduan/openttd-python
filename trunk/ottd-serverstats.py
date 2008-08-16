@@ -1,7 +1,8 @@
 #!/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
 from ottd_lib import *
-VERBOSE = False
+from ottd_config import config
+VERBOSE = config.getboolean("serverstats", "verbose")
 SERVERS = {}
 
 class GrfDB:
@@ -26,7 +27,7 @@ class GrfDB:
 			LOG.error("error while opening newgrf cache file!")
 			self.__database = {}
 	def savetofile(self, filename):
-		if not self.canSaveLoad or not self.listchanged:
+		if not self.canSaveLoad or not self.listchanged or not config.getboolean("serverstats", "savenewgrfs"):
 			return
 		import pickle
 		try:
@@ -104,25 +105,49 @@ class ClientGameInfo(Client):
 						info.unknowngrfs = self.getGRFInfo(info.unknowngrfs)
 					for grf in info.grfs:
 						if not GRFS.hasgrf(grf[1]) and not info.unknowngrfs is None:
-							GRFS.addgrfinlist(server.unknowngrfs, grf[0])
+							GRFS.addgrfinlist(info.unknowngrfs, grf[0])
 						info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
 		else:
 			SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
 		self.disconnect()
 
+def savestatstofile(filename="serverstats.bin", servers=[]):
+	if not config.getboolean("serverstats", "savehistory"):
+		return
+	t = time.time()
+	try:
+		import pickle
+	except ImportError:
+		LOG.error("error while loading the pickle module...")
+		return
+	try:
+		f = open(filename, 'rb')
+		oldstats = pickle.load(f)
+		f.close()
+	except IOError:
+		oldstats = {}
+	oldstats[t] = servers
+	try:
+		f = open(filename, 'wb')
+		pickle.dump(oldstats, f)
+		f.close()
+	except IoError:
+		LOG.error("error while saving history file!")
+		return
+
 def main():
-	GRFS.loadfromfile("newgrfs.grflist")
 	client_master = Client(NETWORK_MASTER_SERVER_HOST, NETWORK_MASTER_SERVER_PORT, False)
 	client_master.connect(M_UDP)
 	servers = client_master.getServerList()
 	client_master.disconnect()
 	
+	GRFS.loadfromfile("newgrfs.grflist")
 	counter = 0
 	for server in servers:
 		counter += 1
 		client = ClientGameInfo(server[0], server[1], False, counter)
 		client.start()
-	
+		
 	t = time.time()
 	ln=0
 	#time.time() - t < 5
@@ -131,6 +156,11 @@ def main():
 			if abs(len(SERVERS.keys()) - ln) > 10:
 				print "%3d/%3d servers queried, % 6.2f %%" % (len(SERVERS.keys()), len(servers), (float(len(SERVERS.keys()))/float(len(servers)))*100.0)
 				ln = len(SERVERS.keys())
+	
+	
+	# save the grf list if it is changed
+	GRFS.savetofile("newgrfs.grflist")
+	savestatstofile(servers=SERVERS)
 	
 	counters={}
 	servererr=0
@@ -197,9 +227,6 @@ def main():
 				if valid:
 					newgrf_servers += 1
 					newgrf_clients += server.clients_on
-			
-		# save the grf list if it is changed
-		GRFS.savetofile("newgrfs.grflist")
 	def percent(value1, value2=counters["server_count"]):
 		return float(value1)/float(value2)*100
 	if VERBOSE:
