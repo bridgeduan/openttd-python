@@ -39,6 +39,8 @@ class GrfDB:
 		if md5 in self.__database:
 			return True
 		return False
+	def getdbcount(self):
+		return len(self.__database)
 	def getgrfsnotinlist(self, list):
 		requestlist = []
 		for grf in list:
@@ -199,7 +201,7 @@ def main():
 	if VERBOSE:
 		print '#'*79
 	print "OpenTTD Server statistics (%s):" % time.ctime()
-	print "responding servers: %d, not responding: %d" % (len(SERVERS.keys()) - servererr, servererr)
+	print "responding servers: %d, not responding: %d, queried servers: %d" % (len(SERVERS.keys()) - servererr, servererr, counters["server_count"])
 	print "companies: %d / %d (%.2f%%)" % (counters["companies_on"], counters["companies_max"], percent(counters["companies_on"], counters["companies_max"]))
 	print "spectators: %d / %d (%.2f%%)" % (counters["spectators_on"], counters["spectators_max"], percent(counters["spectators_on"], counters["spectators_max"]))
 	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
@@ -245,7 +247,7 @@ def main():
 		print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0]), item[1][1])
 
 	print ""
-	print "used GRFs (%d used, %d unique known):" % (grfcount, len(used_grfs))
+	print "used GRFs (%d used, %d unique known, %d in database):" % (grfcount, len(used_grfs), GRFS.getdbcount())
 	for item in sorted(used_grfs.values(), reverse=True):
 		print item.__str__(grfcount)
 	sys.exit(0)
