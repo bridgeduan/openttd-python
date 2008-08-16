@@ -65,10 +65,11 @@ class GrfDB:
 GRFS = GrfDB()
 
 class Grf(DataStorageClass):
-	def __init__(self, name, md5):
-		self.grfid = name
+	def __init__(self, id, md5, name):
+		self.grfid = id
 		self.usedcount = 0
 		self.totalclients = 0
+		self.name = name
 		self.md5sum = md5
 		self.servers = []
 	def addServer(self, server):
@@ -95,12 +96,16 @@ class ClientGameInfo(Client):
 			if not info is None:
 				info.ip = self.ip
 				info.port = self.port
+				info.unknowngrfs = None
+				info.newgrfs = []
 				if len(info.grfs) != 0:
 					info.unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
 					if len(info.unknowngrfs) != 0:
 						info.unknowngrfs = self.getGRFInfo(info.unknowngrfs)
-					else:
-						info.unknowngrfs = None
+					for grf in info.grfs:
+						if not GRFS.hasgrf(grf[1]) and not info.unknowngrfs is None:
+							GRFS.addgrfinlist(server.unknowngrfs, grf[0])
+						info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
 		else:
 			SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
 		self.disconnect()
@@ -175,15 +180,11 @@ def main():
 				myottdservers += 1
 				
 			# grf stats
-			grfs = SERVERS[k].grfs
+			grfs = SERVERS[k].newgrfs
 			for grf in grfs:
 				grfname = grf[1]
 				if not grfname in used_grfs:
-					used_grfs[grfname] = Grf(grf[0], grf[1])
-					# get the name
-					if not GRFS.hasgrf(grf[1]) and not server.unknowngrfs is None:
-						GRFS.addgrfinlist(server.unknowngrfs, grf[0])
-					used_grfs[grfname].name = GRFS.getgrfname(grf)
+					used_grfs[grfname] = Grf(grf[0], grf[1], grf[2])
 				used_grfs[grfname].addServer(server)
 				grfcount += 1
 				
