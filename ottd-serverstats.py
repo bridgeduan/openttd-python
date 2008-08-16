@@ -91,7 +91,7 @@ class ClientGameInfo(Client):
 		if len(self.errors) == 0:
 			self.socket_udp.settimeout(10)
 			info = self.getGameInfo()
-			SERVERS[self.ip + "%d" % self.port] = info
+			SERVERS[self.ip + ":%d" % self.port] = info
 			if not info is None:
 				info.ip = self.ip
 				info.port = self.port
@@ -102,7 +102,7 @@ class ClientGameInfo(Client):
 					else:
 						info.unknowngrfs = None
 		else:
-			SERVERS[self.ip + "%d" % self.port] = ", ".join(self.errors)
+			SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
 		self.disconnect()
 
 def main():
