@@ -1,13 +1,17 @@
 #!/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
-from ottd_lib import *
+import time, sys
+from operator import itemgetter
+
+from ottd_lib import M_UDP, Client
 from ottd_config import config
 from ottd_grfs import GrfDB
+import ottd_constants as const
 VERBOSE = config.getboolean("serverstats", "verbose")
 SERVERS = {}
 GRFS = GrfDB()
 
-class Grf(DataStorageClass):
+class Grf:
 	def __init__(self, id, md5, name):
 		self.grfid = id
 		self.usedcount = 0
@@ -22,7 +26,7 @@ class Grf(DataStorageClass):
 	def getUsedPercent(self, totalcount):
 		return float(self.usedcount)/float(totalcount)*100
 	def __str__(self, grfcount):
-		return "% 51s: %3d (% 5.1f%%), %3d clients" % (self.name[:51], self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
+		return "% 52s: %3d (% 5.1f%%), %3d clients" % (self.name[:52], self.usedcount, self.getUsedPercent(grfcount), self.totalclients)
 	def __cmp__(self, other):
 		return cmp(self.usedcount, other.usedcount)
 		
@@ -39,14 +43,14 @@ class ClientGameInfo(Client):
 			if not info is None:
 				info.ip = self.ip
 				info.port = self.port
-				info.unknowngrfs = None
 				info.newgrfs = []
+				unknowngrfs = None
 				if len(info.grfs) != 0:
-					info.unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
-					if len(info.unknowngrfs) != 0:
-						info.unknowngrfs = self.getGRFInfo(info.unknowngrfs)
+					unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
+					if len(unknowngrfs) != 0:
+						unknowngrfs = self.getGRFInfo(info.unknowngrfs)
 					for grf in info.grfs:
-						if not GRFS.hasgrf(grf[1]) and not info.unknowngrfs is None:
+						if not GRFS.hasgrf(grf[1]) and not unknowngrfs is None:
 							GRFS.addgrfinlist(info.unknowngrfs, grf[0])
 						info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
 		else:
@@ -75,14 +79,15 @@ def savestatstofile(filename="serverstats.bin", servers=[]):
 		f.close()
 	except IoError:
 		LOG.error("error while saving history file!")
-		return
 
 def main():
-	client_master = Client(NETWORK_MASTER_SERVER_HOST, NETWORK_MASTER_SERVER_PORT, False)
+	# get the server list
+	client_master = Client(const.NETWORK_MASTER_SERVER_HOST, const.NETWORK_MASTER_SERVER_PORT, False)
 	client_master.connect(M_UDP)
 	servers = client_master.getServerList()
 	client_master.disconnect()
 	
+	# query the servers
 	GRFS.loadfromfile("newgrfs.grflist")
 	counter = 0
 	for server in servers:
@@ -175,15 +180,15 @@ def main():
 	if VERBOSE:
 		print '#'*79
 	print "OpenTTD Server statistics (%s):" % time.ctime()
-	print "responding servers: %d, not responding: %d, queried servers: %d" % (len(SERVERS.keys()) - servererr, servererr, counters["server_count"])
+	print "the master server currently knows %d servers, %d are up, %d could be queried" % (len(SERVERS.keys()), len(SERVERS.keys()) - servererr, counters["server_count"])
+	print "there are currently %d clients online, a maximum of %d can be online (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
 	print "companies: %d / %d (%.2f%%)" % (counters["companies_on"], counters["companies_max"], percent(counters["companies_on"], counters["companies_max"]))
 	print "spectators: %d / %d (%.2f%%)" % (counters["spectators_on"], counters["spectators_max"], percent(counters["spectators_on"], counters["spectators_max"]))
-	print "clients: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
-	print "password protected servers: %d / %d (%.2f %%)" % (counters["use_password"], counters["server_count"], percent(counters["use_password"]))
-	print "dedicated servers: %d / %d, (%.2f %%)" % (counters["dedicated"], counters["server_count"], percent(counters["dedicated"]))
-	print "newGRF servers: %d / %d (%.2f%%)" % (newgrf_servers, counters["server_count"], percent(newgrf_servers))
-	print "players on newGRF servers: %d / %d (%.2f%%)" % (newgrf_clients, counters["clients_on"], percent(newgrf_clients, counters["clients_on"]))
-	print "myottd.net servers online: %d / %d (%.2f%%)" % (myottdservers, counters["server_count"], percent(myottdservers))
+	print "%3d of %3d servers have a password               (%.2f%%)" % (counters["use_password"], counters["server_count"], percent(counters["use_password"]))
+	print "%3d of %3d servers are dedicated                 (%.2f%%)" % (counters["dedicated"], counters["server_count"], percent(counters["dedicated"]))
+	print "%3d of %3d servers have newgrfs                  (%.2f%%)" % (newgrf_servers, counters["server_count"], percent(newgrf_servers))
+	print "%3d of %3d players are playing on newgrf servers (%.2f%%)" % (newgrf_clients, counters["clients_on"], percent(newgrf_clients, counters["clients_on"]))
+	print "%3d of %3d servers are hosted by myottd.net      (%.2f%%)" % (myottdservers, counters["server_count"], percent(myottdservers))
 	
 	
 	print ""
@@ -199,8 +204,8 @@ def main():
 	print ""
 	print "used languages:"
 	for item in sorted(counters["server_lang"].items(), key=itemgetter(1), reverse=True):
-		if item[0] <= len(known_languages):
-			langstr = known_languages[item[0]]
+		if item[0] <= len(const.known_languages):
+			langstr = const.known_languages[item[0]]
 		else:
 			langstr = "unkown language: %d" % item[0]
 		print " % 20s: %3d (% 5.1f%%), %3d clients" % (langstr, item[1][0], percent(item[1][0]), item[1][1])
