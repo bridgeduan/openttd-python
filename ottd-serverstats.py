@@ -162,6 +162,7 @@ def main():
 	GRFS.savetofile("newgrfs.grflist")
 	savestatstofile(servers=SERVERS)
 	
+	# start processing the data
 	counters={}
 	servererr=0
 	counters["server_revision"] = {} # server revision
