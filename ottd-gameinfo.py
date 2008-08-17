@@ -1,6 +1,7 @@
 #!/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
 from ottd_lib import *
+from ottd_grfs import GrfDB
 
 def printUsage():
 	print "usage: %s <ip:port>" % sys.argv[0]
@@ -35,11 +36,20 @@ def main():
 	
 	print ""
 	print "getting grf info ..."
+	gi.newgrfs = []
 	if len(gi.grfs) > 0:
-		grfs=client.getGRFInfo(gi.grfs)
-		if not grfs is None:
-			for grf in grfs:
-				print " %40s - %s - %s" % (grf[2], grf[0].encode("hex"), grf[1].encode("hex"))
+		grfdatabase = GrfDB()
+		grfdatabase.loadfromfile("newgrfs.grflist")
+		unknowngrfs = grfdatabase.getgrfsnotinlist(gi.grfs)
+		if len(unknowngrfs) > 0:
+			unknowngrfs=client.getGRFInfo(gi.unknowngrfs)
+		for grf in gi.grfs:
+			if not grfdatabase.hasgrf(grf[1]) and not unknowngrfs is None:
+				grfdatabase.addgrfinlist(unknowngrfs, grf[0])
+			gi.newgrfs.append((grf[0], grf[1], grfdatabase.getgrfname(grf)))
+		grfdatabase.savetofile("newgrfs.grflist")
+		for grf in gi.newgrfs:
+			print " %40s - %s - %s" % (grf[2], grf[0].encode("hex"), grf[1].encode("hex"))
 	else:
 		print " no grfs used"
 	
