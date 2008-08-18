@@ -1,3 +1,4 @@
+#!/bin/env python
 import os
 import os.path
 import StringIO
@@ -738,6 +739,9 @@ def main():
             client.password = password
             client.joinGame()
             client.disconnect()
+        except (KeyboardInterrupt, SystemExit):
+            client.runCond = False
+            client.reconnectCond = False
         except Exception, e:
             LOG.error('main loop error: '+str(e))
             errorMsg = StringIO.StringIO()
