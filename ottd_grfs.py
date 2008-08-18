@@ -1,3 +1,5 @@
+from ottd_config import config
+
 class GrfDB:
 	canSaveLoad = True
 	listchanged = False
