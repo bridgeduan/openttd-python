@@ -10,6 +10,7 @@ Table of Contents:
 2.0) Contacting
  * 2.1 Reporting Bugs
 3.0) Supported Platforms
+4.0) Running the 'examples'
 
 1.0) About:
 ---- ------
@@ -47,4 +48,12 @@ Please include the following information in your bug report:
 3.0) Supported Platforms:
 ---- --------------------
 OpenTTD-Python supports all platforms that can run the python interpreter
+
+4.0) Running the 'example' client or server stats:
+---- ---------------------------------------------
+First edit the config.cfg to configure the client to your needs, then run (in a command prompt/terminal)
+python ottd-client.py ip.ad.re.ss:port.
+To run the serverstats, simply execute ottd-serverstats.py
+ottd-gameinfo.py takes the same form of arguments as the client.
+
 
