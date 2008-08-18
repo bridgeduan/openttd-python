@@ -48,10 +48,10 @@ class ClientGameInfo(Client):
 				if len(info.grfs) != 0:
 					unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
 					if len(unknowngrfs) != 0:
-						unknowngrfs = self.getGRFInfo(info.unknowngrfs)
+						unknowngrfs = self.getGRFInfo(unknowngrfs)
 					for grf in info.grfs:
 						if not GRFS.hasgrf(grf[1]) and not unknowngrfs is None:
-							GRFS.addgrfinlist(info.unknowngrfs, grf[0])
+							GRFS.addgrfinlist(unknowngrfs, grf[0])
 						info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
 		else:
 			SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
