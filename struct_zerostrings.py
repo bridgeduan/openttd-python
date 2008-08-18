@@ -1,3 +1,4 @@
+#!/bin/env python
 # how to parse zero terminated strings with struct
 # made by thomas {AT} thomasfischer {DOT} biz
 import struct
