@@ -283,32 +283,6 @@ class SpectatorClient(Client):
         # non-useful commands for productive servers,, but the bot may use them itself all the time
         if not config.getboolean("main", "productive") or event.__name__() == 'BotEvent':
             #remove useless commands
-            """
-            if command == "test1":
-                payload = packExt('bbHz', const.NETWORK_ACTION_NAME_CHANGE, const.DESTTYPE_BROADCAST, 0, "foobar")
-                payload_size = len(payload)
-                self.sendMsg(const.PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-            elif command == "test2":
-                payload = packExt('bbHz', const.NETWORK_ACTION_GIVE_MONEY, const.DESTTYPE_BROADCAST, 0, "1783424")
-                payload_size = len(payload)
-                self.sendMsg(const.PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-            elif command == "test3":
-                payload = packExt('bbHz', const.NETWORK_ACTION_GIVE_MONEY, const.DESTTYPE_BROADCAST, 0, "-1783424534")
-                payload_size = len(payload)
-                self.sendMsg(const.PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-            elif command == "test4":
-                payload = packExt('bbHz', const.NETWORK_ACTION_SERVER_MESSAGE, const.DESTTYPE_BROADCAST, 0, "I AM IMPOSING THE SERVER PIEP PIEP")
-                payload_size = len(payload)
-                self.sendMsg(const.PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
-            elif command == "test5":
-                CMD_PLACE_SIGN = 60
-                self.sendCommand(CMD_PLACE_SIGN, 0)
-            elif command == "test6":
-                self.processEvent(BotEvent("Leaving", event))
-                self.sendChat("Leaving", type=const.NETWORK_ACTION_LEAVE)
-            elif command == "test7":
-                self.sendChat("Joining", type=const.NETWORK_ACTION_JOIN)
-            """
             if command == 'quit':
                 payload = packExt('z', config.get("openttd", "quitmessage"))
                 payload_size = len(payload)
