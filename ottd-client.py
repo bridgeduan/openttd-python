@@ -113,6 +113,10 @@ class IngamePublicChatEvent(IngameChatEvent):
             return False
         LOG.info("Ingame chat: <%s> %s" % (self.playername,self.msg))
         return True
+    def send(self):
+        self.sendToGame()
+        self.sendToLog()
+        self.sendToIRC()
 
 class IngamePublicChatEventResponse(IngamePublicChatEvent):
     distribution = {'ingame': True, 'irc': False, 'log': True}
