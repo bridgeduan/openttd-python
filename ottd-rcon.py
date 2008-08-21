@@ -43,7 +43,9 @@ def main():
                     print "-- Begin of rcon response --"
                 gotResponse = True
                 [color, message], size = unpackExt('Hz', content)
-                colors = ['\x1b[34m', '\x1b[32m', '\x1b[35m', '\x1b[33m', '\x1b[31m', '\x1b[36m', '\x1b[32m', '\x1b[32m', '\x1b[34m', '\x1b[37m', '\x1b[34m', '\x1b[35m', '\x1b[33m', '\x1b[33m', '\x1b[37m', '\x1b[37m', '\x1b[30m\x1b[47m']
+                if message == "":
+                    runCond = False
+                colors = ['\x1b[34m', '\x1b[37m', '\x1b[33m', '\x1b[31m', '\x1b[35m', '\x1b[37m', '\x1b[33m', '\x1b[32m', '\x1b[37m', '\x1b[37m', '\x1b[35m', '\x1b[32m', '\x1b[37m', '\x1b[36m', '\x1b[30m\x1b[47m', '\x1b[35m', '\x1b[30m\x1b[47m']
                 print colors[color] + message + '\x1b[49m\x1b[39m'
             else:
                 runCond = False
