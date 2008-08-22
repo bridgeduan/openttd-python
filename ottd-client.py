@@ -560,6 +560,7 @@ class SpectatorClient(Client):
                     #else:
                     LOG.info("company is password protected, not supported, exiting!")
                     self.runCond=False
+                    self.reconnectCond=False
 
                 
             elif command == const.PACKET_SERVER_WELCOME:
@@ -572,7 +573,10 @@ class SpectatorClient(Client):
                 downloadDone = False
                 self.sendMsg(const.PACKET_CLIENT_GETMAP, type=M_TCP)
                 mapsize_done = 0
-                maptmp = file("network_tmp.sav", 'wb')
+                if config.getboolean("openttd", "savemap"):
+                    maptmp = file(config.get("openttd", "savemapname"), 'wb')
+                else:
+                    maptmp = None
                 while not downloadDone and self.runCond:
                     size, command, content = self.receiveMsg_TCP()
                     
@@ -597,12 +601,14 @@ class SpectatorClient(Client):
                             offset += size2
                         elif command2 == const.MAP_PACKET_NORMAL:
                             mapsize_done += size
-                            maptmp.write(content[offset:])
+                            if not maptmp is None:
+                                maptmp.write(content[offset:])
                             if int(mapsize_done / 1024) % 100 == 0:
                                 LOG.debug("got %d kB ..." % (mapsize_done / 1024))
                         elif command2 == const.MAP_PACKET_END:
                             LOG.info("done downloading map!")
-                            maptmp.close()
+                            if not maptmp is None:
+                                maptmp.close()
                             downloadDone=True
                 
                 self.sendMsg(const.PACKET_CLIENT_MAP_OK, type=M_TCP)
