@@ -572,6 +572,7 @@ class SpectatorClient(Client):
                 downloadDone = False
                 self.sendMsg(const.PACKET_CLIENT_GETMAP, type=M_TCP)
                 mapsize_done = 0
+                maptmp = file("network_tmp.sav", 'wb')
                 while not downloadDone and self.runCond:
                     size, command, content = self.receiveMsg_TCP()
                     
@@ -596,10 +597,12 @@ class SpectatorClient(Client):
                             offset += size2
                         elif command2 == const.MAP_PACKET_NORMAL:
                             mapsize_done += size
+                            maptmp.write(content[offset:])
                             if int(mapsize_done / 1024) % 100 == 0:
                                 LOG.debug("got %d kB ..." % (mapsize_done / 1024))
                         elif command2 == const.MAP_PACKET_END:
                             LOG.info("done downloading map!")
+                            maptmp.close()
                             downloadDone=True
                 
                 self.sendMsg(const.PACKET_CLIENT_MAP_OK, type=M_TCP)
