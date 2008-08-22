@@ -46,13 +46,20 @@ def main():
                 if message == "":
                     runCond = False
                 colors = ['\x1b[34m', '\x1b[37m', '\x1b[33m', '\x1b[31m', '\x1b[35m', '\x1b[37m', '\x1b[33m', '\x1b[32m', '\x1b[37m', '\x1b[37m', '\x1b[35m', '\x1b[32m', '\x1b[37m', '\x1b[36m', '\x1b[30m\x1b[47m', '\x1b[35m', '\x1b[30m\x1b[47m']
-                print colors[color] + message + '\x1b[49m\x1b[39m'
+                if color <= len(colors):
+                    print colors[color] + message + '\x1b[49m\x1b[39m'
+                else:
+                    print message
             else:
+                if command == const.PACKET_SERVER_FULL:
+                    print "ERROR: server full"
+                elif command == const.PACKET_SERVER_BANNED:
+                    print "ERROR: banned from server"
+                elif command in const.packet_names:
+                    print "ERROR: got unknown packet: %s" % const.packet_names[command]
                 runCond = False
     if gotResponse:
-        print "-- End of rcon response --"
-    else:
-        print "rcon sent"
+        print "--  End of rcon response  --"
     client.disconnect()
     
 if __name__ == '__main__':
