@@ -6,6 +6,44 @@ from struct_zerostrings import packExt, unpackExt, unpackFromExt
 
 import ottd_constants as const
 
+if platform.system() == 'Windows':
+	# See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winprog/winprog/windows_api_reference.asp
+	# for information on Windows APIs.
+	STD_INPUT_HANDLE = -10
+	STD_OUTPUT_HANDLE= -11
+	STD_ERROR_HANDLE = -12
+
+	FOREGROUND_BLUE = 0x01 # text color contains blue.
+	FOREGROUND_GREEN= 0x02 # text color contains green.
+	FOREGROUND_RED  = 0x04 # text color contains red.
+	FOREGROUND_INTENSITY = 0x08 # text color is intensified.
+	BACKGROUND_BLUE = 0x10 # background color contains blue.
+	BACKGROUND_GREEN= 0x20 # background color contains green.
+	BACKGROUND_RED  = 0x40 # background color contains red.
+	BACKGROUND_INTENSITY = 0x80 # background color is intensified.
+
+	import ctypes
+	std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+
+def set_color(color, handle=std_out_handle):
+	"""(color) -> BOOL
+	
+	Example: set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+	"""
+	if platform.system() == 'Windows':
+		return ctypes.windll.kernel32.SetConsoleTextAttribute(handle, color)
+	else:
+		colors = ['\x1b[34m', '\x1b[37m', '\x1b[33m', '\x1b[31m', '\x1b[35m', '\x1b[37m', '\x1b[33m', '\x1b[32m', '\x1b[37m', '\x1b[37m', '\x1b[35m', '\x1b[32m', '\x1b[37m', '\x1b[36m', '\x1b[30m\x1b[47m', '\x1b[35m', '\x1b[30m\x1b[47m']
+		# todo: handle the linux case
+
+	return False
+
+def reset_color():
+	if platform.system() == 'Windows':
+		set_color(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+	else:
+		print '\x1b[49m\x1b[39m'
+		# todo: handle the linux case
 
 def printUsage():
 	print "usage: %s <ip:port> \"password\" \"rcon\"" % sys.argv[0]
@@ -45,9 +83,10 @@ def main():
                 [color, message], size = unpackExt('Hz', content)
                 if message == "":
                     runCond = False
-                colors = ['\x1b[34m', '\x1b[37m', '\x1b[33m', '\x1b[31m', '\x1b[35m', '\x1b[37m', '\x1b[33m', '\x1b[32m', '\x1b[37m', '\x1b[37m', '\x1b[35m', '\x1b[32m', '\x1b[37m', '\x1b[36m', '\x1b[30m\x1b[47m', '\x1b[35m', '\x1b[30m\x1b[47m']
                 if color <= len(colors):
-                    print colors[color] + message + '\x1b[49m\x1b[39m'
+					setcolor(color)
+                    print message
+					reset_color()
                 else:
                     print message
             else:
