@@ -107,7 +107,7 @@ class IngamePublicChatEvent(IngameChatEvent):
     def sendToIRC(self):
         if not self.distribution['irc'] or self.parentclient.irc is None:
             return False
-        self.parentclient.irc.say("<%s> %s" % (self.playername, self.msg))
+        self.parentclient.irc.say("<%s> %s" % (self.playername, self.msg), 0)
     def sendToLog(self):
         if not self.distribution['log']:
             return False
@@ -139,7 +139,7 @@ class IngameTeamChatEvent(IngameChatEvent):
     def sendToIRC(self):
         if not self.distribution['irc'] or self.parentclient.irc is None:
             return False
-        self.parentclient.irc.say("[company: %d]<%s> %s" % (self.playercompany,self.playername, self.msg))
+        self.parentclient.irc.say("[company: %d]<%s> %s" % (self.playercompany,self.playername, self.msg), 0)
     def sendToLog(self):
         if not self.distribution['log']:
             return False
@@ -173,7 +173,7 @@ class IngamePrivateChatEvent(IngameChatEvent):
     def sendToIRC(self):
         if not self.distribution['irc'] or self.parentclient.irc is None:
             return False
-        self.parentclient.irc.say("[private]<%s> %s" % (self.playername, self.msg))
+        self.parentclient.irc.say("[private]<%s> %s" % (self.playername, self.msg), 0)
     def sendToLog(self):
         if not self.distribution['log']:
             return False
@@ -252,7 +252,7 @@ class BroadcastEvent(IngameChatEvent):
     def sendToIRC(self):
         if not self.distribution['irc'] or self.parentclient.irc is None:
             return False
-        self.parentclient.irc.say(self.msg)
+        self.parentclient.irc.say(self.msg, 0)
     def sendToLog(self):
         if not self.distribution['log']:
             return False
