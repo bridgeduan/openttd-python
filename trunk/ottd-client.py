@@ -21,7 +21,7 @@ class SpectatorClient(Client):
     irc_server_port = config.getint("irc", "serverport")
     irc_channel = config.get("irc", "channel")
     playerlist = {}
-    webserver = None
+    webserver = None        
     
     # this class implements the thread start method
     def run(self):
@@ -83,6 +83,32 @@ class SpectatorClient(Client):
             rawcommand = config.get('irccommands', command)
             if not len(rawcommand) > 0:
                 return
+                
+            
+            time_left=''
+            if self.time_server_start >= 0 and self.time_server_runtime>=0:
+                # get running time
+                tl = time.time() - self.time_server_start
+                if tl >= 86400:
+                    time_running="%0.1f days"%(tl/86400.0)
+                elif tl >= 3600:
+                    time_running="%0.1f hours"%(tl/3600.0)
+                elif tl >= 60:
+                    time_running="%0.0f minutes"%(tl/60.0)
+                else:
+                    time_running="%0.0f seconds"%(tl)
+                
+                # get time left
+                tl = self.time_server_runtime - (time.time() - self.time_server_start)
+                if tl >= 86400:
+                    time_left="%0.1f days"%(tl/86400.0)
+                elif tl >= 3600:
+                    time_left="%0.1f hours"%(tl/3600.0)
+                elif tl >= 60:
+                    time_left="%0.0f minutes"%(tl/60.0)
+                else:
+                    time_left="%0.0f seconds"%(tl)
+                    
             botrevision = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
             interpolation = {
                 "frame": self.frame_server,
@@ -91,6 +117,8 @@ class SpectatorClient(Client):
                 "port": self.port,
                 "ottdversion": self.revision,
                 "botversion": botrevision,
+                'time_left': time_left,
+                'time_running': time_running,
             }
             proccommand = rawcommand % interpolation
             if len(command) > 0:
@@ -277,6 +305,23 @@ class SpectatorClient(Client):
             pass
     
     def joinGame(self):
+        
+        self.time_server_start=-1
+        self.time_server_runtime=-1
+        if config.getboolean('timewarning', 'enable'):
+            timestr=''
+            try:
+                f=open(config.get('timewarning', 'starttimefile'), 'r')
+                timestr = f.read()
+                f.close()
+            except:
+                LOG.error("error while reading starttimefile")
+            if timestr != '':
+                self.time_server_start=int(timestr.strip())
+            
+            self.time_server_runtime=config.getint('timewarning', 'time_running')
+            
+    
         #construct join packet
         cversion = self.revision
         self.playername =  config.get("openttd", "nickname")
