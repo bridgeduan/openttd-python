@@ -30,7 +30,8 @@ M_UDP=2
 M_BOTH=3
 
 class DataStorageClass:
-    pass
+    def __getitem__(self, key):
+        return getattr(key, self)
 
 class DataPacket:
     size=0
