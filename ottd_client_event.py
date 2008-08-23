@@ -24,19 +24,19 @@ class IngameChat(Event):
     """
     dispatchTo = ["sendToIRC", "sendToLog", "sendToCmdProc"]
     def __init__(self, msg, clientid=-1, parent=None, parentclient=None, type=None):
-            self.type = type
-            self.parentclient = parentclient
-            self.parent = parent
-            if not parent is None:
-                # get stuff from parents
-                if type is None and not self.parent.type is None:
-                    self.type = self.parent.type
-                if parentclient is None and not self.parent.parentclient is None:
-                    self.parentclient = self.parent.parentclient
-                if clientid == -1 and not self.parent.clientid == -1:
-                    clientid = self.parent.clientid
-                elif clientid == -1 and not self.parentclient is None:
-                    clientid = self.parentclient.client_id
+        self.type = type
+        self.parentclient = parentclient
+        self.parent = parent
+        if not parent is None:
+            # get stuff from parents
+            if type is None and not self.parent.type is None:
+                self.type = self.parent.type
+            if parentclient is None and not self.parent.parentclient is None:
+                self.parentclient = self.parent.parentclient
+            if clientid == -1 and not self.parent.clientid == -1:
+                clientid = self.parent.clientid
+            elif clientid == -1 and not self.parentclient is None:
+                clientid = self.parentclient.client_id
         self.playerid = clientid
         self.msg = msg
         if clientid in self.parentclient.playerlist:
