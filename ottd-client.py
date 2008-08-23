@@ -5,11 +5,9 @@ import StringIO
 import traceback
 import time
 from ottd_lib import LOG, M_TCP, M_UDP, M_BOTH, Client
-from irc_lib import IRCBotThread
-from webserver import myWebServer
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
-from ottd_client_event import IngameChat, IRCPublicChat, Broadcast, IngameToIRCEvent, InternalCommandEvent, IRCPublicActionChatEvent, IRCToIngameEvent
+from ottd_client_event import IngameChat, IRCPublicChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCToIngame
 
 import ottd_constants as const
 
@@ -144,7 +142,7 @@ class SpectatorClient(Client):
                 event.respond(eventstr)
         
         # non-useful commands for productive servers,, but the bot may use them itself all the time
-        if not config.getboolean("main", "productive") or event.__class__ == InternalCommandEvent:
+        if not config.getboolean("main", "productive") or event.__class__ == InternalCommand:
             #remove useless commands
             if command == 'quit':
                 payload = packExt('z', config.get("openttd", "quitmessage"))
@@ -155,10 +153,7 @@ class SpectatorClient(Client):
                 LoadConfig()
                 Broadcast("reloading config file", parentclient=self, parent=event)
             elif command == 'loadirc' and self.irc is None and config.getboolean("irc", "enable"):
-                botnick=(config.get("irc", "nickname"))
-                self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
-                self.irc.start()
-                Broadcast("loading IRC", parentclient=self, parent=event)
+                self.startIRC()
             elif command == 'unloadirc' and not self.irc is None:
                 self.irc.stop()
                 self.irc = None
@@ -194,11 +189,18 @@ class SpectatorClient(Client):
     def startWebserver(self):
         if not config.getboolean("webserver", "enable") or not self.webserver is None:
             return
+        from webserver import myWebServer
         LOG.debug("starting webserver ...")
         port = config.getint("webserver", "port")
         self.webserver = myWebServer(self, port)
         self.webserver.start()
         Broadcast("webserver started on port %d"%port, parentclient=self)
+        
+    def startIRC(self):
+        from irc_lib import IRCBotThread
+        self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self.irc_server_port)
+        self.irc.start()
+        Broadcast("loading IRC", parentclient=self)
     
     def stopWebserver(self):
         if self.webserver:
@@ -214,13 +216,13 @@ class SpectatorClient(Client):
                 self.runCond = False
                 LOG.info("Quit from server")
             if cid in self.playerlist:
-                IngameToIRCEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
+                IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
                 del self.playerlist[cid]
         
         elif command == const.PACKET_SERVER_ERROR:
             [errornum], size = unpackFromExt('B', content, 0)
             if errornum in const.error_names:
-                IngameToIRCEvent("Disconnected from server: %s" % const.error_names[errornum][1], parentclient=self)
+                IngameToIRC("Disconnected from server: %s" % const.error_names[errornum][1], parentclient=self)
             self.runCond = False
         
         elif command == const.PACKET_SERVER_ERROR_QUIT:
@@ -229,7 +231,7 @@ class SpectatorClient(Client):
                 self.doingloop = False
                 LOG.info("Disconnected from server")
             if cid in self.playerlist:
-                IngameToIRCEvent("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1]), parentclient=self)
+                IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1]), parentclient=self)
                 del self.playerlist[cid]
 
         elif command == const.PACKET_SERVER_CLIENT_INFO:
@@ -239,15 +241,15 @@ class SpectatorClient(Client):
                 self.playas = playas
             if cid in self.playerlist:
                 if name != self.playerlist[cid]['name']:
-                    IngameToIRCEvent("%s changed nick to %s" % (self.playerlist[cid]['name'], name), parentclient=self)
+                    IngameToIRC("%s changed nick to %s" % (self.playerlist[cid]['name'], name), parentclient=self)
                 if playas != self.playerlist[cid]['company']:
-                    IngameToIRCEvent("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), parentclient=self)
+                    IngameToIRC("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), parentclient=self)
             self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1}
         
         elif command == const.PACKET_SERVER_JOIN:
             [playerid], size = unpackFromExt('H', content, 0)
             if playerid in self.playerlist and playerid != self.client_id:
-                IngameToIRCEvent("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
+                IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
         
         if command == const.PACKET_SERVER_SHUTDOWN:
             Broadcast("Server shutting down...", parentclient=self)
@@ -449,7 +451,7 @@ class SpectatorClient(Client):
                 
                 # auto start IRC
                 if config.getboolean("irc", "autojoin"):
-                    InternalCommandEvent(config.get("main", "commandprefix") + "loadirc", self)
+                    self.startIRC()
                 if config.getboolean("webserver", "autostart"):
                     self.startWebserver()
                 
@@ -488,7 +490,7 @@ class SpectatorClient(Client):
                         companyrefresh_last = time.time()
                         
                     if doTimeWarning and time.time() - timewarning_last > timewarning_interval:
-                        InternalCommandEvent(config.get("main", "commandprefix") + "timeleft", self)
+                        InternalCommand(config.get("main", "commandprefix") + "timeleft", self)
                         timewarning_last = time.time()
                     
                     if command == const.PACKET_SERVER_COMMAND:
@@ -542,9 +544,9 @@ class SpectatorClient(Client):
                                 if nickname != config.get("irc", "nickname") and type == 'pubmsg':
                                     IRCPublicChat(msgtxt, nickname, parentclient=self)
                                 elif type == 'action':
-                                    IRCPublicActionChatEvent(msgtxt, nickname, parentclient=self)
+                                    IRCPublicActionChat(msgtxt, nickname, parentclient=self)
                                 elif type == 'internal':
-                                    IRCToIngameEvent(msgtxt, parentclient=self)
+                                    IRCToIngame(msgtxt, parentclient=self)
 
 
 def printUsage():
