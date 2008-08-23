@@ -272,6 +272,8 @@ class InternalCommandEvent(Event):
     def dispatch(self):
         self.parentclient.processCommand(self)
     def respond(self, msg):
-        pass
+        IngamePublicChatEventResponse("%s" % (msg), 0, self)
+        IRCPublicChatEventResponse("%s" % (msg), '', parent=self)
+        
     def __name__(self):
         return "BotEvent"
