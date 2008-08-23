@@ -452,15 +452,17 @@ class SpectatorClient(Client):
                 if config.getboolean("webserver", "autostart"):
                     self.startWebserver()
                 
-                
-                
                 ignoremsgs = []
                 companyrefresh_interval = 120 #every two minutes
                 companyrefresh_last = 0
                 
+                timewarning_interval = config.getint('timewarning', 'warning_interval')
+                timewarning_last = 0
+                
                 doStats = config.getboolean("stats", "enable")
                 if doStats:
                     self.clearStats()
+                doTimeWarning = config.getboolean('timewarning', 'warnings')
                 
                 while self.runCond:
                     size, command, content = self.receiveMsg_TCP()
@@ -484,6 +486,10 @@ class SpectatorClient(Client):
                         self.updateStats()
                         companyrefresh_last = time.time()
                         
+                    if doTimeWarning and time.time() - timewarning_last > timewarning_interval:
+                        InternalCommandEvent(config.get("main", "commandprefix") + "timeleft", self)
+                        timewarning_last = time.time()
+                    
                     if command == const.PACKET_SERVER_COMMAND:
                         [player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
 
