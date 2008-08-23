@@ -9,7 +9,7 @@ from irc_lib import IRCBotThread
 from webserver import myWebServer
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
-from ottd_client_event import IngamePublicChatEvent, IngameTeamChatEvent, IngamePrivateChatEvent, IRCPublicChatEvent, BroadcastEvent, IngameToIRCEvent, InternalCommandEvent
+from ottd_client_event import IngameChat, IRCPublicChat, Broadcast, IngameToIRCEvent, InternalCommandEvent, IRCPublicActionChatEvent, IRCToIngameEvent
 
 import ottd_constants as const
 
@@ -86,6 +86,7 @@ class SpectatorClient(Client):
                 
             
             time_left=''
+            time_running = ''
             if self.time_server_start >= 0 and self.time_server_runtime>=0:
                 # get running time
                 tl = time.time() - self.time_server_start
@@ -143,7 +144,7 @@ class SpectatorClient(Client):
                 event.respond(eventstr)
         
         # non-useful commands for productive servers,, but the bot may use them itself all the time
-        if not config.getboolean("main", "productive") or event.__name__() == 'BotEvent':
+        if not config.getboolean("main", "productive") or event.__class__ == InternalCommandEvent:
             #remove useless commands
             if command == 'quit':
                 payload = packExt('z', config.get("openttd", "quitmessage"))
@@ -152,16 +153,16 @@ class SpectatorClient(Client):
                 self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
             elif command == 'reloadconfig':
                 LoadConfig()
-                BroadcastEvent("reloading config file", parentclient=self, parent=event)
+                Broadcast("reloading config file", parentclient=self, parent=event)
             elif command == 'loadirc' and self.irc is None and config.getboolean("irc", "enable"):
                 botnick=(config.get("irc", "nickname"))
                 self.irc = IRCBotThread(self.irc_channel, botnick, self.irc_server, self.irc_server_port)
                 self.irc.start()
-                BroadcastEvent("loading IRC", parentclient=self, parent=event)
+                Broadcast("loading IRC", parentclient=self, parent=event)
             elif command == 'unloadirc' and not self.irc is None:
                 self.irc.stop()
                 self.irc = None
-                BroadcastEvent("unloaded IRC", parentclient=self, parent=event)
+                Broadcast("unloaded IRC", parentclient=self, parent=event)
             elif command == 'startwebserver':
                 self.startWebserver()
             elif command == 'stopwebserver':
@@ -197,14 +198,14 @@ class SpectatorClient(Client):
         port = config.getint("webserver", "port")
         self.webserver = myWebServer(self, port)
         self.webserver.start()
-        BroadcastEvent("webserver started on port %d"%port, parentclient=self)
+        Broadcast("webserver started on port %d"%port, parentclient=self)
     
     def stopWebserver(self):
         if self.webserver:
             LOG.debug("stopping webserver ...")
             self.webserver.stop()
             self.webserver = None
-            BroadcastEvent("webserver stopped", parentclient=self)
+            Broadcast("webserver stopped", parentclient=self)
         
     def handlePacket(self, command, content):
         if command == const.PACKET_SERVER_QUIT:
@@ -249,12 +250,12 @@ class SpectatorClient(Client):
                 IngameToIRCEvent("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
         
         if command == const.PACKET_SERVER_SHUTDOWN:
-            BroadcastEvent("Server shutting down...", parentclient=self)
+            Broadcast("Server shutting down...", parentclient=self)
             self.runCond = False
             self.reconnectCond = False
         
         if command == const.PACKET_SERVER_NEWGAME:
-            BroadcastEvent("Server loading new map...", parentclient=self)
+            Broadcast("Server loading new map...", parentclient=self)
             self.runCond = False
     
     def updateStats(self):
@@ -407,7 +408,7 @@ class SpectatorClient(Client):
                     
                     if command == const.PACKET_SERVER_WAIT:
                         [num], res = unpackFromExt('B', content)
-                        BroadcastEvent("Waiting for map download...%d in line" % num, parentclient=self)
+                        Broadcast("Waiting for map download...%d in line" % num, parentclient=self)
                     
                     if command == const.PACKET_SERVER_MAP:
                         offset = 0
@@ -522,31 +523,13 @@ class SpectatorClient(Client):
                         [actionid, playerid, self_sent, msg], size = unpackExt('bHbz', content)
                         self_sent = (playerid == self.client_id) or self_sent
                         if playerid in self.playerlist:
-                            player_name = self.playerlist[playerid]['name']
-                            
-                            broadcast = 0
-                            msgtxt = msg
-                            if actionid == const.NETWORK_ACTION_CHAT:
-                                if self_sent:
-                                    msgtxt = msg
-                                else:
-                                    msgtxt = "%s: %s" % (player_name, msg)
-                            elif actionid == const.NETWORK_ACTION_CHAT_COMPANY:
-                                msgtxt = "[Team] %s: %s" % (player_name, msg)
-                            elif actionid == const.NETWORK_ACTION_CHAT_CLIENT:
-                                msgtxt = "[IRC_ONLY] %s: %s" % (player_name, msg)
-                            else:
-                                msg = ""
-                            
-                            #gce = IngameChatEvent(msg, msgtxt, playerid, player_name, None, self, self_sent)
-                            #self.processEvent(gce)
                             if not self_sent:
                                 if actionid == const.NETWORK_ACTION_CHAT:
-                                    IngamePublicChatEvent(msg, playerid, parentclient=self)
+                                    IngameChat(msg, playerid, type="public", parentclient=self)
                                 elif actionid == const.NETWORK_ACTION_CHAT_COMPANY:
-                                    IngameTeamChatEvent(msg, playerid, parentclient=self)
+                                    IngameChat(msg, playerid, type="team", parentclient=self)
                                 elif actionid == const.NETWORK_ACTION_CHAT_CLIENT:
-                                    IngamePrivateChatEvent(msg, playerid, parentclient=self)
+                                    IngameChat(msg, playerid, type="private", parentclient=self)
                         #LOG.debug(res.__str__())
                         
                     if not self.irc is None:
@@ -554,21 +537,14 @@ class SpectatorClient(Client):
                         msgs = self.irc.getSaid()
                         if not msgs is None:
                             for msg in msgs:
-                                txt_res = ''
                                 nickname, msgtxt, type = msg
-                                if type == 'pubmsg':
-                                    #normal chat
-                                    txt_res = "%s: %s" % (nickname, msgtxt)
-                                elif type == 'action':
-                                    # action
-                                    txt_res = "%s %s" % (nickname, msgtxt)
-                                elif type == 'internal':
-                                    # action
-                                    txt_res = "%s" % (msgtxt)
-                                
                                 # do not process stuff we said by ourself
                                 if nickname != config.get("irc", "nickname") and type == 'pubmsg':
-                                    IRCPublicChatEvent(msgtxt, nickname, parentclient=self)
+                                    IRCPublicChat(msgtxt, nickname, parentclient=self)
+                                elif type == 'action':
+                                    IRCPublicActionChatEvent(msgtxt, nickname, parentclient=self)
+                                elif type == 'internal':
+                                    IRCToIngameEvent(msgtxt, parentclient=self)
 
 
 def printUsage():
