@@ -19,7 +19,10 @@ class OTTDIRCBot(SingleServerIRCBot):
         self.parentclient.on_irc_internal("IRC bridge running")
 
     def on_privmsg(self, c, e):
-        print "RECEIVED privmsg"
+        self.parentclient.on_irc_privmsg(c, e)
+     
+    def on_privnotice(self, c, e):
+        self.parentclient.on_irc_privmsg(c, e)
 
     def on_action(self, c, e):
         self.parentclient.on_irc_action(c, e)
@@ -84,3 +87,6 @@ class IRCBotThread(threading.Thread):
     def say(self, msg, type):
         if self.bot:
             return self.bot.say(msg, type)
+    def say_nick(self, nick, msg, type):
+        if self.bot:
+            return self.bot.say_nick(nick, msg, type)
