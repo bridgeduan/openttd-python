@@ -152,12 +152,14 @@ class SpectatorClient(Client):
             elif command == 'reloadconfig':
                 LoadConfig()
                 Broadcast("reloading config file", parentclient=self, parent=event)
+            elif command == 'reloadevents':
+                reload(ottd_client_event)
             elif command == 'loadirc' and self.irc is None and config.getboolean("irc", "enable"):
                 self.startIRC()
             elif command == 'unloadirc' and not self.irc is None:
                 self.irc.stop()
                 self.irc = None
-                Broadcast("unloaded IRC", parentclient=self, parent=event)
+                Broadcast("unloaded IRC", parentclient=self)
             elif command == 'startwebserver':
                 self.startWebserver()
             elif command == 'stopwebserver':
