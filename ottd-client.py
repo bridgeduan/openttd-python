@@ -8,7 +8,6 @@ from ottd_lib import LOG, M_TCP, M_UDP, M_BOTH, Client
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCToIngame
-from irclib import nm_to_n
 
 import ottd_constants as const
 
@@ -143,7 +142,7 @@ class SpectatorClient(Client):
                 event.respond(eventstr)
         
         # non-useful commands for productive servers,, but the bot may use them itself all the time
-        if not config.getboolean("main", "productive") or event.__class__ == InternalCommand:
+        if not config.getboolean("main", "productive") or event.isByOp():
             #remove useless commands
             if command == 'quit':
                 self.quit()
@@ -228,10 +227,10 @@ class SpectatorClient(Client):
             Broadcast("webserver stopped", parentclient=self)
 
     def on_irc_pubmsg(self, c, e):
-        IRCPublicChat(e.arguments()[0], (nm_to_n(e.source())), parentclient=self)
+        IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
         
     def on_irc_action(self, c, e):
-        IRCPublicActionChat(e.arguments()[0], (nm_to_n(e.source())), parentclient=self)
+        IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_internal(self, msg):
         IRCToIngame(msg, parentclient=self)

@@ -93,6 +93,8 @@ class IngameChat(Event):
                 self.parentclient.irc.say("[company: %d]<%s> %s" % (self.playercompany,self.playername, self.msg), 0)
             elif self.type == "private":
                 self.parentclient.irc.say("[private]<%s> %s" % (self.playername, self.msg), 0)
+    def isByOp(self):
+        return self.playerid == 1
 
 
 class IngameChatResponse(IngameChat):
@@ -116,11 +118,15 @@ class IRCPublicChat(Event):
     dispatchTo = ["sendToGame", "sendToLog", "sendToCmdProc"]
     type = None
     playerid = -1
-    def __init__(self, msg, nickname, parentclient=None, parent=None):
+    def __init__(self, msg, nickname, parentclient=None, parent=None, parentircevent=None):
         if parentclient is None and not parent is None:
             self.parentclient = parent.parentclient
         else:
             self.parentclient = parentclient
+        if parentircevent is None and not parent is None:
+            self.parentircevent = parent.parentircevent
+        else:
+            self.parentircevent = parentircevent
         self.playername = nickname
         self.msg = msg
         self.parent = parent
@@ -141,6 +147,10 @@ class IRCPublicChat(Event):
         return True
     def respond(self, msg):
         IRCPublicChatResponse("%s: %s" % (self.playername, msg),self.playername, parent=self)
+    def isByOp(self):
+        if self.parentclient is None or self.parentircevent is None:
+            return False
+        return self.parentclient.irc.bot.channels[self.parentircevent.target()].is_oper(self.playername)
 
 class IRCPublicChatResponse(IRCPublicChat):
     dispatchTo = ["sendToIRC", "sendToLog"]
@@ -193,3 +203,5 @@ class InternalCommand(Event):
     def respond(self, msg):
         # this should not happen.
         Broadcast(msg, parentclient=self.parentclient, parent=self)
+    def isByOp(self):
+        return True
