@@ -157,8 +157,7 @@ class SpectatorClient(Client):
             elif command == 'loadirc' and self.irc is None and config.getboolean("irc", "enable"):
                 self.startIRC()
             elif command == 'unloadirc' and not self.irc is None:
-                self.irc.stop()
-                self.irc = None
+                self.stopIRC()
                 Broadcast("unloaded IRC", parentclient=self)
             elif command == 'startwebserver':
                 self.startWebserver()
@@ -208,6 +207,14 @@ class SpectatorClient(Client):
         self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self.irc_server_port)
         self.irc.start()
         Broadcast("loading IRC", parentclient=self)
+
+    def stopIRC(self):
+        if not self.irc is None:
+            try:
+                self.irc.stop()
+            except SystemExit:
+                pass
+            self.irc = None
     
     def stopWebserver(self):
         if self.webserver:
