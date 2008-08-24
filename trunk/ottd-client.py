@@ -162,6 +162,11 @@ class SpectatorClient(Client):
                 self.startWebserver()
             elif command == 'stopwebserver':
                 self.stopWebserver()
+            elif command == 'reconnect':
+                payload = packExt('z', "%s (reconnecting)" % config.get("openttd", "quitmessage"))
+                payload_size = len(payload)
+                Broadcast("Reconnecting to server", parentclient=self, parent=event)
+                self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
 
         # cases not using if/elif
         if command.startswith("lastactive") and len(command) >11:
@@ -215,9 +220,10 @@ class SpectatorClient(Client):
             if cid == self.client_id:
                 self.runCond = False
                 LOG.info("Quit from server")
-            if cid in self.playerlist:
-                IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
-                del self.playerlist[cid]
+            else:
+                if cid in self.playerlist:
+                    IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
+                    del self.playerlist[cid]
         
         elif command == const.PACKET_SERVER_ERROR:
             [errornum], size = unpackFromExt('B', content, 0)
@@ -589,7 +595,6 @@ def main():
             client.revision = gameinfo.server_revision
             client.password = password
             client.joinGame()
-            client.disconnect()
         except (KeyboardInterrupt, SystemExit):
             client.runCond = False
             client.reconnectCond = False
@@ -599,7 +604,8 @@ def main():
             traceback.print_exc(file=errorMsg)
             LOG.debug(errorMsg.getvalue())
 
-        sys.exit(0)
+    client.disconnect()
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()
