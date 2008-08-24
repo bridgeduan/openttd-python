@@ -8,6 +8,7 @@ from ottd_lib import LOG, M_TCP, M_UDP, M_BOTH, Client
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCToIngame
+from irclib import nm_to_n
 
 import ottd_constants as const
 
@@ -145,10 +146,7 @@ class SpectatorClient(Client):
         if not config.getboolean("main", "productive") or event.__class__ == InternalCommand:
             #remove useless commands
             if command == 'quit':
-                payload = packExt('z', config.get("openttd", "quitmessage"))
-                payload_size = len(payload)
-                self.reconnectCond = False
-                self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+                self.quit()
             elif command == 'reloadconfig':
                 LoadConfig()
                 Broadcast("reloading config file", parentclient=self, parent=event)
@@ -204,7 +202,7 @@ class SpectatorClient(Client):
         
     def startIRC(self):
         from irc_lib import IRCBotThread
-        self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self.irc_server_port)
+        self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self, self.irc_server_port)
         self.irc.start()
         Broadcast("loading IRC", parentclient=self)
 
@@ -216,12 +214,27 @@ class SpectatorClient(Client):
                 pass
             self.irc = None
     
+    def quit(self):
+        payload = packExt('z', config.get("openttd", "quitmessage"))
+        payload_size = len(payload)
+        self.reconnectCond = False
+        self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+    
     def stopWebserver(self):
         if self.webserver:
             LOG.debug("stopping webserver ...")
             self.webserver.stop()
             self.webserver = None
             Broadcast("webserver stopped", parentclient=self)
+
+    def on_irc_pubmsg(self, c, e):
+        IRCPublicChat(e.arguments()[0], (nm_to_n(e.source())), parentclient=self)
+        
+    def on_irc_action(self, c, e):
+        IRCPublicActionChat(e.arguments()[0], (nm_to_n(e.source())), parentclient=self)
+    
+    def on_irc_internal(self, msg):
+        IRCToIngame(msg, parentclient=self)
         
     def handlePacket(self, command, content):
         if command == const.PACKET_SERVER_QUIT:
@@ -323,7 +336,6 @@ class SpectatorClient(Client):
             pass
     
     def joinGame(self):
-        
         self.time_server_start=-1
         self.time_server_runtime=-1
         if config.getboolean('timewarning', 'enable'):
@@ -413,10 +425,9 @@ class SpectatorClient(Client):
                 downloadDone = False
                 self.sendMsg(const.PACKET_CLIENT_GETMAP, type=M_TCP)
                 mapsize_done = 0
+                maptmp = None
                 if config.getboolean("openttd", "savemap"):
                     maptmp = file(config.get("openttd", "savemapname"), 'wb')
-                else:
-                    maptmp = None
                 while not downloadDone and self.runCond:
                     size, command, content = self.receiveMsg_TCP()
                     
@@ -548,20 +559,6 @@ class SpectatorClient(Client):
                                 elif actionid == const.NETWORK_ACTION_CHAT_CLIENT:
                                     IngameChat(msg, playerid, type="private", parentclient=self)
                         #LOG.debug(res.__str__())
-                        
-                    if not self.irc is None:
-                        #check if there are msgs in the IRC to say
-                        msgs = self.irc.getSaid()
-                        if not msgs is None:
-                            for msg in msgs:
-                                nickname, msgtxt, type = msg
-                                # do not process stuff we said by ourself
-                                if nickname != config.get("irc", "nickname") and type == 'pubmsg':
-                                    IRCPublicChat(msgtxt, nickname, parentclient=self)
-                                elif type == 'action':
-                                    IRCPublicActionChat(msgtxt, nickname, parentclient=self)
-                                elif type == 'internal':
-                                    IRCToIngame(msgtxt, parentclient=self)
 
 
 def printUsage():
@@ -604,6 +601,8 @@ def main():
             client.revision = gameinfo.server_revision
             client.password = password
             client.joinGame()
+            client.stopIRC()
+            client.playerlist = {}
         except (KeyboardInterrupt, SystemExit):
             client.runCond = False
             client.reconnectCond = False
