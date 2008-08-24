@@ -5,10 +5,23 @@ from log import *
 from ottd_config import *
 
 class OTTDIRCBot(SingleServerIRCBot):
+    runCond = True
     def __init__(self, channel, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
         self.in_queue = []
+
+    def process_forever(self, timeout=0.2):
+        """Run an infinite loop, processing data from connections.
+
+        This method repeatedly calls process_once.
+
+        Arguments:
+
+            timeout -- Parameter to pass to process_once.
+        """
+        while self.runCond:
+            self.process_once(timeout)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -59,6 +72,10 @@ class IRCBotThread(threading.Thread):
     def run(self):
         self.bot = OTTDIRCBot(self.channel, self.nickname, self.server, self.port)
         self.bot.start()
+        
+    def stop(self, msg="Goodbye"):
+        self.bot.runCond = False
+        self.bot.disconnect(msg)
         
     def getSaid(self):
         if self.bot:
