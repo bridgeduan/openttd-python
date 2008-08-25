@@ -22,7 +22,13 @@ class OTTDIRCBot(SingleServerIRCBot):
         self.parentclient.on_irc_privmsg(c, e)
      
     def on_privnotice(self, c, e):
-        self.parentclient.on_irc_privmsg(c, e)
+        try:
+            self.parentclient.on_irc_notice(c, e)
+        except Exception, e:
+            LOG.error('IRC error: '+str(e))
+            errorMsg = StringIO.StringIO()
+            traceback.print_exc(file=errorMsg)
+            LOG.debug(errorMsg.getvalue())
 
     def on_action(self, c, e):
         self.parentclient.on_irc_action(c, e)
@@ -31,7 +37,7 @@ class OTTDIRCBot(SingleServerIRCBot):
         self.parentclient.on_irc_pubmsg(c, e)
         
     def on_kick(self, c, e):
-        self.in_queue.append(('', "we got kicked from the channel, trying to rejoin", 'internal'))
+        self.parentclient.on_irc_internal("we got kicked from the channel, trying to rejoin")
         c.join(self.channel)
     
     def say(self, msg, type):
@@ -49,6 +55,11 @@ class OTTDIRCBot(SingleServerIRCBot):
                 self.connection.privmsg(nick, msg)
             elif type == 1:
                 self.connection.action(nick, msg)
+        except:
+            pass
+    def notice(self, nick, msg):
+        try:
+            self.connection.notice(nick, msg)
         except:
             pass
     def _on_disconnect(self, c, e):
@@ -90,3 +101,6 @@ class IRCBotThread(threading.Thread):
     def say_nick(self, nick, msg, type):
         if self.bot:
             return self.bot.say_nick(nick, msg, type)
+    def notice(self, nick, msg):
+        if self.bot:
+            return self.bot.notice(nick, msg)
