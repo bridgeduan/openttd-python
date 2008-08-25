@@ -7,7 +7,7 @@ import time
 from ottd_lib import LOG, M_TCP, M_UDP, M_BOTH, Client
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
-from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCToIngame
+from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCToIngame
 
 import ottd_constants as const
 
@@ -231,6 +231,9 @@ class SpectatorClient(Client):
 
     def on_irc_privmsg(self, c, e):
         IRCPrivateChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+    
+    def on_irc_notice(self, c, e):
+        IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_action(self, c, e):
         IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
