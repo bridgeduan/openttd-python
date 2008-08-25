@@ -20,6 +20,7 @@ class SpectatorClient(Client):
     irc_channel = config.get("irc", "channel")
     playerlist = {}
     webserver = None        
+    version = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
     
     # this class implements the thread start method
     def run(self):
@@ -108,14 +109,13 @@ class SpectatorClient(Client):
                 else:
                     time_left="%0.0f seconds"%(tl)
                     
-            botrevision = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
             interpolation = {
                 "frame": self.frame_server,
                 "time": time.ctime().__str__(),
                 "ip": self.ip,
                 "port": self.port,
                 "ottdversion": self.revision,
-                "botversion": botrevision,
+                "botversion": self.version,
                 'time_left': time_left,
                 'time_running': time_running,
             }
@@ -140,6 +140,55 @@ class SpectatorClient(Client):
             for clientid in self.playerlist.keys():
                 eventstr = "Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company']))
                 event.respond(eventstr)
+        elif command.startswith('setupbridge') and not self.irc is None:
+            arg = command[12:]
+            if len(arg)<1:
+                event.respond("Usage: !setupbridge <name>")
+            else:
+                if event.isFromIRC():
+                    if arg in self.irc.bridges_ingame_irc:
+                        event.respond("User already has a bridge")
+                        return
+                    for client in self.playerlist:
+                        if self.playerlist[client]['name'] == arg:
+                            found = True
+                            break;
+                        else:
+                            found = False
+                    if not found:
+                        event.respond("Unknown user (case sensitive!)")
+                        return
+                    self.irc.bridges_ingame_irc[arg] = event.playername.split('!')[0]
+                    self.irc.bridges_irc_ingame[event.parentircevent.source().split('!')[0]] = arg
+                    event.respond("Set up bridge to %s" % arg)
+                else:
+                    if arg in self.irc.bridges_irc_ingame:
+                        event.respond("User already has a bridge")
+                        return
+                    if not self.irc.bot.channels[self.irc.channel].has_user(arg):
+                        event.respond("Unknown user (case sensitive!)")
+                        return
+                    self.irc.bridges_irc_ingame[arg] = event.playername.split('!')[0]
+                    self.irc.bridges_ingame_irc[event.playername.split('!')[0]] = arg
+                    event.respond("Set up bridge to %s" % arg)
+        elif command.startswith('removebridge') and not self.irc is None:
+            if event.isFromIRC():
+                if event.playername in self.irc.bridges_irc_ingame:
+                    del self.irc.bridges_ingame_irc[self.irc.bridges_irc_ingame[event.playername]]
+                    del self.irc.bridges_irc_ingame[event.playername]
+                    event.respond("Removed bridge")
+                else:
+                    event.respond("You currently don't have any bridge to ingame")
+            else:
+                if event.playername in self.irc.bridges_ingame_irc:
+                    if self.irc.bot.channels[self.irc.channel].has_user(arg):
+                        self.irc.say_nick(self.irc.self.irc.bridges_ingame_irc[event.playername], "removed chatbridge...", 0)
+                    del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[event.playername]]
+                    del self.irc.bridges_ingame_irc[event.playername]
+                    event.respond("Removed bridge")
+                else:
+                    event.respond("You currently don't have any bridge to IRC")
+                    
         
         # non-useful commands for productive servers,, but the bot may use them itself all the time
         if not config.getboolean("main", "productive") or event.isByOp():
@@ -254,7 +303,12 @@ class SpectatorClient(Client):
             else:
                 if cid in self.playerlist:
                     IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
+                    name = self.playerlist[cid]['name']
                     del self.playerlist[cid]
+                    if not self.irc is None and name in self.irc.bridges_ingame_irc:
+                        # remove chatbridge
+                        del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
+                        del self.irc.bridges_ingame_irc[name]
         
         elif command == const.PACKET_SERVER_ERROR:
             [errornum], size = unpackFromExt('B', content, 0)
@@ -281,7 +335,7 @@ class SpectatorClient(Client):
                     IngameToIRC("%s changed nick to %s" % (self.playerlist[cid]['name'], name), parentclient=self)
                 if playas != self.playerlist[cid]['company']:
                     IngameToIRC("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), parentclient=self)
-            self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1}
+            self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1, 'id': cid}
         
         elif command == const.PACKET_SERVER_JOIN:
             [playerid], size = unpackFromExt('H', content, 0)

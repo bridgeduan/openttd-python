@@ -20,15 +20,8 @@ class OTTDIRCBot(SingleServerIRCBot):
 
     def on_privmsg(self, c, e):
         self.parentclient.on_irc_privmsg(c, e)
-     
     def on_privnotice(self, c, e):
-        try:
-            self.parentclient.on_irc_notice(c, e)
-        except Exception, e:
-            LOG.error('IRC error: '+str(e))
-            errorMsg = StringIO.StringIO()
-            traceback.print_exc(file=errorMsg)
-            LOG.debug(errorMsg.getvalue())
+        self.parentclient.on_irc_notice(c, e)
 
     def on_action(self, c, e):
         self.parentclient.on_irc_action(c, e)
@@ -70,7 +63,7 @@ class OTTDIRCBot(SingleServerIRCBot):
                                             self._connected_checker)
         
     def get_version(self):
-        return "openttd-python client (http://openttd-python.googlecode.com)"
+        return "openttd-python client %s (http://openttd-python.googlecode.com)" % self.parentclient.version
 
 class IRCBotThread(threading.Thread):
     def __init__(self, channel, nickname, server, parentclient, port=6667):
@@ -80,6 +73,8 @@ class IRCBotThread(threading.Thread):
         self.port=port
         self.bot=None
         self.parentclient = parentclient
+        self.bridges_irc_ingame = {}
+        self.bridges_ingame_irc = {}
         threading.Thread.__init__(self)
         
     def run(self):
@@ -87,7 +82,7 @@ class IRCBotThread(threading.Thread):
         self.bot.start()
         print "IRC Thread exited"
         
-    def stop(self, msg="Goodbye"):
+    def stop(self, msg="The ottdbot flies away!"):
         self.bot.runCond = False
         self.bot.die(msg)
         
@@ -99,8 +94,11 @@ class IRCBotThread(threading.Thread):
         if self.bot:
             return self.bot.say(msg, type)
     def say_nick(self, nick, msg, type):
-        if self.bot:
-            return self.bot.say_nick(nick, msg, type)
+        try:
+            if self.bot:
+                return self.bot.say_nick(nick, msg, type)
+        except:
+            pass
     def notice(self, nick, msg):
         if self.bot:
             return self.bot.notice(nick, msg)
