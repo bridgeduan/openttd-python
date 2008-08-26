@@ -75,9 +75,12 @@ class SpectatorClient(Client):
 
     def processCommand(self, event):
         LOG.debug("processing command '%s'" % event.msg)
-        if not event.msg.startswith(config.get("main", "commandprefix")):
+        if not event.isCommand():
             return
-        command = event.msg[1:]
+        if not event.msg.startswith('!'):
+            command = event.msg
+        else:
+            command = event.msg[1:]
         if config.has_option('irccommands', command):
             rawcommand = config.get('irccommands', command)
             if not len(rawcommand) > 0:
@@ -149,31 +152,35 @@ class SpectatorClient(Client):
                     if arg in self.irc.bridges_ingame_irc:
                         event.respond("User already has a bridge")
                         return
-                    for client in self.playerlist:
-                        if self.playerlist[client]['name'] == arg:
-                            found = True
-                            break;
-                        else:
-                            found = False
-                    if not found:
+                    if event.playername in self.irc.bridges_irc_ingame:
+                        event.respond("You already have a bridge")
+                    target = self.findPlayerByNick(arg)
+                    if target is None:
                         event.respond("Unknown user (case sensitive!)")
                         return
-                    self.irc.bridges_ingame_irc[arg] = event.playername.split('!')[0]
-                    self.irc.bridges_irc_ingame[event.parentircevent.source().split('!')[0]] = arg
+                    self.irc.bridges_ingame_irc[arg] = event.playername
+                    self.irc.bridges_irc_ingame[event.playername] = arg
                     event.respond("Set up bridge to %s" % arg)
+                    self.sendChat("Set up a chatbridge from you to %s" % event.playername, desttype=const.DESTTYPE_CLIENT, dest=target['id'], chattype=const.NETWORK_ACTION_CHAT_CLIENT)
                 else:
                     if arg in self.irc.bridges_irc_ingame:
                         event.respond("User already has a bridge")
                         return
+                    if event.playername in self.irc.bridges_ingame_irc:
+                        event.respond("You already have a bridge")
                     if not self.irc.bot.channels[self.irc.channel].has_user(arg):
                         event.respond("Unknown user (case sensitive!)")
                         return
                     self.irc.bridges_irc_ingame[arg] = event.playername.split('!')[0]
                     self.irc.bridges_ingame_irc[event.playername.split('!')[0]] = arg
+                    self.irc.say_nick(arg, "Set up a chatbridge from you to %s" % event.playername, 0)
                     event.respond("Set up bridge to %s" % arg)
         elif command.startswith('removebridge') and not self.irc is None:
             if event.isFromIRC():
                 if event.playername in self.irc.bridges_irc_ingame:
+                    otherend = self.findPlayerByNick(self.irc.bridges_irc_ingame[event.playername])
+                    if not otherend is None:
+                        self.sendChat("Removed chatbridge", desttype=const.DESTTYPE_CLIENT, dest=otherend['id'], chattype=const.NETWORK_ACTION_CHAT_CLIENT)
                     del self.irc.bridges_ingame_irc[self.irc.bridges_irc_ingame[event.playername]]
                     del self.irc.bridges_irc_ingame[event.playername]
                     event.respond("Removed bridge")
@@ -181,14 +188,36 @@ class SpectatorClient(Client):
                     event.respond("You currently don't have any bridge to ingame")
             else:
                 if event.playername in self.irc.bridges_ingame_irc:
-                    if self.irc.bot.channels[self.irc.channel].has_user(arg):
-                        self.irc.say_nick(self.irc.self.irc.bridges_ingame_irc[event.playername], "removed chatbridge...", 0)
+                    if self.irc.bot.channels[self.irc.channel].has_user(self.irc.bridges_ingame_irc[event.playername]):
+                        self.irc.say_nick(self.irc.bridges_ingame_irc[event.playername], "removed chatbridge", 0)
                     del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[event.playername]]
                     del self.irc.bridges_ingame_irc[event.playername]
                     event.respond("Removed bridge")
                 else:
                     event.respond("You currently don't have any bridge to IRC")
-                    
+        elif command.startswith('notice') and not self.irc is None:
+            arg = command[7:]
+            if len(arg)<1:
+                event.respond("Usage: !notice <name> <msg>")
+            else:
+                try:
+                    name = arg.split(' ')[0]
+                    msg = arg[len(name) + 1:]
+                except:
+                    event.respond("Usage: !notice <name> <msg>")
+                    return
+                if event.isFromIRC():
+                    client = self.findPlayerByNick(name) 
+                    if not client is None:
+                        self.sendChat("[notice] <%s> %s" % (event.playername, msg), desttype=const.DESTTYPE_CLIENT, dest=client['id'], chattype=const.NETWORK_ACTION_CHAT_CLIENT)
+                    else:
+                        event.respond("Unknown player (case sensitive!)")
+                else:
+                    if self.irc.bot.channels[self.irc.channel].has_user(name):
+                        self.irc.notice(name, "[notice] <%s> %s" % (event.playername, msg))
+                    else:
+                        event.respond("Unknown user (case sensitive!)")
+                
         
         # non-useful commands for productive servers,, but the bot may use them itself all the time
         if not config.getboolean("main", "productive") or event.isByOp():
@@ -397,6 +426,11 @@ class SpectatorClient(Client):
             LOG.debug("stats cleared")
         except:
             pass
+    def findPlayerByNick(self, nick):
+        for client in self.playerlist:
+            if self.playerlist[client]['name'] == nick:
+                return self.playerlist[client]
+        return None
     
     def joinGame(self):
         self.time_server_start=-1
@@ -411,6 +445,11 @@ class SpectatorClient(Client):
                 LOG.error("error while reading starttimefile")
             if timestr != '':
                 self.time_server_start=int(timestr.strip())
+            else:
+                f=open(config.get('timewarning', 'starttimefile'), 'w+')
+                f.write(str(int(time.time())))
+                f.close()
+                self.time_server_start=int(time.time())
             
             self.time_server_runtime=config.getint('timewarning', 'time_running')
             
@@ -579,7 +618,7 @@ class SpectatorClient(Client):
                         companyrefresh_last = time.time()
                         
                     if doTimeWarning and time.time() - timewarning_last > timewarning_interval:
-                        InternalCommand(config.get("main", "commandprefix") + "timeleft", self)
+                        InternalCommand("timeleft", self)
                         timewarning_last = time.time()
                     
                     if command == const.PACKET_SERVER_COMMAND:
