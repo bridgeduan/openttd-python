@@ -294,5 +294,7 @@ class InternalCommand(Event):
         Broadcast(msg, parentclient=self.parentclient, parent=self)
     def isByOp(self):
         return True
+    def isCommand(self):
+        return True
     def isFromIRC(self):
         return False
