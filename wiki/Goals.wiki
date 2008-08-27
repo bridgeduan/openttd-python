@@ -53,4 +53,4 @@ Requirements:
 
 = Implementation Details =
 here we will discuss the design and implementation of several components:
- * EventSystem
+ * PluginSystem
