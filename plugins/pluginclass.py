@@ -8,11 +8,11 @@ class Plugin(object):
         else:
             function()
     def registerCallback(self, type, callback):
-        if not self.client is None and type in self.client.callback:
+        if not self.client is None and type in self.client.callbacks:
             self.client.callbacks[type].append(callback)
     def registerChatCommand(self, command, callback):
         if not self.client is None and not command in self.client.commands:
-            self.client.commands[type] = callback
+            self.client.commands[command] = callback
             return True
         else:
             return False
