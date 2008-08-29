@@ -21,6 +21,17 @@ class SpectatorClient(Client):
     playerlist = {}
     webserver = None        
     version = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
+    callbacks = {
+        "on_map_done": [],
+        "on_join": [],
+        "on_quit": [],
+        "on_game_kicked": [],
+        "on_disconnect": [],
+        "on_irc_user_join": [],
+        "on_irc_user_quit": [],
+        "on_irc_joined": [],
+        "on_irc_kicked": []
+    }
     
     # this class implements the thread start method
     def run(self):
@@ -305,18 +316,21 @@ class SpectatorClient(Client):
             Broadcast("webserver stopped", parentclient=self)
 
     def on_irc_pubmsg(self, c, e):
-        IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+        if not e.source() is None:
+            IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_privmsg(self, c, e):
-        IRCPrivateChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+        if not e.source() is None:
+            IRCPrivateChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_notice(self, c, e):
-        IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+        if not e.source() is None:
+            IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_action(self, c, e):
-        if e.target() == self.irc.channel:
+        if e.target() == self.irc.channel and not irc.source() is None:
             IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
-        else:
+        elif not e.source() is None:
             # it is a private action
             IRCPrivateActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
     
