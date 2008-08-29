@@ -9,6 +9,7 @@ from ottd_config import config, LoadConfig
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
 
+import plugins
 import ottd_constants as const
 
 SVNREVISION = "$Rev$"
@@ -23,15 +24,21 @@ class SpectatorClient(Client):
     version = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
     callbacks = {
         "on_map_done": [],
-        "on_join": [],
-        "on_quit": [],
-        "on_game_kicked": [],
-        "on_disconnect": [],
+        "on_user_join": [],
+        "on_user_quit": [],
+        "on_self_join": [],
+        "on_self_quit": [],
+        "on_server_newmap": [],
+        "on_server_shutdown": [],
         "on_irc_user_join": [],
         "on_irc_user_quit": [],
         "on_irc_joined": [],
-        "on_irc_kicked": []
+        "on_irc_kicked": [],
+        "on_receive_command": [],
+        "on_receive_packet": [],
+        "on_frame": []
     }
+    commands = {}
     
     # this class implements the thread start method
     def run(self):
@@ -82,6 +89,11 @@ class SpectatorClient(Client):
                 return "%s (%d players)" % (companystring, len(players))
         else:
             return companystring
+            
+    def doCallback(self, callback, arguments=[]):
+        if callback in self.callbacks:
+            for callback in self.callbacks[callback]:
+                callback(*arguments)
 
 
     def processCommand(self, event):
@@ -277,6 +289,8 @@ class SpectatorClient(Client):
                 else:
                     timestr = "%d seconds ago" % (time.time()-ltime)
                 event.respond("company %d last active: %s" % (companyid, timestr))
+        if command in self.commands:
+            self.commands[command](event)
         
     def startWebserver(self):
         if not config.getboolean("webserver", "enable") or not self.webserver is None:
@@ -338,16 +352,19 @@ class SpectatorClient(Client):
         IRCToIngame(msg, parentclient=self)
         
     def handlePacket(self, command, content):
+        self.doCallback("on_receive_packet", [command, content])
         if command == const.PACKET_SERVER_QUIT:
             [cid, msg], size = unpackExt('Hz', content)
             if cid == self.client_id:
                 self.runCond = False
                 LOG.info("Quit from server")
+                self.doCallback("on_self_quit", [-1, msg])
             else:
                 if cid in self.playerlist:
                     IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
                     name = self.playerlist[cid]['name']
                     del self.playerlist[cid]
+                    self.doCallback("on_user_quit", [name])
                     if not self.irc is None and name in self.irc.bridges_ingame_irc:
                         # remove chatbridge
                         del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
@@ -355,6 +372,7 @@ class SpectatorClient(Client):
         
         elif command == const.PACKET_SERVER_ERROR:
             [errornum], size = unpackFromExt('B', content, 0)
+            self.doCallback("on_self_quit", [errornum])
             if errornum in const.error_names:
                 IngameToIRC("Disconnected from server: %s" % const.error_names[errornum][1], parentclient=self)
             self.runCond = False
@@ -363,6 +381,7 @@ class SpectatorClient(Client):
             [cid, errornum], size = unpackExt('HB', content)
             if cid == self.client_id:
                 self.doingloop = False
+                self.doCallback("on_self_quit", [errornum])
                 LOG.info("Disconnected from server")
             if cid in self.playerlist:
                 IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1]), parentclient=self)
@@ -382,16 +401,22 @@ class SpectatorClient(Client):
         
         elif command == const.PACKET_SERVER_JOIN:
             [playerid], size = unpackFromExt('H', content, 0)
-            if playerid in self.playerlist and playerid != self.client_id:
-                IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
+            if playerid in self.playerlist:
+                if playerid != self.client_id:
+                    IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
+                    self.doCallback("on_user_join", self.playerlist[playerid]['name'])
+                else:
+                    self.doCallback("on_self_join")
         
         if command == const.PACKET_SERVER_SHUTDOWN:
             Broadcast("Server shutting down...", parentclient=self)
+            self.doCallback("on_server_shutdown")
             self.runCond = False
             self.reconnectCond = False
         
         if command == const.PACKET_SERVER_NEWGAME:
             Broadcast("Server loading new map...", parentclient=self)
+            self.doCallback("on_server_newmap")
             self.runCond = False
     
     def updateStats(self):
@@ -591,6 +616,8 @@ class SpectatorClient(Client):
                 
                 #self.processEvent(BotEvent("hey i am a bot :|"))
                 
+                self.doCallback("on_map_done")
+                
                 # auto start IRC
                 if config.getboolean("irc", "autojoin"):
                     self.startIRC()
@@ -619,6 +646,7 @@ class SpectatorClient(Client):
                         #if self.debug:
                         #    print "got frame %d, %d" % (frame_server, frame_max)
                         frameCounter += (self.frame_server - old_framecounter)
+                        self.doCallback("on_frame", [self.frame_server])
                         
                     if frameCounter >= 74:
                         payload = packExt('I', self.frame_server)
@@ -644,6 +672,7 @@ class SpectatorClient(Client):
                             LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, const.command_names[commandid].__str__(), player, text))
 
                         #print player, command2, p1, p2, tile, text, callback, frame, my_cmd
+                        self.doCallback("on_receive_command", [player, command2, p1, p2, tile, text, callback, frame, my_cmd])
     
                         """
                         # some example  implementation
@@ -699,6 +728,8 @@ def main():
         printUsage()
 
     client = SpectatorClient(ip, port, True)
+    plugins.load_plugins()
+    plugins.initialize_plugins(client)
     
     client.reconnectCond = True
     

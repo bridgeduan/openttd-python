@@ -1,0 +1,1 @@
+import pluginclassclass Sample(pluginclass.Plugin):    def init(self):        #print "Hello world!"        #self.registerCallback("on_map_done", self.mapdone)        #self.registerChatCommand("rcon", self.rcon)        pass
