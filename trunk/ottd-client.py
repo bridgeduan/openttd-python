@@ -25,6 +25,7 @@ class SpectatorClient(Client):
     callbacks = {
         "on_map_done": [],
         "on_user_join": [],
+        "on_user_disconnect": [],
         "on_user_quit": [],
         "on_self_join": [],
         "on_self_quit": [],
@@ -365,7 +366,7 @@ class SpectatorClient(Client):
                     IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
                     name = self.playerlist[cid]['name']
                     del self.playerlist[cid]
-                    self.doCallback("on_user_quit", [name])
+                    self.doCallback("on_user_quit", [name, msg])
                     if not self.irc is None and name in self.irc.bridges_ingame_irc:
                         # remove chatbridge
                         del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
@@ -385,6 +386,7 @@ class SpectatorClient(Client):
                 self.doCallback("on_self_quit", [errornum])
                 LOG.info("Disconnected from server")
             if cid in self.playerlist:
+                self.doCallback("on_user_disconnect", [self.playerlist[cid]['name'], errornum])
                 IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], const.error_names[errornum][1]), parentclient=self)
                 del self.playerlist[cid]
 
@@ -405,7 +407,7 @@ class SpectatorClient(Client):
             if playerid in self.playerlist:
                 if playerid != self.client_id:
                     IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
-                    self.doCallback("on_user_join", self.playerlist[playerid]['name'])
+                    self.doCallback("on_user_join", [self.playerlist[playerid]])
                 else:
                     self.doCallback("on_self_join")
         
