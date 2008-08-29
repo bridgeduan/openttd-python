@@ -32,6 +32,7 @@ class SpectatorClient(Client):
         "on_server_shutdown": [],
         "on_irc_user_join": [],
         "on_irc_user_quit": [],
+        "on_irc_user_part": [],
         "on_irc_joined": [],
         "on_irc_kicked": [],
         "on_receive_command": [],

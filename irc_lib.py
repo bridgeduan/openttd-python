@@ -17,6 +17,7 @@ class OTTDIRCBot(SingleServerIRCBot):
     def on_welcome(self, c, e):
         c.join(self.channel)
         self.parentclient.on_irc_internal("IRC bridge running")
+        self.parentclient.doCallback("on_irc_joined")
 
     def on_privmsg(self, c, e):
         self.parentclient.on_irc_privmsg(c, e)
@@ -31,7 +32,14 @@ class OTTDIRCBot(SingleServerIRCBot):
         
     def on_kick(self, c, e):
         self.parentclient.on_irc_internal("we got kicked from the channel, trying to rejoin")
+        self.parentclient.doCallback("on_irc_kicked")
         c.join(self.channel)
+    def on_join(self, c, e):
+        self.parentclient.doCallback("on_irc_user_join", [c, e])
+    def on_part(self, c, e):
+        self.parentclient.doCallback("on_irc_user_part", [c, e])
+    def on_quit(self, c, e):
+        self.parentclient.doCallback("on_irc_user_quit", [c, e])
     
     def say(self, msg, type):
         try:
