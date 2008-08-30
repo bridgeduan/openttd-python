@@ -11,12 +11,15 @@ class Event:
     dispatchTo = ["sendToGame", "sendToIRC", "sendToLog", "sendToCmdProc"]
     def dispatch(self):
         for to in self.dispatchTo:
-            try:
-                function = getattr(self, to)
-            except AttributeError:
-                LOG.error("Unknown dispatcher in %s: %s" % (self.__class__, to))
+            if not type(to) == str:
+                to(self)
             else:
-                function()
+                try:
+                    function = getattr(self, to)
+                except AttributeError:
+                    LOG.error("Unknown dispatcher in %s: %s" % (self.__class__, to))
+                else:
+                    function()
     def sendToCmdProc(self):
         if self.parentclient is None:
             return False
