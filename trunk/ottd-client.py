@@ -268,6 +268,10 @@ class SpectatorClient(Client):
                 payload_size = len(payload)
                 Broadcast("Reconnecting to server", parentclient=self, parent=event)
                 self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+            elif command.startswith("load_plugin ") and len(command) > 12:
+                arg = command[12:]
+                plugins.load_plugin(arg)
+                plugins.initialize_plugins(parent=self, module=arg)
 
         # cases not using if/elif
         if command.startswith("lastactive") and len(command) >11:

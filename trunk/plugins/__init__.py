@@ -3,21 +3,27 @@ import os
 import pluginclass
 import StringIO
 import traceback
-INSTANCES = []
-MODULES = []
+import sys
+INSTANCES = {}
+MODULES = {}
 
 def load_plugin(plugin):
     try:
-        MODULES.append(__import__(plugin, globals(), None, ['']))
+        if not plugin in MODULES:
+            MODULES[plugin] = __import__(plugin, globals(), None, [''])
     except Exception, e:
         print('error in plugin %s: %s' % (plugin, str(e)))
         errorMsg = StringIO.StringIO()
         traceback.print_exc(file=errorMsg)
         print(errorMsg.getvalue())
+def initialize_plugin(plugin, parent):
+    if not plugin in INSTANCES:
+        INSTANCES[plugin] = plugin(parent) 
 
-def initialize_plugins(parent=None):
+def initialize_plugins(parent=None, module=None):
     for plugin in pluginclass.Plugin.__subclasses__():
-        INSTANCES.append(plugin(parent))
+        if module is None or plugin.__module__ == "plugins." + str(module):
+            initialize_plugin(plugin, parent)
 def load_plugins():
     pluginlist = os.listdir(os.path.dirname(os.path.abspath(__file__)))
     for plugin in pluginlist:
