@@ -73,7 +73,7 @@ You do not have to create a class instance, the plugin system will do that for y
 5.1.1) Adding chatcommands:
 ------ --------------------
 The pluginsystem has a very simple way to add chatcommands. From your plugin class, you can do self.registerChatCommand(commandname, commandcallback)
-The callback is just a function that gets executed when the chatcommand is called. The event the command came from is passed as an argument. You can respond to the command with event.respond("msg")
+The callback is just a function that gets executed when the chatcommand is called. The event the command came from and the command given are passed as an argument. You can respond to the command with event.respond("msg")
 
 5.1.2) Adding callbacks:
 ------ -----------------

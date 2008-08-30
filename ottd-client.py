@@ -291,8 +291,9 @@ class SpectatorClient(Client):
                 else:
                     timestr = "%d seconds ago" % (time.time()-ltime)
                 event.respond("company %d last active: %s" % (companyid, timestr))
-        if command in self.commands:
-            self.commands[command](event)
+        commandstring = command.split()[0]
+        if commandstring in self.commands:
+            self.commands[commandstring](event, command)
         
     def startWebserver(self):
         if not config.getboolean("webserver", "enable") or not self.webserver is None:
