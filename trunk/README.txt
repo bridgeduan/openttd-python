@@ -11,6 +11,11 @@ Table of Contents:
  * 2.1 Reporting Bugs
 3.0) Supported Platforms
 4.0) Running the 'examples'
+5.0) The plugin system
+ * 5.1 Writing your own plugin
+   * 5.1.1 Adding chatcommands
+   * 5.1.2 Adding callbacks
+   * 5.1.3 Adding event dispatchers
 
 1.0) About:
 ---- ------
