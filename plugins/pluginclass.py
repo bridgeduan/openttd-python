@@ -16,3 +16,9 @@ class Plugin(object):
             return True
         else:
             return False
+    def registerEventDispatcher(self, toevent, callback):
+        if not callback in toevent.dispatchTo:
+            toevent.dispatchTo.append(callback)
+            return True
+        else:
+            return False

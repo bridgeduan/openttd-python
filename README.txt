@@ -95,3 +95,8 @@ on_irc_kicked       Called when the bot is kicked,            no arguments
 on_receive_command  Called when a command is received,           arguments: player, command2, p1, p2, tile, text, callback, frame, my_cmd
 on_receive_packet   Called when a packet is received,            arguments: packet-id, packet contents
 on_frame            Called when a frame is received,             arguments: current framecounter
+
+5.1.3) Adding event dispatchers:
+------ -------------------------
+Your plugin can also register event dispatchers, simply call self.registerEventDispatcher(eventClass, callback) and you're done! For getting the event classes, you need to import ottd_client_event in your script.
+The callback has one argument, the event instance.

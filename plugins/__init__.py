@@ -4,10 +4,11 @@ import pluginclass
 import StringIO
 import traceback
 INSTANCES = []
+MODULES = []
 
 def load_plugin(plugin):
     try:
-        __import__(plugin, globals(), None, [''])
+        MODULES.append(__import__(plugin, globals(), None, ['']))
     except Exception, e:
         print('error in plugin %s: %s' % (plugin, str(e)))
         errorMsg = StringIO.StringIO()
