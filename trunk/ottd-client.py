@@ -309,23 +309,23 @@ class SpectatorClient(Client):
             Broadcast("webserver stopped", parentclient=self)
 
     def on_irc_pubmsg(self, c, e):
-        if not e.source() is None:
-            IRCPublicChat(e.arguments()[0], e.source().lstrip('!'), parentclient=self, parentircevent=e)
+        if not e.source() is None and e.source().find('!') != -1:
+            IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_privmsg(self, c, e):
-        if not e.source() is None:
-            IRCPrivateChat(e.arguments()[0], e.source().lstrip('!'), parentclient=self, parentircevent=e)
+        if not e.source() is None and e.source().find('!') != -1:
+            IRCPrivateChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_notice(self, c, e):
-        if not e.source() is None:
-            IRCPrivateNoticeChat(e.arguments()[0], e.source().lstrip('!'), parentclient=self, parentircevent=e)
+        if not e.source() is None and e.source().find('!') != -1:
+            IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_action(self, c, e):
-        if e.target() == self.irc.channel and not irc.source() is None:
-            IRCPublicActionChat(e.arguments()[0], e.source().lstrip('!'), parentclient=self, parentircevent=e)
+        if e.target() == self.irc.channel and not irc.source() is None and e.source().find('!') != -1:
+            IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
         elif not e.source() is None:
             # it is a private action
-            IRCPrivateActionChat(e.arguments()[0], e.source().lstrip('!'), parentclient=self, parentircevent=e)
+            IRCPrivateActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_internal(self, msg):
         IRCToIngame(msg, parentclient=self)
