@@ -65,6 +65,8 @@
 </dd></dl>
 
 <hr />
+<p>Base event class</p>
+
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -88,7 +90,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="dispatch"></a><span class="summary-sig-name">dispatch</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="ottd_client_event.Event-class.html#dispatch" class="summary-sig-name">dispatch</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Dispatch an event to all dispatchers</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="ottd_client_event-pysrc.html#Event.dispatch">source&nbsp;code</a></span>
             
@@ -100,11 +103,12 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">Boolean</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="sendToCmdProc"></a><span class="summary-sig-name">sendToCmdProc</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="ottd_client_event.Event-class.html#sendToCmdProc" class="summary-sig-name">sendToCmdProc</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      The commandparser dispatcher</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="ottd_client_event-pysrc.html#Event.sendToCmdProc">source&nbsp;code</a></span>
             
@@ -134,12 +138,77 @@
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">list</span>
     </td><td class="summary">
-        <a href="ottd_client_event.Event-class.html#dispatchTo" class="summary-name">dispatchTo</a> = <code title="['sendToGame', 'sendToIRC', 'sendToLog', 'sendToCmdProc']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">sendToGame</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToIRC</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToLog</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToC</code><code class="variable-ellipsis">...</code></code>
+        <a href="ottd_client_event.Event-class.html#dispatchTo" class="summary-name">dispatchTo</a> = <code title="['sendToGame', 'sendToIRC', 'sendToLog', 'sendToCmdProc']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">sendToGame</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToIRC</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToLog</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sendToC</code><code class="variable-ellipsis">...</code></code><br />
+      list of dispatchers
     </td>
   </tr>
 </table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="dispatch"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dispatch</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ottd_client_event-pysrc.html#Event.dispatch">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Dispatch an event to all dispatchers</p>
+  <p>Calls every dispatcher in dispatchTo, if it's a string, it uses 
+  getattr, else, it tries to execute</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="sendToCmdProc"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sendToCmdProc</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ottd_client_event-pysrc.html#Event.sendToCmdProc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The commandparser dispatcher</p>
+  <dl class="fields">
+    <dt>Returns: Boolean</dt>
+        <dd>False is the preconditions are not True</dd>
+  </dl>
+<div class="fields">      <p><strong>Precondition:</strong>
+        self.parentclient must not be None
+      </p>
+</div></td></tr></table>
+</div>
+<br />
 <!-- ==================== CLASS VARIABLE DETAILS ==================== -->
 <a name="section-ClassVariableDetails"></a>
 <table class="details" border="1" cellpadding="3"
@@ -164,8 +233,10 @@
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <h3 class="epydoc">dispatchTo</h3>
-  
+  list of dispatchers
   <dl class="fields">
+    <dt>Type:</dt>
+      <dd>list</dd>
   </dl>
   <dl class="fields">
     <dt>Value:</dt>
@@ -205,7 +276,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sun Aug 31 15:07:05 2008
+    Generated by Epydoc 3.0.1 on Sun Aug 31 16:22:22 2008
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
