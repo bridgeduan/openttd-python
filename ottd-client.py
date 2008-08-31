@@ -110,34 +110,7 @@ class SpectatorClient(Client):
         if config.has_option('irccommands', command):
             rawcommand = config.get('irccommands', command)
             if not len(rawcommand) > 0:
-                return
-                
-            
-            time_left=''
-            time_running = ''
-            if self.time_server_start >= 0 and self.time_server_runtime>=0:
-                # get running time
-                tl = time.time() - self.time_server_start
-                if tl >= 86400:
-                    time_running="%0.1f days"%(tl/86400.0)
-                elif tl >= 3600:
-                    time_running="%0.1f hours"%(tl/3600.0)
-                elif tl >= 60:
-                    time_running="%0.0f minutes"%(tl/60.0)
-                else:
-                    time_running="%0.0f seconds"%(tl)
-                
-                # get time left
-                tl = self.time_server_runtime - (time.time() - self.time_server_start)
-                if tl >= 86400:
-                    time_left="%0.1f days"%(tl/86400.0)
-                elif tl >= 3600:
-                    time_left="%0.1f hours"%(tl/3600.0)
-                elif tl >= 60:
-                    time_left="%0.0f minutes"%(tl/60.0)
-                else:
-                    time_left="%0.0f seconds"%(tl)
-                    
+                return       
             interpolation = {
                 "frame": self.frame_server,
                 "time": time.ctime().__str__(),
@@ -145,8 +118,6 @@ class SpectatorClient(Client):
                 "port": self.port,
                 "ottdversion": self.revision,
                 "botversion": self.version,
-                'time_left': time_left,
-                'time_running': time_running,
             }
             proccommand = rawcommand % interpolation
             if len(command) > 0:
@@ -481,27 +452,6 @@ class SpectatorClient(Client):
         return None
     
     def joinGame(self):
-        self.time_server_start=-1
-        self.time_server_runtime=-1
-        if config.getboolean('timewarning', 'enable'):
-            timestr=''
-            try:
-                f=open(config.get('timewarning', 'starttimefile'), 'r')
-                timestr = f.read()
-                f.close()
-            except:
-                LOG.error("error while reading starttimefile")
-            if timestr != '':
-                self.time_server_start=int(timestr.strip())
-            else:
-                f=open(config.get('timewarning', 'starttimefile'), 'w+')
-                f.write(str(int(time.time())))
-                f.close()
-                self.time_server_start=int(time.time())
-            
-            self.time_server_runtime=config.getint('timewarning', 'time_running')
-            
-    
         #construct join packet
         cversion = self.revision
         self.playername =  config.get("openttd", "nickname")
@@ -637,13 +587,10 @@ class SpectatorClient(Client):
                 companyrefresh_interval = 120 #every two minutes
                 companyrefresh_last = 0
                 
-                timewarning_interval = config.getint('timewarning', 'warning_interval')
-                timewarning_last = 0
                 
                 doStats = config.getboolean("stats", "enable")
                 if doStats:
                     self.clearStats()
-                doTimeWarning = config.getboolean('timewarning', 'warnings')
                 
                 while self.runCond:
                     size, command, content = self.receiveMsg_TCP()
@@ -667,10 +614,6 @@ class SpectatorClient(Client):
                     if doStats and time.time() - companyrefresh_last > companyrefresh_interval:
                         self.updateStats()
                         companyrefresh_last = time.time()
-                        
-                    if doTimeWarning and time.time() - timewarning_last > timewarning_interval:
-                        InternalCommand("timeleft", self)
-                        timewarning_last = time.time()
                     
                     if command == const.PACKET_SERVER_COMMAND:
                         [player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
