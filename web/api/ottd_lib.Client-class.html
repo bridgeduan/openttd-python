@@ -27,7 +27,12 @@
       <th>&nbsp;&nbsp;&nbsp;<a
         href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
 
-      <th class="navbar" width="100%"></th>
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
   </tr>
 </table>
 <table width="100%" cellpadding="0" cellspacing="0">
@@ -62,12 +67,6 @@ threading._Verbose --+
                          |
                         <strong class="uidshort">Client</strong>
 </pre>
-
-<dl><dt>Known Subclasses:</dt>
-<dd>
-      <ul class="subclass-list">
-<li><a href="script-ottd_client_py.SpectatorClient-class.html">ottd_client_py.SpectatorClient (script)</a></li><li>, <a href="script-ottd_serverstats_py.ClientGameInfo-class.html">ottd_serverstats_py.ClientGameInfo (script)</a></li>  </ul>
-</dd></dl>
 
 <hr />
 <!-- ==================== INSTANCE METHODS ==================== -->
@@ -114,22 +113,6 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="disconnect"></a><span class="summary-sig-name">disconnect</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.disconnect">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="connect"></a><span class="summary-sig-name">connect</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">3</span>)</span></td>
           <td align="right" valign="top">
@@ -147,9 +130,9 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="ottd_lib.Client-class.html#run" class="summary-sig-name">run</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="disconnect"></a><span class="summary-sig-name">disconnect</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.run">source&nbsp;code</a></span>
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.disconnect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -163,9 +146,9 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getServerList"></a><span class="summary-sig-name">getServerList</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="getCompanyInfo"></a><span class="summary-sig-name">getCompanyInfo</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.getServerList">source&nbsp;code</a></span>
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.getCompanyInfo">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -196,22 +179,6 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getCompanyInfo"></a><span class="summary-sig-name">getCompanyInfo</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.getCompanyInfo">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="getGameInfo"></a><span class="summary-sig-name">getGameInfo</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="ottd_lib-pysrc.html#Client.getGameInfo">source&nbsp;code</a></span>
@@ -228,27 +195,9 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="throwRandomData"></a><span class="summary-sig-name">throwRandomData</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="getServerList"></a><span class="summary-sig-name">getServerList</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.throwRandomData">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="sendRaw"></a><span class="summary-sig-name">sendRaw</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">0</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.sendRaw">source&nbsp;code</a></span>
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.getServerList">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -265,6 +214,54 @@ threading._Verbose --+
           <td><span class="summary-sig"><a name="packetTest"></a><span class="summary-sig-name">packetTest</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="ottd_lib-pysrc.html#Client.packetTest">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="receiveMsg_TCP"></a><span class="summary-sig-name">receiveMsg_TCP</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.receiveMsg_TCP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="receiveMsg_UDP"></a><span class="summary-sig-name">receiveMsg_UDP</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.receiveMsg_UDP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ottd_lib.Client-class.html#run" class="summary-sig-name">run</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.run">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -298,9 +295,11 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="receiveMsg_UDP"></a><span class="summary-sig-name">receiveMsg_UDP</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="sendRaw"></a><span class="summary-sig-name">sendRaw</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">0</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.receiveMsg_UDP">source&nbsp;code</a></span>
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.sendRaw">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -314,9 +313,9 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="receiveMsg_TCP"></a><span class="summary-sig-name">receiveMsg_TCP</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="throwRandomData"></a><span class="summary-sig-name">throwRandomData</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.receiveMsg_TCP">source&nbsp;code</a></span>
+            <span class="codelink"><a href="ottd_lib-pysrc.html#Client.throwRandomData">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -376,7 +375,7 @@ threading._Verbose --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="socket_udp"></a><span class="summary-name">socket_udp</span> = <code title="None">None</code>
+        <a name="errors"></a><span class="summary-name">errors</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
     </td>
   </tr>
 <tr>
@@ -390,7 +389,7 @@ threading._Verbose --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="errors"></a><span class="summary-name">errors</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
+        <a name="socket_udp"></a><span class="summary-name">socket_udp</span> = <code title="None">None</code>
     </td>
   </tr>
 </table>
@@ -506,13 +505,18 @@ threading._Verbose --+
       <th>&nbsp;&nbsp;&nbsp;<a
         href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
 
-      <th class="navbar" width="100%"></th>
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jul 24 06:48:43 2008
+    Generated by Epydoc 3.0.1 on Sun Aug 31 15:07:05 2008
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

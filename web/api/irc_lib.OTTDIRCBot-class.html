@@ -87,6 +87,7 @@ ircbot.SingleServerIRCBot --+
         <span class="summary-sig-arg">channel</span>,
         <span class="summary-sig-arg">nickname</span>,
         <span class="summary-sig-arg">server</span>,
+        <span class="summary-sig-arg">parentclient</span>,
         <span class="summary-sig-arg">port</span>=<span class="summary-sig-default">6667</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.__init__">source&nbsp;code</a></span>
@@ -157,6 +158,24 @@ ircbot.SingleServerIRCBot --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="on_privnotice"></a><span class="summary-sig-name">on_privnotice</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.on_privnotice">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="on_action"></a><span class="summary-sig-name">on_action</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">c</span>,
         <span class="summary-sig-arg">e</span>)</span></td>
@@ -193,6 +212,78 @@ ircbot.SingleServerIRCBot --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="on_kick"></a><span class="summary-sig-name">on_kick</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.on_kick">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="on_join"></a><span class="summary-sig-name">on_join</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.on_join">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="on_part"></a><span class="summary-sig-name">on_part</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.on_part">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="on_quit"></a><span class="summary-sig-name">on_quit</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.on_quit">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="say"></a><span class="summary-sig-name">say</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">msg</span>,
         <span class="summary-sig-arg">type</span>)</span></td>
@@ -211,14 +302,95 @@ ircbot.SingleServerIRCBot --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getSaid"></a><span class="summary-sig-name">getSaid</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="say_nick"></a><span class="summary-sig-name">say_nick</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">nick</span>,
+        <span class="summary-sig-arg">msg</span>,
+        <span class="summary-sig-arg">type</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.getSaid">source&nbsp;code</a></span>
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.say_nick">source&nbsp;code</a></span>
             
           </td>
         </tr>
       </table>
       
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="notice"></a><span class="summary-sig-name">notice</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">nick</span>,
+        <span class="summary-sig-arg">msg</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.notice">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_on_disconnect"></a><span class="summary-sig-name">_on_disconnect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">c</span>,
+        <span class="summary-sig-arg">e</span>)</span><br />
+      [Internal]</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot._on_disconnect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_version"></a><span class="summary-sig-name">get_version</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="irc_lib-pysrc.html#OTTDIRCBot.get_version">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="runCond"></a><span class="summary-name">runCond</span> = <code title="True">True</code>
     </td>
   </tr>
 </table>
@@ -245,7 +417,7 @@ ircbot.SingleServerIRCBot --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jul 24 06:48:43 2008
+    Generated by Epydoc 3.0.1 on Sun Aug 31 13:57:01 2008
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
