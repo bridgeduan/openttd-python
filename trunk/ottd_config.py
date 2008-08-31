@@ -33,13 +33,6 @@ configvalues = {
         "verbose":"Off",
         "savenewgrfs":"On",
         "savehistory":"On"
-    },
-    "timewarning":{
-        "enable":"On",
-        "starttimefile":"starttime.txt",
-        "time_running":"604800",
-        "warnings":"On",
-        "warning_interval":"21600"
     }
 }
 def LoadConfig():
