@@ -27,7 +27,12 @@
       <th>&nbsp;&nbsp;&nbsp;<a
         href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
 
-      <th class="navbar" width="100%"></th>
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
   </tr>
 </table>
 <table width="100%" cellpadding="0" cellspacing="0">
@@ -85,6 +90,22 @@
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="WriteConfig"></a><span class="summary-sig-name">WriteConfig</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ottd_config-pysrc.html#WriteConfig">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 </table>
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
@@ -107,17 +128,70 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="config"></a><span class="summary-name">config</span> = <code title="ConfigParser.RawConfigParser()">ConfigParser.RawConfigParser()</code>
+        <a name="config"></a><span class="summary-name">config</span> = <code title="&lt;ConfigParser.RawConfigParser instance at 0x01991350&gt;">&lt;ConfigParser.RawConfigParser instance at 0x01991350&gt;</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="section"></a><span class="summary-name">section</span> = <code title="'irccommands'"><code class="variable-quote">'</code><code class="variable-string">irccommands</code><code class="variable-quote">'</code></code>
+        <a href="ottd_config-module.html#configvalues" class="summary-name">configvalues</a> = <code title="{'irc': {'autojoin': 'Off',
+         'channel': '#openttd-python',
+         'enable': 'On',
+         'nickname': 'ottd-bot',
+         'quitmessage': 'bot shutting down...',
+         'server': 'irc.oftc.net',
+         'serverport': '6667',
+         'usecolors': 'On'},
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">irc</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">autojoin</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Off</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">channel</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">#opentt</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 </table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="configvalues"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">configvalues</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">irc</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">autojoin</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Off</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">channel</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">#openttd-python</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">enable</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">On</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">nickname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ottd-bot</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">quitmessage</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">bot shutting down...</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">server</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">irc.oftc.net</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">serverport</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">6667</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+         <code class="variable-quote">'</code><code class="variable-string">usecolors</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">On</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -135,13 +209,18 @@
       <th>&nbsp;&nbsp;&nbsp;<a
         href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
 
-      <th class="navbar" width="100%"></th>
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jul 24 06:48:43 2008
+    Generated by Epydoc 3.0.1 on Sun Aug 31 15:07:05 2008
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,2 +1,2 @@
-c:\Python25\Scripts\epydoc.py *.py -v --show-sourcecode -o web/api
+c:\Python25\Scripts\epydoc.py -v --config web/api/epydoc.cfg
 @pause
