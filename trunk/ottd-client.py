@@ -38,7 +38,8 @@ class SpectatorClient(Client):
         "on_irc_kicked": [],
         "on_receive_command": [],
         "on_receive_packet": [],
-        "on_frame": []
+        "on_frame": [],
+        "on_mainloop": []
     }
     commands = {}
     
@@ -712,6 +713,7 @@ class SpectatorClient(Client):
                                 elif actionid == const.NETWORK_ACTION_CHAT_CLIENT:
                                     IngameChat(msg, playerid, type="private", parentclient=self)
                         #LOG.debug(res.__str__())
+                    self.doCallback("on_mainloop")
 
 
 def printUsage():

@@ -100,6 +100,7 @@ on_irc_kicked       Called when the bot is kicked,            no arguments
 on_receive_command  Called when a command is received,           arguments: player, command2, p1, p2, tile, text, callback, frame, my_cmd
 on_receive_packet   Called when a packet is received,            arguments: packet-id, packet contents
 on_frame            Called when a frame is received,             arguments: current framecounter
+on_mainloop         Called every time in the main loop,       no arguments
 
 5.1.3) Adding event dispatchers:
 ------ -------------------------
