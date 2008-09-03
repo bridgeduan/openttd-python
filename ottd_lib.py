@@ -43,7 +43,28 @@ class DataPacket:
         self.command = command
         self.data = data
         self.offset = 0
-    
+    def recv_something(self, type):
+        """
+        This method gets something from the data and returns it as array
+        @param type: string containing types needed to unpack
+        @type  type: string
+        @rtype:      array
+        @returns:    array with unpacked stuff
+        """
+        ret, size = unpackFromExt(type, self.data[self.offset:])
+        self.offset += size
+        return ret
+    def recv_str(self):
+        return self.recv_something('z')[0]
+    def recv_uint8(self):
+        return self.recv_something('B')[0]
+    def recv_uint16(self):
+        return self.recv_something('H')[0]
+    def recv_uint32(self):
+        return self.recv_something('I')[0]
+    def recv_uint64(self):
+        return self.recv_something('Q')[0]
+
 class Client(threading.Thread):
     socket_udp = None
     socket_tcp = None
