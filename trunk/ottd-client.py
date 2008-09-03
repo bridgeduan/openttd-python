@@ -701,6 +701,7 @@ def main():
             client.revision = gameinfo.server_revision
             client.password = password
             client.joinGame()
+            client.disconnect()
             client.stopIRC()
             client.playerlist = {}
         except (KeyboardInterrupt, SystemExit):
@@ -712,7 +713,6 @@ def main():
             traceback.print_exc(file=errorMsg)
             LOG.debug(errorMsg.getvalue())
 
-    client.disconnect()
     sys.exit(0)
 
 if __name__ == '__main__':
