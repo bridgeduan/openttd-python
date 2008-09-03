@@ -37,10 +37,12 @@ class DataPacket:
     size=0
     command=0
     data=0
+    offset=0
     def __init__(self, size, command, data):
         self.size = size
         self.command = command
         self.data = data
+        self.offset = 0
     
 class Client(threading.Thread):
     socket_udp = None
@@ -93,6 +95,7 @@ class Client(threading.Thread):
             if mode in [M_UDP, M_BOTH]:
                 self.socket_udp.connect((self.ip, self.port))
             
+            self.running = True
             #self.getGameInfo()
             
             #self.throwRandomData()
