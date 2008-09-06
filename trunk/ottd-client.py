@@ -420,8 +420,7 @@ class SpectatorClient(Client):
             obj = pickle.load(f)
             f.close()
         except IOError:
-            LOG.error("error while opening stats cache file!")
-            obj = []
+            pass
         
         obj.append(value)
         
