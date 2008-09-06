@@ -30,8 +30,21 @@ M_UDP=2
 M_BOTH=3
 
 class DataStorageClass:
+    __dict__ = {}
     def __getitem__(self, key):
-        return getattr(key, self)
+        return self.__dict__[key]
+    def __getattr__(self, key):
+        if key in self.__dict__:
+            return self.__dict__[key]
+        else:
+            raise AttributeError
+    def __setattr__(self, key, value):
+        if not key == "__dict__":
+            self.__dict__[key] = value
+    def __delattr__(self, key):
+        del self.__dict__[key]
+    def getDict(self):
+        return self.__dict__
 
 class DataPacket:
     size=0
@@ -64,6 +77,8 @@ class DataPacket:
         return self.recv_something('I')[0]
     def recv_uint64(self):
         return self.recv_something('Q')[0]
+    def recv_bool(self):
+        return self.recv_something('B')[0] == 1
 
 class Client(threading.Thread):
     socket_udp = None
@@ -244,7 +259,48 @@ class Client(threading.Thread):
                 LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
         else:
             LOG.error("unexpected reply on PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
-        
+    def getTCPCompanyInfo(self):
+        self.sendMsg(PACKET_CLIENT_COMPANY_INFO, type=M_TCP)
+        res = self.receiveMsg_TCP()
+        if res is None:
+            return None
+        size, command, content = res
+        if command == PACKET_SERVER_COMPANY_INFO:
+            packet = DataPacket(size, command, content)
+            [info_version, player_count] = packet.recv_something('BB')
+            if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
+                companies = []
+                firsttime = True
+                for i in range(0, player_count):
+                    if not firsttime:
+                        res2 = self.receiveMsg_TCP()
+                        if res2 is None:
+                            return None
+                        size, command, content = res
+                        packet = DataPacket(size, command, content)
+                        [info_version, player_count] = packet.recv_something('BB')
+                    firsttime = False
+                    
+                    company.index = packet.recv_uint8()
+                    company.name = packet.recv_string()
+                    company.startyear = packet.recv_uint32()
+                    company.value = packet.recv_uint64()
+                    company.money = packet.recv_uint64()
+                    company.income = packet.recv_uint64()
+                    company.performance = packet.recv_uint16()
+                    
+                    company.passworded = packet.recv_bool()
+                    
+                    company.vehicles = []
+                    for j in range(0,4):
+                        company.vehicles.append(packet.recv_uint16)
+                    company.stations = []
+                    for j in range(0,4):
+                        company.stations.append(packet.recv_uint16)
+                    company.players = packet.recv_string()
+                    companies.append(company)
+        else:
+            LOG.error("unexpected reply on PACKET_CLIENT_COMPANY_INFO: %d" % (command))
     def getGameInfo(self):
         self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
         result = self.receiveMsg_UDP()

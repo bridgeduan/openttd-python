@@ -16,7 +16,7 @@ class TimeWarning(pluginclass.Plugin):
         self.registerChatCommand("timeleft", self.timeLeft)
         self.registerChatCommand("uptime", self.upTime)
     
-    def timeLeft(self, event, commandstr):
+    def timeLeft(self, event, commandstr, recurtion_depth=0):
         if self.server_start >= 0 and self.server_runtime >= 0:
             # get time left
             tl = self.server_runtime - (time.time() - self.server_start)
@@ -26,8 +26,11 @@ class TimeWarning(pluginclass.Plugin):
                 time_left="%0.1f hours"%(tl/3600.0)
             elif tl >= 60:
                 time_left="%0.0f minutes"%(tl/60.0)
-            else:
+            elif tl > 0:
                time_left="%0.0f seconds"%(tl)
+            elif not recurtion_depth > 10: # don't get infinite loops
+                self.readTimeFile(forcenew = True)
+                self.timeLeft(event, commandstr, recurtion_depth+1) # recurse
             event.respond("time left until server will restart: %s" % time_left)
             
     def upTime(self, event, commandstr):
@@ -67,7 +70,7 @@ class TimeWarning(pluginclass.Plugin):
             ottd_client_event.InternalCommand("timeleft", self.client)
             self.last_timewarning = time.time()
         
-    def readTimeFile(self):
+    def readTimeFile(self, forcenew=False):
         timestr = ''
         try:
             f = open(config.get('timewarning', 'starttimefile'), 'r')
@@ -75,10 +78,10 @@ class TimeWarning(pluginclass.Plugin):
             f.close()
         except:
             LOG.error("error while reading starttimefile")
-        if timestr != '':
+        if timestr != '' and not forcenew:
             self.server_start = int(timestr.strip())
         else:
-            f = open(config.get('timewarning', 'starttimefile'))
+            f = open(config.get('timewarning', 'starttimefile'), 'wb')
             f.write(str(int(time.time())))
             f.close()
             self.server_start = int(time.time())
