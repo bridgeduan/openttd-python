@@ -1,44 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
-<title> Clients for openttd bot</title>
+<title> Clients on</title>
 <script src="lib/prototype-1.6.0.2.js" type="text/javascript" language="JavaScript"></script>
+<script src="lib/excanvas.js" type="text/javascript" language="JavaScript"></script>
+<script src="flotr-0.1.0alpha.js" type="text/javascript" language="JavaScript"></script>
 <script type="text/javascript">
 var clients = [];
+var companies = [];
 function getclients() {
-new Ajax.Request("/data/clients", {
-    method: 'get',
-    onSuccess: function(transport) {
-        if (transport.responseJSON) {
-            clients = Object.values(transport.responseJSON);
+    new Ajax.Request("/data/clients", {
+        method: 'get',
+        onSuccess: function(transport) {
+            if (transport.responseJSON) {
+                clients = Object.values(transport.responseJSON);
+            }
+            else{
+                clients = Object.values(transport.responseText.evalJSON());
+            }
+            template = new Template('<li>#{name} (##{id}), playing in company ##{company}</li>');
+            html = "<ul>";
+            clients.each(function(client){
+                html +=template.evaluate(client);
+            })
+            html += "</ul>";
+            $('content').update(html);
         }
-        else{
-            clients = Object.values(transport.responseText.evalJSON());
+        });
+}
+function gethistory() {
+    new Ajax.Request("/data/companies", {
+        method: 'get',
+        onSuccess: function(transport) {
+            if (transport.responseJSON) {
+                companies = transport.responseJSON;
+            }
+            else{
+                companies = transport.responseText.evalJSON();
+            }
+            var times = companies.pluck(2);
+            var infos = companies.pluck(0);
+            var clients = infos.pluck("clients_on");
+            var companieson = infos.pluck("companies_on");
+            var max = [infos.pluck("clients_max").max(), infos.pluck("companies_max").max()].max();
+            var options = {
+                lines: {
+                    show: true,
+                    fill: false
+                },
+                yaxis: {
+                    min: 0,
+                    tickDecimals: 0,
+                    max: max
+                },
+                xaxis: {
+                    tickFormatter: function(timeresult) {
+                        var date = new Date(timeresult * 1000);
+                        return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds().toPaddedString(2);
+                    },
+                    noTicks: 8
+                },
+                points: {
+                    show: true
+                }
+            };
+            Flotr.draw($('graph'), [{data: times.zip(clients), label: "clients on"}, {data: times.zip(companieson), label: "companies on"}],options);
         }
-        template = new Template('<li>#{name} (##{id}), playing in company ##{company}</li>');
-        html = "<ul>";
-        clients.each(function(client){
-            html +=template.evaluate(client);
-        })
-        html += "</ul>";
-        $('content').update(html);
-    }
-    });
+        });
 }
 document.observe("dom:loaded", getclients);
+document.observe("dom:loaded", gethistory);
 new PeriodicalExecuter(getclients, 60);
+new PeriodicalExecuter(gethistory, 100);
 </script>
 </head>
 <body>
 
-<a href='http://openttd.org'><img src='256px-Openttdlogo.svg.png' style='float:left;margin:15px;z-index: 2;' border="0"/></a>
-
 <h1>OpenTTD python bot</h1>
 <div style='font-family:verdana;border:1px solid #dddddd;padding:3px;z-index: 1;' id="content">Loading...
 </div>
-<a href="http://code.google.com/p/openttd-python/">project homepage</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="/api/">API-Docs</a>
-<hr noshade />
-<a href="http://www.python.org"><img src='python-powered-w-100x40.png' border="0"/></a>
 
+<div style='border:1px solid #dddddd;z-index: 3;width:95%;height:400px;' id="graph">Loading...
+</div>
 </body>
 </html>
