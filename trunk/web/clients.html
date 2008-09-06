@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<title> Clients for openttd bot</title>
+<script src="lib/prototype-1.6.0.2.js" type="text/javascript" language="JavaScript"></script>
+<script type="text/javascript">
+var clients = [];
+function getclients() {
+new Ajax.Request("/data/clients", {
+    method: 'get',
+    onSuccess: function(transport) {
+        if (transport.responseJSON) {
+            clients = Object.values(transport.responseJSON);
+        }
+        else{
+            clients = Object.values(transport.responseText.evalJSON());
+        }
+        template = new Template('<li>#{name} (##{id}), playing in company ##{company}</li>');
+        html = "<ul>";
+        clients.each(function(client){
+            html +=template.evaluate(client);
+        })
+        html += "</ul>";
+        $('content').update(html);
+    }
+    });
+}
+document.observe("dom:loaded", getclients);
+new PeriodicalExecuter(getclients, 60);
+</script>
+</head>
+<body>
+
+<a href='http://openttd.org'><img src='256px-Openttdlogo.svg.png' style='float:left;margin:15px;z-index: 2;' border="0"/></a>
+
+<h1>OpenTTD python bot</h1>
+<div style='font-family:verdana;border:1px solid #dddddd;padding:3px;z-index: 1;' id="content">Loading...
+</div>
+<a href="http://code.google.com/p/openttd-python/">project homepage</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="/api/">API-Docs</a>
+<hr noshade />
+<a href="http://www.python.org"><img src='python-powered-w-100x40.png' border="0"/></a>
+
+</body>
+</html>

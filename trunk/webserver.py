@@ -81,7 +81,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(output)
-        elif self.path == "/companies.json":
+        elif self.path == "/data/companies":
             try:
                 f = open(ottd_config.config.get("stats", "cachefilename"), 'rb')
             except IOError:
@@ -91,7 +91,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 f.close()
             cls = self.server._callbackclass
             self.send_response(200)
-            self.send_header('Content-type:', 'text/json')
+            self.send_header('Content-type:', 'application/json')
             self.end_headers()
             jsoninput = []
             for write in obj:
@@ -108,6 +108,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 jsoninput.append(thiswrite)
             jsonoutput = simplejson.dumps(jsoninput, sort_keys=True, indent=4)
             self.wfile.write(jsonoutput)
+        elif self.path == "/data/clients":
+            cls = self.server._callbackclass
+            
+            response = simplejson.dumps(cls.playerlist, indent=4, sort_keys=True)
+            self.send_response(200)
+            self.send_header('Content-type:', 'application/json')
+            self.end_headers()
+            self.wfile.write(response)
         else:
             path = urllib.unquote(self.path)
             if path.find("?") >= 0:
