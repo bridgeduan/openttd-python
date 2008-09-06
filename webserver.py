@@ -102,6 +102,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         for listitem in instance:
                             thislist.append(listitem.getDict())
                         thiswrite.append(thislist)
+                    elif type(instance) is float:
+                        thiswrite.append(instance)
                     else:
                         thiswrite.append(instance.getDict())
                     

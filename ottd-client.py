@@ -410,9 +410,9 @@ class SpectatorClient(Client):
             return
 
         LOG.debug("updating stats...")
-        value = [self.getGameInfo(), self.getCompanyInfo()]
-        
         tstart = time.time()
+        value = [self.getGameInfo(), self.getCompanyInfo(), tstart]
+        
         fn = config.get("stats", "cachefilename")
         obj=[]
         try:
