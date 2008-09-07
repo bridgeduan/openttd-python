@@ -58,7 +58,10 @@ def encode_basestring(s):
 
 def py_encode_basestring_ascii(s):
     if isinstance(s, str) and HAS_UTF8.search(s) is not None:
-        s = s.decode('utf-8')
+        try:
+			s = s.decode('utf-8')
+		except:
+			pass
     def replace(match):
         s = match.group(0)
         try:
