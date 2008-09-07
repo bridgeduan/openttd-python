@@ -29,7 +29,7 @@ M_TCP=1
 M_UDP=2
 M_BOTH=3
 
-class DataStorageClass:
+class DataStorageClass(object):
     __dict__ = {}
     def __getitem__(self, key):
         return self.__dict__[key]
@@ -352,7 +352,7 @@ class Client(threading.Thread):
         else:
             LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
     
-    def getGameInfo(self):
+    def getGameInfo(self, encode_grfs=False):
         self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
         result = self.receiveMsg_UDP()
         if result is None:
@@ -374,7 +374,10 @@ class Client(threading.Thread):
                     for i in range(0, grfcount):
                         [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
                         offset += size
-                        info.grfs.append((grfid, md5sum))
+                        if encode_grfs:
+                            info.grfs.append((grfid.encode('hex'), md5sum.encode('hex')))
+                        else:
+                            info.grfs.append((grfid, md5sum))
                 # the grf stuff is still wrong :|
                 [
                     info.game_date,

@@ -424,7 +424,7 @@ class SpectatorClient(Client):
             pass
             
         if firstSave:
-            value = [self.getGameInfo(), self.getCompanyInfo(), tstart]
+            value = [self.getGameInfo(encode_grfs=True), self.getCompanyInfo(), tstart]
         else:
             value = [self.getShortGameInfo(), self.getCompanyInfo(), tstart]
         
