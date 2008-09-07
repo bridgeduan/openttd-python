@@ -56,9 +56,9 @@ function gethistory() {
                 xaxis: {
                     tickFormatter: function(timeresult) {
                         var date = new Date(timeresult * 1000);
-                        return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds().toPaddedString(2);
+                        return date.getHours() + ":" + date.getMinutes().toPaddedString(2) + ":" + date.getSeconds().toPaddedString(2);
                     },
-                    noTicks: 8
+                    noTicks: times.size() < 8 ? times.size() : 8
                 },
                 points: {
                     show: true
