@@ -1,6 +1,6 @@
 import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.path, urllib
 import ottd_config
-from log import *
+from ottd_lib import LOG
 import simplejson
 import pickle
 
