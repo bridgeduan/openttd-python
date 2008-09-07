@@ -1,6 +1,6 @@
 import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.path, urllib
 import ottd_config
-from ottd_lib import LOG
+from ottd_lib import LOG, DataStorageClass
 import simplejson
 import pickle
 
@@ -20,6 +20,12 @@ def content_type(filename):
     else:
         return "text/html"
 
+class DataStorageJSONEncoder(simplejson.JSONEncoder):
+    def default(self, obj):
+        if type(obj) is DataStorageClass:
+            return obj.getDict()
+        else:
+            return simplejson.JSONEncoder.default(self, obj)
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
@@ -93,22 +99,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type:', 'application/json')
             self.end_headers()
-            jsoninput = []
-            for write in obj:
-                thiswrite = []
-                for instance in write:
-                    if type(instance) is list:
-                        thislist = []
-                        for listitem in instance:
-                            thislist.append(listitem.getDict())
-                        thiswrite.append(thislist)
-                    elif type(instance) is float:
-                        thiswrite.append(instance)
-                    else:
-                        thiswrite.append(instance.getDict())
-                    
-                jsoninput.append(thiswrite)
-            jsonoutput = simplejson.dumps(jsoninput, sort_keys=True, indent=4)
+            jsonoutput = simplejson.dumps(obj, sort_keys=True, indent=4, cls=DataStorageJSONEncoder)
             self.wfile.write(jsonoutput)
         elif self.path == "/data/clients":
             cls = self.server._callbackclass
