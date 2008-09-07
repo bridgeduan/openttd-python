@@ -22,7 +22,7 @@ def content_type(filename):
 
 class DataStorageJSONEncoder(simplejson.JSONEncoder):
     def default(self, obj):
-        if type(obj) is DataStorageClass:
+        if isinstance(obj, DataStorageClass):
             return obj.getDict()
         else:
             return simplejson.JSONEncoder.default(self, obj)

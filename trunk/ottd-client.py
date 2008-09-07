@@ -421,12 +421,12 @@ class SpectatorClient(Client):
             f.close()
         except IOError:
             firstSave=True
-            pass
             
-        if firstSave:
-            value = [self.getGameInfo(encode_grfs=True), self.getCompanyInfo(), tstart]
-        else:
-            value = [self.getShortGameInfo(), self.getCompanyInfo(), tstart]
+        value = [
+                self.getGameInfo(encode_grfs=True, short=not firstSave),
+                self.getCompanyInfo(),
+                tstart
+                ]
         
         obj.append(value)
         
