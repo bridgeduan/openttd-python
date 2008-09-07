@@ -59,9 +59,9 @@ def encode_basestring(s):
 def py_encode_basestring_ascii(s):
     if isinstance(s, str) and HAS_UTF8.search(s) is not None:
         try:
-			s = s.decode('utf-8')
-		except:
-			pass
+            s = s.decode('utf-8')
+        except:
+            pass
     def replace(match):
         s = match.group(0)
         try:
@@ -293,7 +293,10 @@ class JSONEncoder(object):
             if (_encoding is not None and isinstance(o, str)
                     and not (_encoding == 'utf-8')):
                 o = o.decode(_encoding)
-            yield encoder(o)
+            try:
+                yield encoder(o)
+            except:
+                pass
         elif o is None:
             yield 'null'
         elif o is True:

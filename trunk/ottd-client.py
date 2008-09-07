@@ -411,16 +411,22 @@ class SpectatorClient(Client):
 
         LOG.debug("updating stats...")
         tstart = time.time()
-        value = [self.getGameInfo(), self.getCompanyInfo(), tstart]
         
         fn = config.get("stats", "cachefilename")
         obj=[]
+        firstSave=False
         try:
             f = open(fn, 'rb')
             obj = pickle.load(f)
             f.close()
         except IOError:
+            firstSave=True
             pass
+            
+        if firstSave:
+            value = [self.getGameInfo(), self.getCompanyInfo(), tstart]
+        else:
+            value = [self.getShortGameInfo(), self.getCompanyInfo(), tstart]
         
         obj.append(value)
         

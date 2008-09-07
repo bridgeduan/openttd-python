@@ -301,6 +301,57 @@ class Client(threading.Thread):
                     companies.append(company)
         else:
             LOG.error("unexpected reply on PACKET_CLIENT_COMPANY_INFO: %d" % (command))
+    
+    def getShortGameInfo(self):
+        # stripped down version of getGameInfo()
+        self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
+        result = self.receiveMsg_UDP()
+        if result is None:
+            LOG.debug("unable to receive UDP packet")
+            return None
+        size, command, content = result
+        if command == PACKET_UDP_SERVER_RESPONSE:
+            offset = 0
+            [command2], size = unpackFromExt('B', content, offset)
+            offset += size
+            
+            if command2 == NETWORK_GAME_INFO_VERSION:
+                [grfcount], size = unpackFromExt('B', content, offset)
+                offset += size
+
+                info = DataStorageClass()
+                info.grfs = []
+                if grfcount != 0:
+                    for i in range(0, grfcount):
+                        [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
+                        offset += size
+                # the grf stuff is still wrong :|
+                [
+                    info.game_date,
+                    start_date,
+                    info.companies_max,
+                    info.companies_on,
+                    info.spectators_max,
+                    server_name,
+                    server_revision,
+                    server_lang,
+                    info.use_password,
+                    info.clients_max,
+                    info.clients_on,
+                    info.spectators_on,
+                    map_name,
+                    map_width,
+                    map_height,
+                    map_set,
+                    dedicated,
+                ], size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
+                #LOG.debug("got Game Info (%d byes long)\n"%(size))
+                return info
+            else:
+                LOG.debug("> old gameinfo version detected: %d" % command2)
+        else:
+            LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
+    
     def getGameInfo(self):
         self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
         result = self.receiveMsg_UDP()
