@@ -721,4 +721,11 @@ def main():
     sys.exit(0)
 
 if __name__ == '__main__':
+    # Import Psyco if available
+    try:
+        import psyco
+        psyco.full()
+        print "using psyco..."
+    except ImportError:
+        pass
     main()
