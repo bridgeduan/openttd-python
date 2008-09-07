@@ -29,7 +29,7 @@ M_TCP=1
 M_UDP=2
 M_BOTH=3
 
-class DataStorageClass(object):
+class DataStorageClass:
     __dict__ = {}
     def __getitem__(self, key):
         return self.__dict__[key]
@@ -282,7 +282,7 @@ class Client(threading.Thread):
                     firsttime = False
                     
                     company.index = packet.recv_uint8()
-                    company.name = packet.recv_string()
+                    company.name = packet.recv_str()
                     company.startyear = packet.recv_uint32()
                     company.value = packet.recv_uint64()
                     company.money = packet.recv_uint64()
@@ -297,7 +297,7 @@ class Client(threading.Thread):
                     company.stations = []
                     for j in range(0,4):
                         company.stations.append(packet.recv_uint16)
-                    company.players = packet.recv_string()
+                    company.players = packet.recv_str()
                     companies.append(company)
         else:
             LOG.error("unexpected reply on PACKET_CLIENT_COMPANY_INFO: %d" % (command))
@@ -352,7 +352,7 @@ class Client(threading.Thread):
         else:
             LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
     
-    def getGameInfo(self, encode_grfs=False):
+    def getGameInfo_old(self, encode_grfs=False):
         self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
         result = self.receiveMsg_UDP()
         if result is None:
@@ -404,7 +404,65 @@ class Client(threading.Thread):
                 LOG.debug("> old gameinfo version detected: %d" % command2)
         else:
             LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
-
+    def getGameInfo(self, encode_grfs=False, short=False):
+        self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
+        result = self.receiveMsg_UDP()
+        if result is None:
+            LOG.debug("unable to receive UDP packet")
+            return None
+        size, command, content = result
+        p = DataPacket(size, command, content)
+        
+        info = DataStorageClass()
+        info.game_info_version = p.recv_uint8()
+        
+        if info.game_info_version >= 4:
+            grfcount = p.recv_uint8()
+            grfs = []
+            
+            for i in range(0, grfcount):
+                [grfid, md5sum] = p.recv_something('4s16s')
+                if encode_grfs:
+                    grfs.append((grfid.encode('hex'), md5sum.encode('hex')))
+                else:
+                    grfs.append((grfid, md5sum))
+            if not short:
+                info.grfs = grfs
+        if info.game_info_version >=3:
+            info.game_date  = p.recv_uint32()
+            if not short:
+                info.start_date = p.recv_uint32()
+            else:
+                p.recv_uint32()
+        if info.game_info_version >=2:
+            info.companies_max  = p.recv_uint8()
+            info.companies_on   = p.recv_uint8()
+            info.spectators_max = p.recv_uint8()
+        if info.game_info_version >=1:
+            info.server_name     = p.recv_str()
+            if not short:
+                info.server_revision = p.recv_str()
+            else:
+                p.recv_str()
+            info.server_lang     = p.recv_uint8()
+            info.use_password    = p.recv_bool()
+            info.clients_max     = p.recv_uint8()
+            info.clients_on      = p.recv_uint8()
+            info.spectators_on   = p.recv_uint8()
+            if info.game_info_version < 3: # 16-bit dates were removed from version 3
+                info.game_date  = p.recv_uint16() + DAYS_TILL_ORIGINAL_BASE_YEAR
+                if not short:
+                    info.start_date = p.recv_uint16() + DAYS_TILL_ORIGINAL_BASE_YEAR
+                else:
+                    p.recv_uint16()
+            if not short:
+                info.map_name       = p.recv_str()
+                info.map_width      = p.recv_uint16()
+                info.map_set        = p.recv_uint8()
+                info.dedicated      = p.recv_bool()
+            else:
+                p.recv_something("zHBB")
+        return info
     def throwRandomData(self):
         rsize = 128
         rand = str(random.getrandbits(rsize))
