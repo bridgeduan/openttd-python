@@ -12,6 +12,7 @@ import math
 import copy
 import traceback
 import StringIO
+import datetime
 from operator import itemgetter
 from struct_zerostrings import *
 from ottd_constants import *
@@ -585,4 +586,11 @@ class Client(threading.Thread):
         #content = content[0]
 
         #LOG.debug(size, command, content)
+    def dateToYMD(self, date):
+        is_leap = lambda y: ((y%400) == 0 or ((y%100) != 0 and (y%4) == 0))
+        after_feb = lambda d: (d.month > 2 or (d.month == 2 and d.day > 28))
+        ymddate = datetime.date.fromordinal(date)
+        ymddate = datetime.date.fromordinal(date-(365, 366)[is_leap(ymddate.year) and after_feb(ymddate)])
+        return (ymddate.year, ymddate.month, ymddate.day)
+
         
