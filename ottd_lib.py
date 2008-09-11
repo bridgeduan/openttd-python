@@ -459,6 +459,7 @@ class Client(threading.Thread):
             if not short:
                 info.map_name       = p.recv_str()
                 info.map_width      = p.recv_uint16()
+                info.map_height     = p.recv_uint16()
                 info.map_set        = p.recv_uint8()
                 info.dedicated      = p.recv_bool()
             else:
