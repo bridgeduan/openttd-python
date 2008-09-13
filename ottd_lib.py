@@ -68,6 +68,10 @@ class DataPacket:
         ret, size = unpackFromExt(type, self.data[self.offset:])
         self.offset += size
         return ret
+    def send_something(self, type, something):
+        buf = packExt(type, *something)
+        self.size += len(buf)
+        self.data += buf
     def recv_str(self):
         return self.recv_something('z')[0]
     def recv_uint8(self):
@@ -80,6 +84,22 @@ class DataPacket:
         return self.recv_something('Q')[0]
     def recv_bool(self):
         return self.recv_something('B')[0] == 1
+    def send_str(self, str):
+        return self.send_something('z', [str])
+    def send_uint8(self, i):
+        return self.send_something('B', [i])
+    def send_uint16(self, i):
+        return self.send_something('H', [i])
+    def send_uint32(self, i):
+        return self.send_something('I', [i])
+    def send_uint64(self, i):
+        return self.send_something('Q', [i])
+    def send_bool(self, b):
+        if b:
+            i = 1
+        else:
+            i = 0
+        return self.send_something('B', [i])
 
 class Client(threading.Thread):
     socket_udp = None
@@ -412,6 +432,8 @@ class Client(threading.Thread):
             LOG.debug("unable to receive UDP packet")
             return None
         size, command, content = result
+        return self.processGameInfoResponse(size, command, content)
+    def processGameInfoResponse(self, size, command, content, encode_grfs=False, short=False):
         p = DataPacket(size, command, content)
         
         info = DataStorageClass()
