@@ -1,7 +1,7 @@
 #!/bin/env python
 # event implementation for openttd-python bot script
 
-from ottd_lib import LOG
+from log import LOG
 import ottd_constants as const
 from ottd_config import config
 import StringIO

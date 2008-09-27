@@ -17,13 +17,9 @@ from operator import itemgetter
 from struct_zerostrings import *
 from ottd_constants import *
 import signal
+from log import LOG
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
-
-logging.config.fileConfig('logging.cfg')
-#logging.basicConfig(level=logging.DEBUG, format='%(name)s: %(message)s', filename='ottd_lib.log', filemode='w')
-#logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger()
 
 #connection modes
 M_TCP=1 

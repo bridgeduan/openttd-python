@@ -4,7 +4,8 @@ import os.path
 import StringIO
 import traceback
 import time
-from ottd_lib import LOG, M_TCP, M_UDP, M_BOTH, Client
+from log import LOG
+from ottd_lib import M_TCP, M_UDP, M_BOTH, Client
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
