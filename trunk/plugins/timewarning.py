@@ -2,7 +2,7 @@
 import pluginclass
 from ottd_config import config, WriteConfig
 import ottd_client_event
-from ottd_lib import LOG
+from log import LOG
 import time
 
 class TimeWarning(pluginclass.Plugin):
