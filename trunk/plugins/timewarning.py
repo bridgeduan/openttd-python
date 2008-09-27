@@ -1,4 +1,4 @@
-# code by RoRTom, convertion to plugin by yorick
+# code by RoRTom, conversion to plugin by yorick
 import pluginclass
 from ottd_config import config, WriteConfig
 import ottd_client_event
@@ -38,11 +38,11 @@ class TimeWarning(pluginclass.Plugin):
         if self.server_start >= 0:
             # get running time
             tl = time.time() - self.server_start
-            if tl >= 86400:
+            if tl >= 60*60*24: # 60 seconds each minute, 60 minutes each hour, 24 hours each day
                 time_running="%0.1f days"%(tl/86400.0)
-            elif tl >= 3600:
+            elif tl >= 60*60:  # 60 seconds each minute, 60 minutes each hour
                 time_running="%0.1f hours"%(tl/3600.0)
-            elif tl >= 60:
+            elif tl >= 60:     # 60 seconds each minute
                 time_running="%0.0f minutes"%(tl/60.0)
             else:
                 time_running="%0.0f seconds"%(tl)
