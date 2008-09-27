@@ -1,4 +1,5 @@
 from ottd_config import config
+from log import LOG
 
 class GrfDB:
     """

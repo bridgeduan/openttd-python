@@ -48,7 +48,7 @@ class DataPacket:
     command=0
     data=0
     offset=0
-    def __init__(self, size, command, data):
+    def __init__(self, size, command, data=""):
         self.size = size
         self.command = command
         self.data = data
@@ -197,74 +197,83 @@ class Client(threading.Thread):
 
     
     def getGRFInfo(self, grfs):
-        payload_size = struct.calcsize("B")
-        payload = struct.pack("B", len(grfs))
+        p = DataPacket(0, PACKET_UDP_CLIENT_GET_NEWGRFS)
+        p.send_uint8(len(grfs))
         for grf in grfs:
-            payload += packExt('4s16s', grf[0], grf[1])
-            payload_size += struct.calcsize('4s16s')
-        self.sendMsg(PACKET_UDP_CLIENT_GET_NEWGRFS, payload_size, payload, type=M_UDP)
-        result = self.receiveMsg_UDP()
-        if result is None:
+            p.send_something('4s16s', grf)
+        self.sendMsg(p.command, p.size, p.data, type=M_UDP)
+        res = self.receiveMsg_UDP()
+        if res is None:
             LOG.debug("unable to receive UDP packet")
             return None
         newgrfs = []
-        size, command, content = result
-        if command == PACKET_UDP_SERVER_NEWGRFS:
-            offset = 0
-            [reply_count], size = unpackFromExt('B', content[offset:])
-            offset += size
+        p = DataPacket(*res)
+        if p.command == PACKET_UDP_SERVER_NEWGRFS:
+            reply_count = p.recv_uint8()
             for i in range(0, reply_count):
-                [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
-                offset += size
-                
-                [grfname], size = unpackFromExt('z', content[offset:])
-                offset += size
-                
+                [grfid, md5sum] = p.recv_something('4s16s')
+                grfname = p.recv_str()
                 newgrfs.append([grfid, md5sum, grfname])
-            LOG.debug("installed grfs:")
+
+            LOG.debug("Got reply to grf request with %d grfs:" % reply_count)
             for grf in newgrfs:
                 LOG.debug(" %s - %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex"), grf[2]))
+            
             return newgrfs
         else:
-            LOG.error("unexpected reply on PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (command))
+            LOG.error("unexpected reply on PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (p.command))
 
     def getCompanyInfo(self):
         self.sendMsg(PACKET_UDP_CLIENT_DETAIL_INFO, type=M_UDP)
         res = self.receiveMsg_UDP()
         if res is None:
             return None
-        size, command, content = res
-        if command == PACKET_UDP_SERVER_DETAIL_INFO:
-            offset = 0
-            [info_version, player_count], size = unpackFromExt('BB', content[offset:])
-            offset += size
-            if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: # 4 = old version (pre rev 13712):
+        p = DataPacket(*res)
+        if p.command == PACKET_UDP_SERVER_DETAIL_INFO:
+            info_version = p.recv_uint8()
+            player_count = p.recv_uint8()
+            
+            if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4:
                 companies = []
                 
                 for i in range(0, player_count):
-                    op = copy.copy(offset)
                     company = DataStorageClass()
-                    [
-                        company.number, 
-                        company.company_name, 
-                        company.inaugurated_year, 
-                        company.company_value, 
-                        company.money, 
-                        company.income, 
-                        company.performance, 
-                        company.password_protected,
-                    ], size = unpackFromExt('=BzIqqqHB', content[offset:], debug=False)
-                    offset += size
                     
-                    company.vehicles, size = unpackFromExt('H'*5, content[offset:], debug=False)
-                    offset += size
+                    company.number = p.recv_uint8()
                     
-                    company.stations, size = unpackFromExt('H'*5, content[offset:], debug=False)
-                    offset += size
+                    company.company_name     = p.recv_str()
+                    company.inaugurated_year = p.recv_uint32()
+                    company.company_value    = p.recv_uint64()
+                    company.money            = p.recv_uint64()
+                    company.income           = p.recv_uint64()
+                    company.performance      = p.recv_uint16()
+                    company.password_protected = p.recv_bool()
+                    company.vehicles = p.recv_something('H'*5)
+                    company.stations = p.recv_something('H'*5)
                     
-                    # version4 has much more information, but we will ignore those ...
+                    if info_version == 4:
+                        # get the client information from version 4
+                        players = []
+                        while p.recv_bool():
+                            player = DataStorageClass()
+                            player.client_name = p.recv_str()
+                            player.unique_id   = p.recv_str()
+                            player.join_date   = p.recv_uint32()
+                            players.append(player)
+                        company.clients = players
                     
                     companies.append(company)
+                
+                if info_version == 4:
+                    # get the list of spectators from version 4
+                    players = []
+                    while p.recv_bool():
+                        player = DataStorageClass()
+                        player.client_name = p.recv_str()
+                        player.unique_id   = p.recv_str()
+                        player.join_date   = p.recv_uint32()
+                        players.append(player)
+                    
                 return companies
             else:
                 LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
@@ -277,8 +286,8 @@ class Client(threading.Thread):
             return None
         size, command, content = res
         if command == PACKET_SERVER_COMPANY_INFO:
-            packet = DataPacket(size, command, content)
-            [info_version, player_count] = packet.recv_something('BB')
+            p = DataPacket(size, command, content)
+            [info_version, player_count] = p.recv_something('BB')
             if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
                 companies = []
                 firsttime = True
@@ -288,133 +297,30 @@ class Client(threading.Thread):
                         if res2 is None:
                             return None
                         size, command, content = res
-                        packet = DataPacket(size, command, content)
-                        [info_version, player_count] = packet.recv_something('BB')
+                        p = DataPacket(size, command, content)
+                        [info_version, player_count] = p.recv_something('BB')
                     firsttime = False
                     
-                    company.index = packet.recv_uint8()
-                    company.name = packet.recv_str()
-                    company.startyear = packet.recv_uint32()
-                    company.value = packet.recv_uint64()
-                    company.money = packet.recv_uint64()
-                    company.income = packet.recv_uint64()
-                    company.performance = packet.recv_uint16()
+                    company = DataStorageClass()
                     
-                    company.passworded = packet.recv_bool()
-                    
-                    company.vehicles = []
-                    for j in range(0,4):
-                        company.vehicles.append(packet.recv_uint16)
-                    company.stations = []
-                    for j in range(0,4):
-                        company.stations.append(packet.recv_uint16)
-                    company.players = packet.recv_str()
+                    company.number           = p.recv_uint8() + 1
+                    company.company_name     = p.recv_str()
+                    company.inaugurated_year = p.recv_uint32()
+                    company.company_value    = p.recv_uint64()
+                    company.money            = p.recv_uint64()
+                    company.income           = p.recv_uint64()
+                    company.performance      = p.recv_uint16()
+                    company.password_protected = p.recv_bool()
+                    company.vehicles         = p.recv_something('H'*5)
+                    company.stations         = p.recv_something('H'*5)
+                    company.players          = p.recv_str()
                     companies.append(company)
+                return companies
+            else:
+                LOG.error("unknown company info version %d, supported: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
         else:
             LOG.error("unexpected reply on PACKET_CLIENT_COMPANY_INFO: %d" % (command))
     
-    def getShortGameInfo(self):
-        # stripped down version of getGameInfo()
-        self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
-        result = self.receiveMsg_UDP()
-        if result is None:
-            LOG.debug("unable to receive UDP packet")
-            return None
-        size, command, content = result
-        if command == PACKET_UDP_SERVER_RESPONSE:
-            offset = 0
-            [command2], size = unpackFromExt('B', content, offset)
-            offset += size
-            
-            if command2 == NETWORK_GAME_INFO_VERSION:
-                [grfcount], size = unpackFromExt('B', content, offset)
-                offset += size
-
-                info = DataStorageClass()
-                info.grfs = []
-                if grfcount != 0:
-                    for i in range(0, grfcount):
-                        [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
-                        offset += size
-                # the grf stuff is still wrong :|
-                [
-                    info.game_date,
-                    start_date,
-                    info.companies_max,
-                    info.companies_on,
-                    info.spectators_max,
-                    server_name,
-                    server_revision,
-                    server_lang,
-                    info.use_password,
-                    info.clients_max,
-                    info.clients_on,
-                    info.spectators_on,
-                    map_name,
-                    map_width,
-                    map_height,
-                    map_set,
-                    dedicated,
-                ], size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
-                #LOG.debug("got Game Info (%d byes long)\n"%(size))
-                return info
-            else:
-                LOG.debug("> old gameinfo version detected: %d" % command2)
-        else:
-            LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
-    
-    def getGameInfo_old(self, encode_grfs=False):
-        self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
-        result = self.receiveMsg_UDP()
-        if result is None:
-            LOG.debug("unable to receive UDP packet")
-            return None
-        size, command, content = result
-        if command == PACKET_UDP_SERVER_RESPONSE:
-            offset = 0
-            [command2], size = unpackFromExt('B', content, offset)
-            offset += size
-            
-            if command2 == NETWORK_GAME_INFO_VERSION:
-                [grfcount], size = unpackFromExt('B', content, offset)
-                offset += size
-
-                info = DataStorageClass()
-                info.grfs = []
-                if grfcount != 0:
-                    for i in range(0, grfcount):
-                        [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
-                        offset += size
-                        if encode_grfs:
-                            info.grfs.append((grfid.encode('hex'), md5sum.encode('hex')))
-                        else:
-                            info.grfs.append((grfid, md5sum))
-                # the grf stuff is still wrong :|
-                [
-                    info.game_date,
-                    info.start_date,
-                    info.companies_max,
-                    info.companies_on,
-                    info.spectators_max,
-                    info.server_name,
-                    info.server_revision,
-                    info.server_lang,
-                    info.use_password,
-                    info.clients_max,
-                    info.clients_on,
-                    info.spectators_on,
-                    info.map_name,
-                    info.map_width,
-                    info.map_height,
-                    info.map_set,
-                    info.dedicated,
-                ], size = unpackExt('IIBBBzzBBBBBzHHBB', content[offset:])
-                #LOG.debug("got Game Info (%d byes long)\n"%(size))
-                return info
-            else:
-                LOG.debug("> old gameinfo version detected: %d" % command2)
-        else:
-            LOG.error("unexpected reply on PACKET_UDP_CLIENT_FIND_SERVER: %d" % (command))
     def getGameInfo(self, encode_grfs=False, short=False):
         self.sendMsg(PACKET_UDP_CLIENT_FIND_SERVER, type=M_UDP)
         result = self.receiveMsg_UDP()

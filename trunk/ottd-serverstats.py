@@ -7,6 +7,7 @@ from ottd_lib import M_UDP, Client
 from ottd_config import config
 from ottd_grfs import GrfDB
 import ottd_constants as const
+from log import LOG
 VERBOSE = config.getboolean("serverstats", "verbose")
 SERVERS = {}
 GRFS = GrfDB()
