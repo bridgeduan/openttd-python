@@ -177,29 +177,23 @@ class Client(threading.Thread):
         payload = struct.pack("B", NETWORK_MASTER_SERVER_VERSION)
         self.sendMsg(PACKET_UDP_CLIENT_GET_LIST, payload_size, payload, type=M_UDP)
         size, command, content = self.receiveMsg_UDP()
-        #print "short:", struct.calcsize("H")
         if command == PACKET_UDP_MASTER_RESPONSE_LIST:
-            offset = 0
-            #print "BUFFER: \n%s" % (content[offset:offset+4].encode("hex"))
-            [protocol_version], size = unpackFromExt('B', content[offset:])
-            offset += size
-
-            #print "BUFFER: \n%s" % (content[offset:offset+struct.calcsize("B")].encode("hex"))
-            [number], size = unpackFromExt('H', content[offset:])
-            offset += size
+            p = DataPacket(size, command, content)
+            protocol_version = p.recv_uint8()
+            
             if protocol_version == 1:
+                number = p.recv_uint16()
                 servers = []
-                LOG.debug("protocol version %d" % protocol_version)
-                LOG.debug("master server knows %d servers:" % number)
+                LOG.debug("got response from master server with %d servers:")
                 for i in range(0, number):
-                    [ip, port], size = unpackFromExt('4sH', content[offset:])
-                    offset += size
-                    servers.append((socket.inet_ntoa(ip), port))
-                    LOG.debug(" %s:%d" % (socket.inet_ntoa(ip), port))
+                    [ip, port] = p.recv_something('4sH')
+                    ip = socket.inet_ntoa(ip)
+                    servers.append((ip, port))
+                    LOG.debug(" %s:%d" % (ip, port))
                 return servers
             else:
-                LOG.debug("unkown protocol version %d" % protocol_version)
-        return None
+                LOG.debug("got unknown protocol version in response from master server %d" % protocol_version)
+                return None
 
     
     def getGRFInfo(self, grfs):
