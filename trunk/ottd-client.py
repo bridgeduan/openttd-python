@@ -425,7 +425,7 @@ class SpectatorClient(Client):
             
         value = [
                 self.getGameInfo(encode_grfs=True, short=not firstSave),
-                self.getCompanyInfo(),
+                self.getCompanyInfo().companies,
                 tstart
                 ]
         

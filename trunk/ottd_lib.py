@@ -273,8 +273,14 @@ class Client(threading.Thread):
                         player.unique_id   = p.recv_str()
                         player.join_date   = p.recv_uint32()
                         players.append(player)
-                    
-                return companies
+                        
+                ret = DataStorageClass()
+                ret.info_version = info_version
+                ret.player_count = player_count
+                ret.companies    = companies
+                if info_version == 4:
+                    ret.spectators = players
+                return ret
             else:
                 LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
         else:
