@@ -34,10 +34,12 @@ def main():
             cis = client.getTCPCompanyInfo()
             using_tcp = True
         except:
-            cis = client.getCompanyInfo()
+            cisi = client.getCompanyInfo(True)
+            cis = cisi.companies
             using_tcp = False
     else:
-        cis=client.getCompanyInfo()
+        cisi=client.getCompanyInfo()
+        cis = cisi.companies
         using_tcp = False
     if not cis is None:
         for ci in cis:
@@ -46,11 +48,21 @@ def main():
                 print "%20s: %s"%(k, getattr(ci, k))
             if using_tcp:
                 print "%20s: %s"%("Clients", ci.players)
-            elif hasattr(ci, "clients"):
+            elif cisi.info_version < 5:
                 print "%20s:"%("Clients")
                 for cli in ci.clients:
-                    print "%30s" % cli.client_name
+                    if cli.join_date > 0:
+                        jd = client.dateToYMD(cli.join_date)
+                    else:
+                        jd = [0,0,0]
+                    print "%30s, joined %d - %d - %d" % (cli.client_name, jd[2], jd[1], jd[0])
                 
+        if not using_tcp and cisi.info_version < 5 and len(cisi.spectators) > 0:
+            print "\n === spectators"
+            print "%20s:" % "Clients"
+            for cli in cisi.spectators:
+                jd = client.dateToYMD(cli.join_date)
+                print "%30s, joined %d - %d - %d" % (cli.client_name, jd[2], jd[1], jd[0])
     
     print ""
     print "getting grf info ..."
