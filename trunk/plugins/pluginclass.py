@@ -33,13 +33,14 @@ class Plugin(object):
         @param callback: The callback
         @rtype:          boolean
         @return:         True if the callback was added
-        @postcondition:  plugin.client must not be none
-        @postcondition:  the type must exist
+        @precondition:  plugin.client must not be none
         """
-        if not self.client is None and type in self.client.callbacks:
-            self.client.callbacks[type].append(callback)
+        if not self.client is None:
             if not type in self.callbacks:
                 self.callbacks[type] = []
+            if not type in self.client.callbacks:
+                self.client.callbacks[type] = []
+            self.client.callbacks[type].append(callback)
             self.callbacks[type].append(callback)
             return True
         else:
@@ -53,8 +54,8 @@ class Plugin(object):
         @param callback: The callback
         @rtype:          Boolean
         @return:         True if it was unregistered
-        @postcondition:  plugin.client must not be none
-        @postcondition:  the callback must be registered
+        @precondition:  plugin.client must not be none
+        @precondition:  the callback must be registered
         """
         if not self.client is None and type in self.client.callbacks:
             if callback in self.client.callbacks[type]:
@@ -79,8 +80,8 @@ class Plugin(object):
         @param callback: The callback
         @rtype:          boolean
         @return:         True if it was added
-        @postcondition:  plugin.client must not be none
-        @postcondition:  the command must not already be registered
+        @precondition:  plugin.client must not be none
+        @precondition:  the command must not already be registered
         """
         if not self.client is None and not command in self.client.commands:
             self.client.commands[command] = callback
@@ -95,8 +96,8 @@ class Plugin(object):
         @param  command: the command name
         @rtype:          boolean
         @return:         True if it was removed
-        @postcondition:  plugin.client must not be none
-        @postcondition:  the command must be registered
+        @precondition:   plugin.client must not be none
+        @precondition:   the command must be registered
         """
         if not self.client is None and command in self.client.commands and command in self.commands:
             del self.client.commands[command]
@@ -121,7 +122,7 @@ class Plugin(object):
         @param callback: The callback
         @rtype:          boolean
         @return:         True if it was registered
-        @postcondition:  the callback must not already be registered
+        @precondition:   the callback must not already be registered
         """
         if not callback in toevent.dispatchTo:
             toevent.dispatchTo.append(callback)
@@ -140,7 +141,7 @@ class Plugin(object):
         @param callback: The callback
         @rtype:          boolean
         @return:         True if it was unregistered
-        @postcondition:  the callback must be registered
+        @precondition:   the callback must be registered
         """
         if callback in toevent.dispatchTo and callback in self.dispatchers[toevent]:
             toevent.dispatchTo.remove(callback)
