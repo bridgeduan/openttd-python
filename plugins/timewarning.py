@@ -16,7 +16,7 @@ class TimeWarning(pluginclass.Plugin):
         self.registerChatCommand("timeleft", self.timeLeft)
         self.registerChatCommand("uptime", self.upTime)
     
-    def timeLeft(self, event, commandstr, recurtion_depth=0):
+    def timeLeft(self, event, commandstr, recursion_depth=0):
         if self.server_start >= 0 and self.server_runtime >= 0:
             # get time left
             tl = self.server_runtime - (time.time() - self.server_start)
@@ -28,9 +28,10 @@ class TimeWarning(pluginclass.Plugin):
                 time_left="%0.0f minutes"%(tl/60.0)
             elif tl > 0:
                time_left="%0.0f seconds"%(tl)
-            elif not recurtion_depth > 10: # don't get infinite loops
+            elif not recursion_depth > 10: # don't get infinite loops
                 self.readTimeFile(forcenew = True)
-                self.timeLeft(event, commandstr, recurtion_depth+1) # recurse
+                self.timeLeft(event, commandstr, recursion_depth+1) # recurse
+                return
             event.respond("time left until server will restart: %s" % time_left)
             
     def upTime(self, event, commandstr):
