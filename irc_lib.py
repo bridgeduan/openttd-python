@@ -1,6 +1,6 @@
 import socket, time, threading, copy
 from ircbot import SingleServerIRCBot, IRCDict
-from irclib import nm_to_n, nm_to_h, irc_lower, ip_numstr_to_quad, ip_quad_to_numstr
+from irclib import nm_to_n, nm_to_h, irc_lower, ip_numstr_to_quad, ip_quad_to_numstr, IRC
 from log import *
 from ottd_config import *
 
@@ -8,6 +8,7 @@ class OTTDIRCBot(SingleServerIRCBot):
     runCond = True
     def __init__(self, channel, nickname, server, parentclient, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        self.ircobj.runCond = True
         self.channel = channel
         self.parentclient = parentclient
 
@@ -73,6 +74,7 @@ class OTTDIRCBot(SingleServerIRCBot):
     def get_version(self):
         return "openttd-python client %s (http://openttd-python.googlecode.com)" % self.parentclient.version
 
+
 class IRCBotThread(threading.Thread):
     def __init__(self, channel, nickname, server, parentclient, port=6667):
         self.channel=channel
@@ -88,10 +90,10 @@ class IRCBotThread(threading.Thread):
     def run(self):
         self.bot = OTTDIRCBot(self.channel, self.nickname, self.server, self.parentclient, self.port)
         self.bot.start()
-        print "IRC Thread exited"
         
     def stop(self, msg="The ottdbot flies away!"):
         self.bot.runCond = False
+        self.bot.ircobj.runCond = False
         self.bot.die(msg)
         
     def getSaid(self):

@@ -576,9 +576,6 @@ class SpectatorClient(Client):
                 self.frame_server=0
                 self.frame_max=0
                 
-                # init IRC bridge
-                self.irc = None
-                
                 #self.processEvent(BotEvent("hey i am a bot :|"))
                 
                 self.doCallback("on_map_done")
@@ -663,6 +660,9 @@ class SpectatorClient(Client):
                                     IngameChat(msg, playerid, type="private", parentclient=self)
                         #LOG.debug(res.__str__())
                     self.doCallback("on_mainloop")
+    def cleanup(self):
+        self.disconnect()
+        self.playerlist = {}
 
 
 def parseArgs():
@@ -738,19 +738,17 @@ def main():
         while not client.connect(M_BOTH):
             time.sleep(20)
         
-        
         # fetch any fatal errors and try to reconnect to the server
         try:
             gameinfo = client.getGameInfo()
             client.revision = gameinfo.server_revision
             client.joinGame()
-            client.disconnect()
-            client.stopIRC()
-            client.playerlist = {}
+            client.cleanup()
         except (KeyboardInterrupt, SystemExit):
             client.runCond = False
             client.reconnectCond = False
         except Exception, e:
+            client.cleanup()
             LOG.error('main loop error: '+str(e))
             errorMsg = StringIO.StringIO()
             traceback.print_exc(file=errorMsg)

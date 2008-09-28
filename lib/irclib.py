@@ -225,7 +225,7 @@ class IRC:
 
             timeout -- Parameter to pass to process_once.
         """
-        while 1:
+        while self.runCond:
             self.process_once(timeout)
 
     def disconnect_all(self, message=""):
