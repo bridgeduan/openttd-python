@@ -665,32 +665,65 @@ class SpectatorClient(Client):
                     self.doCallback("on_mainloop")
 
 
-def printUsage():
-    import sys
-    print "usage: %s <ip:port> <password>" % sys.argv[0]
-    sys.exit(1)
+def parseArgs():
+    import optparse
+    # parse the arguments
+    usage = "usage: %prog [ip[:port]] [options]"
+    description = """This script will connect to an openttd server (http://www.openttd.org)
+                    For more information, see the homepage: http://openttd-python.googlecode.com/."""
+    argparser = optparse.OptionParser(usage=usage, description=description, version='r'+SVNREVISION.strip('$').split(':')[-1].strip())
+    argparser.add_option("-p", "--password", dest="password", help="use password PASSWORD to join the server", type="string")
+    try:
+        (options, args) = argparser.parse_args()
+    except optparse.OptionError, err:
+        print "Error while parsing arguments: ", err
+        argparser.print_help()
+        return
+    except TypeError, err:
+        print "Error while parsing arguments: ", err
+        argparser.print_help()
+    
+    if len(args) == 0:
+        ip = "127.0.0.1"
+        port = 3979
+    elif len(args) == 1:
+        ipport = args[0].split(':')
+        if len(ipport) == 1:
+            ip = ipport[0]
+            port = 3979
+        elif len(ipport) == 2:
+            ip = ipport[0]
+            port = int(ipport[1])
+    else:
+        argparser.error("unknown argument count")
+        
+    if options.password:
+        password = options.password
+    else:
+        password = ''
+        
+    return (ip, port, password, options)
 
 def main():
     import sys
-    # catch errors when we don't supply enough parameters  
-    password = ''
-    if len(sys.argv) == 0:
-        printUsage()
-    
+    ip, port, password, options = parseArgs()
+        
+    # Import Psyco if available
     try:
-        ip, port = sys.argv[1].split(':')
-        port = int(port)
-        if len(sys.argv) > 2:
-            password = sys.argv[2]
-    except Exception, e:
-        #LOG.error(e)
-        printUsage()
+        import psyco
+        psyco.full()
+        print "using psyco..."
+    except ImportError:
+        pass
 
     client = SpectatorClient(ip, port, True)
+    client.password = password
+    client.reconnectCond = True
+    client.cmdlineoptions = options
+
     plugins.load_plugins()
     plugins.initialize_plugins(client)
     
-    client.reconnectCond = True
     
     # endless loop
     while client.reconnectCond:
@@ -705,7 +738,6 @@ def main():
         try:
             gameinfo = client.getGameInfo()
             client.revision = gameinfo.server_revision
-            client.password = password
             client.joinGame()
             client.disconnect()
             client.stopIRC()
@@ -722,11 +754,4 @@ def main():
     sys.exit(0)
 
 if __name__ == '__main__':
-    # Import Psyco if available
-    try:
-        import psyco
-        psyco.full()
-        print "using psyco..."
-    except ImportError:
-        pass
     main()
