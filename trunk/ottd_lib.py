@@ -26,8 +26,9 @@ M_TCP=1
 M_UDP=2
 M_BOTH=3
 
-class DataStorageClass:
-    __dict__ = {}
+class DataStorageClass(object):
+    def __init__(self, dict={}):
+        self.__dict__ = dict
     def __getitem__(self, key):
         return self.__dict__[key]
     def __getattr__(self, key):
@@ -240,7 +241,6 @@ class Client(threading.Thread):
                     company = DataStorageClass()
                     
                     company.number = p.recv_uint8()
-                    
                     company.company_name     = p.recv_str()
                     company.inaugurated_year = p.recv_uint32()
                     company.company_value    = p.recv_uint64()
@@ -302,13 +302,14 @@ class Client(threading.Thread):
                         res2 = self.receiveMsg_TCP()
                         if res2 is None:
                             return None
-                        size, command, content = res
-                        p = DataPacket(size, command, content)
+                        p = DataPacket(*res2)
+                        if p.command != PACKET_SERVER_COMPANY_INFO:
+                            LOG.error("unexpectged reply on PACKET_CLIENT_COMPANY_INFO: %d" % p.command)
+                            return None
                         [info_version, player_count] = p.recv_something('BB')
                     firsttime = False
                     
                     company = DataStorageClass()
-                    
                     company.number           = p.recv_uint8() + 1
                     company.company_name     = p.recv_str()
                     company.inaugurated_year = p.recv_uint32()
