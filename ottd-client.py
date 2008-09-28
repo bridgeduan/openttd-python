@@ -672,7 +672,11 @@ def parseArgs():
     description = """This script will connect to an openttd server (http://www.openttd.org)
                     For more information, see the homepage: http://openttd-python.googlecode.com/."""
     argparser = optparse.OptionParser(usage=usage, description=description, version='r'+SVNREVISION.strip('$').split(':')[-1].strip())
+    argparser.set_defaults(use_psyco=0)
     argparser.add_option("-p", "--password", dest="password", help="use password PASSWORD to join the server", type="string")
+    argparser.add_option("--enable-psyco", dest="use_psyco", action="store_const", const=1, help="Force using psyco")
+    argparser.add_option("--disable-psyco", dest="use_psyco", action="store_const", const=-1, help="Don't use psyco")
+    
     try:
         (options, args) = argparser.parse_args()
     except optparse.OptionError, err:
@@ -702,19 +706,22 @@ def parseArgs():
     else:
         password = ''
         
-    return (ip, port, password, options)
+    return (ip, port, password, options.use_psyco, options)
 
 def main():
     import sys
-    ip, port, password, options = parseArgs()
+    ip, port, password, use_psyco, options = parseArgs()
         
-    # Import Psyco if available
-    try:
-        import psyco
-        psyco.full()
-        print "using psyco..."
-    except ImportError:
-        pass
+    if use_psyco > -1:
+        # Import Psyco if available
+        try:
+            import psyco
+            psyco.full()
+            print "using psyco..."
+        except ImportError:
+            if use_psyco > 0:
+                print "Error: could not import psyco"
+                sys.exit(1)
 
     client = SpectatorClient(ip, port, True)
     client.password = password
@@ -731,8 +738,6 @@ def main():
         while not client.connect(M_BOTH):
             time.sleep(20)
         
-        # sleep a second
-        time.sleep(1)
         
         # fetch any fatal errors and try to reconnect to the server
         try:
@@ -750,6 +755,9 @@ def main():
             errorMsg = StringIO.StringIO()
             traceback.print_exc(file=errorMsg)
             LOG.debug(errorMsg.getvalue())
+            
+        # sleep a second
+        time.sleep(1)
 
     sys.exit(0)
 
