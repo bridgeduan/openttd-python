@@ -185,7 +185,7 @@ class Client(threading.Thread):
             if protocol_version == 1:
                 number = p.recv_uint16()
                 servers = []
-                LOG.debug("got response from master server with %d servers:")
+                LOG.debug("got response from master server with %d servers:" % number)
                 for i in range(0, number):
                     [ip, port] = p.recv_something('4sH')
                     ip = socket.inet_ntoa(ip)
