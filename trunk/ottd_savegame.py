@@ -3,6 +3,7 @@
 # made by yorickvanpelt {AT} gmail {DOT} com
 from struct_zerostrings import unpackFromExt, packExt
 from ottd_constants import saveload_chunk_types
+import array
 
 class LoadException(Exception):
     """
@@ -109,7 +110,11 @@ class CDataPacket:
             i = (i << 8) | self.read_byte()
         return i
     def read_array(self, format, number):
-        return self.read_something('>' + format*number)
+        a = array.array(format)
+        end_offs = self.offset + number
+        a.fromstring(self.data[self.offset:end_offs])
+        self.offset = end_offset
+        return a.tolist()
 
 class OTTDSaveGameParser:
     """
@@ -239,7 +244,7 @@ class OTTDSaveGameParser:
             except ImportError:
                 raise LoadException("can't save ZLIB saves, no ZLIB")
             else:
-                return zlib.compress(data)
+                return zlib.compress(data)                
         formats = (
             ("LZO"         , "OTTD", uncompressLZO , compressLZO ),
             ("uncompressed", "OTTN", uncompressNone, compressNone),
@@ -432,7 +437,7 @@ class OTTDSaveGameParser:
         size = self.mapsize['total']
         i = 0
         while i < size:
-            type_height.extend(dp.read_bytes(4096))
+            type_height.extend(dp.read_array('B', 4096))
             i += 4096
         self.map_array = {}
         self.map_array['t'] = type_height
@@ -450,7 +455,7 @@ class OTTDSaveGameParser:
         if self.saveload_version > 5:
             i = 0
             while i < size:
-                data = dp.read_bytes(4096*2)
+                data = dp.read_array('B', 4096*2)
                 j = 0
                 while j < 4096:
                     y = j*2
@@ -460,7 +465,7 @@ class OTTDSaveGameParser:
         else:
             i = 0
             while i < size:
-                m2.extend(dp.read_bytes(4096))
+                m2.extend(dp.read_array('B', 4096))
                 i += 4096
         self.map_array[2] = m2
     def readMAP3(self, dp, chunksize):
@@ -468,7 +473,7 @@ class OTTDSaveGameParser:
         size = self.mapsize['total']
         i = 0
         while i < size:
-            m3.extend(dp.read_bytes(4096))
+            m3.extend(dp.read_array('B', 4096))
             i += 4096
         self.map_array[3] = m3
                 
@@ -477,7 +482,7 @@ class OTTDSaveGameParser:
         size = self.mapsize['total']
         i = 0
         while i < size:
-            m4.extend(dp.read_bytes(4096))
+            m4.extend(dp.read_array('B', 4096))
             i += 4096
         self.map_array[4] = m4
                 
@@ -486,7 +491,7 @@ class OTTDSaveGameParser:
         size = self.mapsize['total']
         i = 0
         while i < size:
-            m5.extend(dp.read_bytes(4096))
+            m5.extend(dp.read_array('B', 4096))
             i += 4096
         self.map_array[5] = m5
     def readMAP6(self, dp, chunksize):
@@ -508,7 +513,7 @@ class OTTDSaveGameParser:
         else:
             i = 0
             while i < size:
-                m6.extend(dp.read_bytes(4096))
+                m6.extend(dp.read_array('B', 4096))
                 i += 4096
         self.map_array[6] = m6
     def readMAP7(self, dp, chunksize):
@@ -516,7 +521,7 @@ class OTTDSaveGameParser:
         size = self.mapsize['total']
         i = 0
         while i < size:
-            m7.extend(dp.read_bytes(4096))
+            m7.extend(dp.read_array('B', 4096))
             i += 4096
         self.map_array[7] = m7
     def readVIEW(self, dp, chunksize):
@@ -630,7 +635,7 @@ class OTTDSaveGameParser:
 def parseArgs():
     import optparse
     # parse the arguments
-    usage = "usage: %prog [ip[:port]] [options]"
+    usage = "usage: %prog [options]"
     description = """This script will will parse an openttd savegame (http://www.openttd.org)
                     For more information, see the homepage: http://openttd-python.googlecode.com/."""
     argparser = optparse.OptionParser(usage=usage, description=description)
