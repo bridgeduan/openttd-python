@@ -25,7 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 M_NONE = 0
 M_TCP  = 1 
 M_UDP  = 2
-M_BOTH = 3
+M_BOTH = M_TCP | M_UDP
 
 class DataStorageClass(object):
     def __init__(self, dict={}):
@@ -129,14 +129,14 @@ class Client(threading.Thread):
                 self.socket_udp.settimeout(5)
             
             try:
-                self.ip = socket.gethostbyaddr(self.ip)[2][0]
+                self.ip = socket.gethostbyname(self.ip)
             except Exception, e:
                 LOG.error('gethost error on ip %s: %s'%(str(self.ip), str(e)))
                 if not str(e) in self.errors:
                     self.errors.append(str(e))
                 return False
                 
-            LOG.info("connecting to %s:%d" % (self.ip, self.port))
+            LOG.debug("connecting to %s:%d" % (self.ip, self.port))
             
             if mode & M_TCP:
                 self.socket_tcp.connect((self.ip, self.port))
@@ -182,9 +182,8 @@ class Client(threading.Thread):
     def getServerList(self):
         payload = struct.pack("B", NETWORK_MASTER_SERVER_VERSION)
         self.sendMsg_UDP(PACKET_UDP_CLIENT_GET_LIST, payload)
-        size, command, content = self.receiveMsg_UDP()
-        if command == PACKET_UDP_MASTER_RESPONSE_LIST:
-            p = DataPacket(size, command, content)
+        p = self.receiveMsg_UDP(datapacket=True)
+        if p.command == PACKET_UDP_MASTER_RESPONSE_LIST:
             protocol_version = p.recv_uint8()
             
             if protocol_version == 1:
@@ -208,12 +207,11 @@ class Client(threading.Thread):
         for grf in grfs:
             p.send_something('4s16s', grf)
         self.sendMsg_UDP(p.command, p.data)
-        res = self.receiveMsg_UDP()
-        if res is None:
+        p = self.receiveMsg_UDP(True)
+        if p is None:
             LOG.debug("unable to receive UDP packet")
             return None
         newgrfs = []
-        p = DataPacket(*res)
         if p.command == PACKET_UDP_SERVER_NEWGRFS:
             reply_count = p.recv_uint8()
             for i in range(0, reply_count):
@@ -231,10 +229,9 @@ class Client(threading.Thread):
 
     def getCompanyInfo(self):
         self.sendMsg_UDP(PACKET_UDP_CLIENT_DETAIL_INFO)
-        res = self.receiveMsg_UDP()
-        if res is None:
+        p = self.receiveMsg_UDP(True)
+        if p is None:
             return None
-        p = DataPacket(*res)
         if p.command == PACKET_UDP_SERVER_DETAIL_INFO:
             info_version = p.recv_uint8()
             player_count = p.recv_uint8()
@@ -292,22 +289,19 @@ class Client(threading.Thread):
             LOG.error("unexpected reply on PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
     def getTCPCompanyInfo(self):
         self.sendMsg_TCP(PACKET_CLIENT_COMPANY_INFO)
-        res = self.receiveMsg_TCP()
+        p = self.receiveMsg_TCP(True)
         if res is None:
             return None
-        size, command, content = res
-        if command == PACKET_SERVER_COMPANY_INFO:
-            p = DataPacket(size, command, content)
+        if p.command == PACKET_SERVER_COMPANY_INFO:
             [info_version, player_count] = p.recv_something('BB')
             if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
                 companies = []
                 firsttime = True
                 for i in range(0, player_count):
                     if not firsttime:
-                        res2 = self.receiveMsg_TCP()
-                        if res2 is None:
+                        p = self.receiveMsg_TCP(True)
+                        if p is None:
                             return None
-                        p = DataPacket(*res2)
                         if p.command != PACKET_SERVER_COMPANY_INFO:
                             LOG.error("unexpectged reply on PACKET_CLIENT_COMPANY_INFO: %d" % p.command)
                             return None
@@ -409,21 +403,21 @@ class Client(threading.Thread):
         
     def sendRaw(self, data, type=M_NONE):
         if type == M_TCP:
-            socket = self.socket_tcp
+            s = self.socket_tcp
             socketname = "TCP" # for errors
         elif type == M_UDP:
-            socket = self.socket_udp
+            s = self.socket_udp
             socketname = "UDP" # for errors
         else:
             LOG.error("cannot send: unknown type")
             return False
-        if socket is None:
+        if s is None:
             # not connected
             LOG.error("cannot send: " + socketname + " not connected!")
             return False
         try:
             # send the data
-            socket.send(data)
+            s.send(data)
         except socket.error, e:
             LOG.error("send error: %d (%s)" % (e[0], e[1]))
         return True
@@ -457,7 +451,14 @@ class Client(threading.Thread):
         return self.sendMsg(M_TCP, *args, **kwargs)
     def sendMsg_UDP(self, *args, **kwargs):
         return self.sendMsg(M_UDP, *args, **kwargs)
-    def receiveMsg_UDP(self):
+    def receive_bytes(self, socket, bytes):
+        data = ""
+        readcounter = 0
+        while len(data) < bytes and self.running:
+            data += socket.recv(bytes - len(data))
+            readcounter += 1
+        return data, readcounter
+    def receiveMsg_UDP(self, datapacket = False):
         try:
             if self.socket_udp is None:
                 return None
@@ -466,8 +467,10 @@ class Client(threading.Thread):
             [size, command], osize = unpackFromExt(self.header_format, data, 0)
             LOG.debug("received size: %d/%d, command: %d"% (size, osize, command))
             content = data[self.header_size:]
-            
-            return size, command, content
+            if datapacket:
+                return DataPacket(size, command, content)
+            else:
+                return size, command, content
         except Exception, e:
             LOG.error('receiveMsg_UDP error: '+str(e))
             errorMsg = StringIO.StringIO()
@@ -476,33 +479,23 @@ class Client(threading.Thread):
             if not str(e) in self.errors:
                 self.errors.append(str(e))
 
-    def receiveMsg_TCP(self):
+    def receiveMsg_TCP(self, datapacket = False):
         if self.socket_tcp is None:
             return None
         note = ""
-        #print "headersize: ", headersize
-        data = ""
-        readcounter = 0
         #LOG.debug( "receiving...")
-        while len(data) < self.header_size:
-            data += self.socket_tcp.recv(self.header_size-len(data))
-            readcounter += 1
+        data, readcounter = self.receive_bytes(self.socket_tcp, self.header_size)
         if readcounter > 1:
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
         
         (size, command) = struct.unpack(self.header_format, data)
         if not command in [PACKET_SERVER_FRAME, PACKET_SERVER_SYNC]:
-            if command in packet_names.keys():
+            if command in packet_names:
                 LOG.debug("received size: %d, command: %s (%d)"% (size, packet_names[command], command))
             else:
                 LOG.debug("received size: %d, command: %d"% (size, command))
         size -= self.header_size # remove size of the header ...
-        data = ""
-        readcounter = 0
-        while len(data) < size and self.running:
-            readcounter+=1
-            data += self.socket_tcp.recv(size-len(data))
-            #print "waiting on ", size - len(data)
+        data, readcounter = self.receive_bytes(self.socket_tcp, size)
         if readcounter > 1:
             note += "DATA SEGMENTED INTO %s SEGMENTS!" % readcounter
         
@@ -510,13 +503,19 @@ class Client(threading.Thread):
             return None
         if len(note) > 0:
             LOG.info(note)
+        content = data
         
-        return size, command, data
+        if datapacket:
+            return DataPacket(size, command, content)
+        else:
+            return size, command, content
         #content = struct.unpack(str(size) + 's', data)
         #content = content[0]
 
         #LOG.debug(size, command, content)
     def dateToYMD(self, date):
+        if date == 0:
+            return (0, 0, 0)
         ymddate = datetime.date.fromordinal(date - 365)
         return (ymddate.year, ymddate.month, ymddate.day)
 
