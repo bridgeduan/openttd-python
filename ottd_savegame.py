@@ -113,7 +113,7 @@ class CDataPacket:
         a = array.array(format)
         end_offs = self.offset + number
         a.fromstring(self.data[self.offset:end_offs])
-        self.offset = end_offset
+        self.offset = end_offs
         return a.tolist()
 
 class OTTDSaveGameParser:
@@ -455,13 +455,8 @@ class OTTDSaveGameParser:
         if self.saveload_version > 5:
             i = 0
             while i < size:
-                data = dp.read_array('B', 4096*2)
-                j = 0
-                while j < 4096:
-                    y = j*2
-                    m2.append(data[y] << 8 | data[y+1])
-                    j += 1
-                    i += 1
+                m2.extend(dp.read_array('H', 4096))
+                i += 4096
         else:
             i = 0
             while i < size:
