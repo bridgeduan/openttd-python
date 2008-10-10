@@ -2,7 +2,10 @@ import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.pa
 import ottd_config
 from ottd_lib import DataStorageClass
 from log import LOG
-import simplejson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import pickle
 
 ext2conttype = {"jpg": "image/jpeg",
@@ -21,12 +24,12 @@ def content_type(filename):
     else:
         return "text/html"
 
-class DataStorageJSONEncoder(simplejson.JSONEncoder):
+class DataStorageJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, DataStorageClass):
             return obj.getDict()
         else:
-            return simplejson.JSONEncoder.default(self, obj)
+            return json.JSONEncoder.default(self, obj)
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
@@ -100,12 +103,12 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type:', 'application/json')
             self.end_headers()
-            jsonoutput = simplejson.dumps(obj, sort_keys=True, indent=4, cls=DataStorageJSONEncoder)
+            jsonoutput = json.dumps(obj, sort_keys=True, indent=4, cls=DataStorageJSONEncoder)
             self.wfile.write(jsonoutput)
         elif self.path == "/data/clients":
             cls = self.server._callbackclass
             
-            response = simplejson.dumps(cls.playerlist, indent=4, sort_keys=True)
+            response = json.dumps(cls.playerlist, indent=4, sort_keys=True)
             self.send_response(200)
             self.send_header('Content-type:', 'application/json')
             self.end_headers()
