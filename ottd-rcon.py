@@ -65,8 +65,7 @@ def main():
     client = Client(ip, port)
     client.connect(M_TCP)
     payload = packExt('zz', password, rcon)
-    payload_size = len(payload)
-    client.sendMsg(const.PACKET_CLIENT_RCON, payload_size, payload, type=M_TCP)
+    client.sendMsg_TCP(const.PACKET_CLIENT_RCON, payload)
     client.socket_tcp.settimeout(1)
     runCond = True
     gotResponse = False

@@ -17,7 +17,7 @@ class RconPlugin(pluginclass.Plugin):
         self.lastevent = event
         msg = commandstr[len(argv[0])+len(argv[1]) + 1:]
         payload = struct_zerostrings.packExt('zz', argv[1], msg)
-        self.client.sendTCPmsg(const.PACKET_CLIENT_RCON, payload)
+        self.client.sendMsg_TCP(const.PACKET_CLIENT_RCON, payload)
     def onPacket(self, command, content):
         if command == const.PACKET_SERVER_RCON and not self.lastevent is None:
             [color, message], size = struct_zerostrings.unpackExt('Hz', content)
