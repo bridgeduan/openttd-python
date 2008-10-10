@@ -50,11 +50,10 @@ class SpectatorClient(Client):
     
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
         payload = packExt('bbHz', chattype, desttype, dest, msg)
-        payload_size = len(payload)
-        self.sendMsg(const.PACKET_CLIENT_CHAT, payload_size, payload, type=M_TCP)
+        self.sendMsg_TCP(const.PACKET_CLIENT_CHAT, payload)
         
     def sendTCPmsg(self, msg, payload):
-        self.sendMsg(msg, len(payload), payload, type=M_TCP)
+        self.sendMsg_TCP(msg, payload)
         
     def sendCommand(self, command):
         """
@@ -73,8 +72,7 @@ class SpectatorClient(Client):
         cbid = 0
         player = self.playas
         payload = packExt('bIIIIzB', player, command, p1, p2, tile, text, cbid)
-        payload_size = len(payload)
-        self.sendMsg(const.PACKET_CLIENT_COMMAND, payload_size, payload, type=M_TCP)
+        self.sendMsg_TCP(const.PACKET_CLIENT_COMMAND, payload)
         
     def getCompanyString(self, id, withplayers=True):
         if withplayers:
@@ -238,9 +236,8 @@ class SpectatorClient(Client):
                 self.stopWebserver()
             elif command == 'reconnect':
                 payload = packExt('z', "%s (reconnecting)" % config.get("openttd", "quitmessage"))
-                payload_size = len(payload)
                 Broadcast("Reconnecting to server", parentclient=self, parent=event)
-                self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+                self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
             elif command.startswith("load_plugin ") and len(command) > 12:
                 arg = command[12:]
                 plugins.load_plugin(arg)
@@ -298,9 +295,8 @@ class SpectatorClient(Client):
     
     def quit(self):
         payload = packExt('z', config.get("openttd", "quitmessage"))
-        payload_size = len(payload)
         self.reconnectCond = False
-        self.sendMsg(const.PACKET_CLIENT_QUIT, payload_size, payload, type=M_TCP)
+        self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
     
     def stopWebserver(self):
         if self.webserver:
@@ -466,9 +462,8 @@ class SpectatorClient(Client):
         language = const.NETLANG_ANY
         network_id =  config.get("openttd", "uniqueid")
         payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
-        payload_size = len(payload)
         #print "buffer size: %d" % payload_size
-        self.sendMsg(const.PACKET_CLIENT_JOIN, payload_size, payload, type=M_TCP)
+        self.sendMsg_TCP(const.PACKET_CLIENT_JOIN, payload)
         self.runCond=True
         while self.runCond:
             size, command, content = self.receiveMsg_TCP()
@@ -494,7 +489,7 @@ class SpectatorClient(Client):
                     for grf in grfs:
                         LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].__str__().encode("hex")))
                 LOG.debug("step2 - got installed GRFs, joining ...")
-                self.sendMsg(const.PACKET_CLIENT_NEWGRFS_CHECKED, type=M_TCP)
+                self.sendMsg_TCP(const.PACKET_CLIENT_NEWGRFS_CHECKED)
                 
             elif command == const.PACKET_SERVER_NEED_PASSWORD:
                 [type,seed,uniqueid], size = unpackExt('BIz', content)
@@ -502,8 +497,7 @@ class SpectatorClient(Client):
                     if self.password != '':
                         LOG.info("server is password protected, sending password ...")
                         payload = packExt('Bz', const.NETWORK_GAME_PASSWORD, self.password)
-                        payload_size = len(payload)
-                        self.sendMsg(const.PACKET_CLIENT_PASSWORD, payload_size, payload, type=M_TCP)
+                        self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
                     else:
                         LOG.info("server is password protected, but no pass provided, exiting!")
                         self.runCond=False
@@ -529,7 +523,7 @@ class SpectatorClient(Client):
                 self.socket_tcp.settimeout(600000000)
                 
                 downloadDone = False
-                self.sendMsg(const.PACKET_CLIENT_GETMAP, type=M_TCP)
+                self.sendMsg_TCP(const.PACKET_CLIENT_GETMAP)
                 mapsize_done = 0
                 maptmp = None
                 if config.getboolean("openttd", "savemap"):
@@ -568,7 +562,7 @@ class SpectatorClient(Client):
                                 maptmp.close()
                             downloadDone=True
                 
-                self.sendMsg(const.PACKET_CLIENT_MAP_OK, type=M_TCP)
+                self.sendMsg_TCP(const.PACKET_CLIENT_MAP_OK)
                 
                 # main loop, disable the timeout
                 #self.socket_tcp.settimeout(600000000)
@@ -609,9 +603,8 @@ class SpectatorClient(Client):
                         
                     if frameCounter >= 74:
                         payload = packExt('I', self.frame_server)
-                        payload_size = len(payload)
                         #print "sending ACK"
-                        self.sendMsg(const.PACKET_CLIENT_ACK, payload_size, payload, type=M_TCP)
+                        self.sendMsg_TCP(const.PACKET_CLIENT_ACK, payload)
                         frameCounter=0
                     
                     if doStats and time.time() - companyrefresh_last > companyrefresh_interval:
