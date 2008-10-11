@@ -334,7 +334,7 @@ class Client(threading.Thread):
             LOG.debug("unable to receive UDP packet")
             return None
         size, command, content = result
-        return self.processGameInfoResponse(size, command, content)
+        return self.processGameInfoResponse(size, command, content, encode_grfs, short)
     def processGameInfoResponse(self, size, command, content, encode_grfs=False, short=False):
         p = DataPacket(size, command, content)
         
