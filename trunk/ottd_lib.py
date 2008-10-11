@@ -443,9 +443,12 @@ class Client(threading.Thread):
         
         self.sendMsg_TCP(PACKET_CLIENT_JOIN, payload)
 
-        
+    def createPacketHeader(self, command, payload):
+        return struct.pack(self.header_format, self.header_size + len(payload), command)
+    def parsePacketHeader(self, header):
+        return struct.unpack(self.header_format, header[:self.header_size])
     def sendMsg(self, type, command, payload = ""):
-        header = struct.pack(self.header_format, self.header_size + len(payload), command)
+        header = self.createPacketHeader(command, payload)
         return self.sendRaw(header + payload, type)
     def sendMsg_TCP(self, *args, **kwargs):
         return self.sendMsg(M_TCP, *args, **kwargs)
@@ -464,8 +467,8 @@ class Client(threading.Thread):
                 return None
             data = self.socket_udp.recv(4096)
             #print data
-            [size, command], osize = unpackFromExt(self.header_format, data, 0)
-            LOG.debug("received size: %d/%d, command: %d"% (size, osize, command))
+            size, command = self.parsePacketHeader(data)
+            LOG.debug("received size: %d, command: %d"% (size, command))
             content = data[self.header_size:]
             if datapacket:
                 return DataPacket(size, command, content)
@@ -488,8 +491,8 @@ class Client(threading.Thread):
         if readcounter > 1:
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
         
-        (size, command) = struct.unpack(self.header_format, data)
-        if not command in [PACKET_SERVER_FRAME, PACKET_SERVER_SYNC]:
+        size, command = self.parsePacketHeader(data)
+        if not command in (PACKET_SERVER_FRAME, PACKET_SERVER_SYNC):
             if command in packet_names:
                 LOG.debug("received size: %d, command: %s (%d)"% (size, packet_names[command], command))
             else:

@@ -501,6 +501,7 @@ class SpectatorClient(Client):
                     else:
                         LOG.info("server is password protected, but no pass provided, exiting!")
                         self.runCond=False
+                        self.reconnectCond = False
                 elif type == const.NETWORK_COMPANY_PASSWORD:
                     #if self.password != '':
                     #salted_password=""*32
