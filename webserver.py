@@ -1,4 +1,5 @@
 import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.path, urllib
+import SimpleHTTPServer
 import ottd_config
 from ottd_lib import DataStorageClass
 from log import LOG
@@ -6,23 +7,18 @@ try:
     import json
 except ImportError:
     import simplejson as json
-import pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
-ext2conttype = {"jpg": "image/jpeg",
-                "jpeg": "image/jpeg",
-                "png": "image/png",
-                "gif": "image/gif",
-                "html": "text/html",
-                "htm": "text/html",
-                "swf": "application/x-shockwave-flash",
-                "xml": "text/xml",
-                }
 def content_type(filename):
-    ext = filename[filename.rfind(".")+1:].lower()
-    if ext in ext2conttype.keys():
-        return ext2conttype[ext]
+    ext = filename[filename.rfind("."):].lower()
+    map = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map
+    if ext in map:
+        return map[ext]
     else:
-        return "text/html"
+        return map['']
 
 class DataStorageJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -43,18 +39,26 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return fc
         else:
             return None
-            
-    def sendError(self, num=404):
-        txt = """\
-            <html>
-               <head><title>404 file not found</title></head>
-               <body>404 file not found</body>
-            </html>\n""" 
-        self.send_response(num)
-        self.send_header("Content-type", "text/html")
-        self.send_header("Content-Length", str (len (txt)))
-        self.end_headers()
-        self.wfile.write(txt)
+    def compress(self, data):
+        try:
+            enc = self.headers.getheader("Accept-Encoding").split(',')
+            fmt = []
+            for e in enc: fmt.append(e.strip())
+        except:
+            fmt = []
+        def encoder(data):
+            return data
+        format = None
+        try:
+            if "deflate" in fmt:
+                import zlib
+                encoder = zlib.compress
+                format = "deflate"
+        except:
+            pass
+        print fmt, format
+        return format, encoder(data)
+        
 
     def do_GET(self):
         #print self.path
@@ -84,13 +88,16 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     'server_port': cls.port,
                     }
             else:
-                self.sendError()
+                self.send_error(404)
                 return
 
-            self.send_response(200)
+            encoding, data = self.compress(output)
+            self.send_response(200, "OK")
             self.send_header('Content-type', 'text/html')
+            if not encoding is None:
+                self.send_header('Content-Encoding', encoding)
             self.end_headers()
-            self.wfile.write(output)
+            self.wfile.write(data)
         elif self.path == "/data/companies":
             try:
                 f = open(ottd_config.config.get("stats", "cachefilename"), 'rb')
@@ -100,19 +107,28 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 obj = pickle.load(f)
                 f.close()
             cls = self.server._callbackclass
-            self.send_response(200)
-            self.send_header('Content-type:', 'application/json')
-            self.end_headers()
             jsonoutput = json.dumps(obj, sort_keys=True, indent=4, cls=DataStorageJSONEncoder)
-            self.wfile.write(jsonoutput)
+            encoding, data = self.compress(jsonoutput)
+            
+            self.send_response(200, "OK")
+            self.send_header('Content-type', 'application/json')
+            if not encoding is None:
+                self.send_header('Content-Encoding', encoding)
+            self.send_header ("Content-Length", len(data))
+            self.end_headers()
+            self.wfile.write(data)
         elif self.path == "/data/clients":
             cls = self.server._callbackclass
             
             response = json.dumps(cls.playerlist, indent=4, sort_keys=True)
-            self.send_response(200)
-            self.send_header('Content-type:', 'application/json')
+            encoding, data = self.compress(response)
+            self.send_response(200, "OK")
+            self.send_header('Content-type', 'application/json')
+            if not encoding is None:
+                self.send_header('Content-Encoding', encoding)
+            self.send_header ("Content-Length", len(data))
             self.end_headers()
-            self.wfile.write(response)
+            self.wfile.write(data)
         else:
             path = urllib.unquote(self.path)
             if path.find("?") >= 0:
@@ -124,61 +140,50 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 if os.path.isfile(newindex):
                     fn = newindex
                 else:
-                    self.sendError()
+                    self.send_error(500, "couldn't find template")
                     return
 
             if os.path.exists(fn):
+                f = open(fn, "rb")
+                content = f.read()
+                f.close()
+                encoding, data = self.compress(content)
                 self.send_response (200)
                 self.send_header ("Content-type", content_type(fn))
-                self.send_header ("Content-Length", os.path.getsize(fn))
+                if not encoding is None:
+                    self.send_header("Content-Encoding", encoding)
+                self.send_header ("Content-Length", len(data))
                 self.end_headers()
-                f = open(fn, "rb")
-                self.wfile.write(f.read())
-                f.close()
+                self.wfile.write(data)
             else:
-                self.sendError()
+                self.send_error(404)
                 return
             
 
 
-class myHTTPServer(BaseHTTPServer.HTTPServer):
-    def __init__(self, addr, handlerClass, cls):
-        """
-        constructor
-        @type  cls: SpectatorClient
-        @param cls: class to get the data from
-        """
-        BaseHTTPServer.HTTPServer.__init__(self, addr, handlerClass)
-        self._callbackclass = cls
-
-    
-class myWebServer(threading.Thread):
+class myWebServer(threading.Thread, SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """
-    webserver that display the currently connected clients
+    multithreaded webserver class for openttd-python
     """
     def __init__(self, cls, port):
         """
         constructor
         @type  cls: SpectatorClient
         @param cls: class to get the data from
-        @type  port: number
-        @param port: the port on which to start the webserver
+        @type port: int
+        @param port: port to run with
         """
-        self.cls = cls
         self.port = port
+        self._callbackclass = cls
+        BaseHTTPServer.HTTPServer.__init__(self, ('', self.port), MyHandler)
         threading.Thread.__init__(self)
-    
     def run(self):
         """
         thread entry point for the webserver
         """
-        LOG.debug('started httpserver...')
-        self.server = myHTTPServer(('', self.port), MyHandler, self.cls)
-        self.server.serve_forever()
-
+        self.serve_forever()
     def stop(self):
         """
         this stops the webserver
         """
-        self.server.server_close()
-
+        self.server_close()
