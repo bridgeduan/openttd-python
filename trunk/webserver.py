@@ -1,7 +1,7 @@
 import string,cgi,time,traceback, threading, SocketServer, BaseHTTPServer, os.path, urllib
 import SimpleHTTPServer
 import ottd_config
-from ottd_lib import DataStorageClass
+from openttd.datastorageclass import DataStorageClass
 from log import LOG
 try:
     import json

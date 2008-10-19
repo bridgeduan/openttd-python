@@ -2,7 +2,7 @@
 # event implementation for openttd-python bot script
 
 from log import LOG
-import ottd_constants as const
+import openttd.constants as const
 from ottd_config import config
 import StringIO
 import traceback

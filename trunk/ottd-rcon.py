@@ -1,10 +1,9 @@
 #!/bin/env python
 # made by yorickvanpelt {AT} gmail {DOT} com
 # ottd_lib by thomas {AT} thomasfischer {DOT} biz
-from ottd_lib import *
+from openttd.client import *
+import openttd.constants as const
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
-
-import ottd_constants as const
 
 if platform.system() == 'Windows':
     # See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winprog/winprog/windows_api_reference.asp

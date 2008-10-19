@@ -58,7 +58,8 @@ import re
 import types
 
 
-error = "sstruct.error"
+class error(Exception):
+    name = "sstruct.error"
 
 def pack(format, object):
 	formatstring, names, fixes = getformat(format)

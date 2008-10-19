@@ -1,17 +1,20 @@
 #!/bin/env python
+import sys
 import os
 import os.path
 import StringIO
 import traceback
 import time
 from log import LOG
-from ottd_lib import M_TCP, M_UDP, M_BOTH, Client
+from openttd.client import M_TCP, M_UDP, M_BOTH, Client
 from ottd_config import config, LoadConfig 
 from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
 
 import plugins
-import ottd_constants as const
+import openttd.constants as const
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 SVNREVISION = "$Rev$"
 
@@ -545,7 +548,7 @@ class SpectatorClient(Client):
                         offset += size2
                         
                         if command2 == const.MAP_PACKET_START:
-                            LOG.info("starting downloading map!")
+                            LOG.info("start downloading map!")
                             [framecounter], size2 = unpackFromExt('I', content[offset:])
                             offset += size2
                             

@@ -1,7 +1,9 @@
 #!/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
-from ottd_lib import *
-from ottd_grfs import GrfDB
+from openttd.client import Client, M_UDP
+from openttd.grfdb import GrfDB
+import openttd.date
+import sys
 
 def printUsage():
     print "usage: %s <ip:port>" % sys.argv[0]
@@ -24,6 +26,8 @@ def main():
     if not gi is None:
         for k in ["companies_max","companies_on", "spectators_max", "server_name", "server_revision", "server_lang", "use_password", "clients_max", "clients_on", "spectators_on", "map_name", "map_width", "map_height", "map_set", "dedicated"]:
             print "%20s: %s" % (k, getattr(gi, k))
+        print "%20s: %s" % ("game_date", str(openttd.date.OpenTTDDate(ottddate=gi.game_date).toDate()))
+        print "%20s: %s" % ("start_date", str(openttd.date.OpenTTDDate(ottddate=gi.start_date).toDate()))
     else:
         return
     if gi.companies_on > 0:
@@ -36,7 +40,7 @@ def main():
                 cis = client.getTCPCompanyInfo()
                 using_tcp = True
             except:
-                cisi = client.getCompanyInfo(True)
+                cisi = client.getCompanyInfo()
                 cis = cisi.companies
                 using_tcp = False
         else:
@@ -54,7 +58,7 @@ def main():
                     print "%20s:"%("Clients")
                     for cli in ci.clients:
                         if cli.join_date > 0:
-                            jd = client.dateToYMD(cli.join_date)
+                            jd = openttd.date.OpenTTDDate(ottddate=cli.join_date).toYMD()
                         else:
                             jd = [0,0,0]
                         print "%30s, joined %d - %d - %d" % (cli.client_name, jd[2], jd[1], jd[0])
