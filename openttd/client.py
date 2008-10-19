@@ -17,6 +17,7 @@ import signal
 from log import LOG
 import constants as const
 from datastorageclass import DataStorageClass
+import _error
 
 #connection modes
 M_NONE = 0
@@ -94,53 +95,41 @@ class Client(threading.Thread):
         self.running    = True # sighandler will change this value
         self.lock       = threading.Lock()
         threading.Thread.__init__(self)
+    def createsocket(self, mode=M_BOTH):
+        if mode & M_TCP:
+            self.socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket_tcp.settimeout(5)
+        if mode & M_UDP:
+            self.socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket_udp.settimeout(5)
         
     def connect(self, mode=M_BOTH):
+        self.createsocket(mode)
+        
         try:
-            LOG.debug('creating sockets')
+            self.ip = socket.gethostbyname(self.ip)
+        except Exception, e:
+            raise _error.ConnectionError("problem resolving host %s: %s" % (str(self.ip), str(e)))
             
-            if mode & M_TCP:
-                self.socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.socket_tcp.settimeout(5)
-            if mode & M_UDP:
-                self.socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)        
-                self.socket_udp.settimeout(5)
-            
-            try:
-                self.ip = socket.gethostbyname(self.ip)
-            except Exception, e:
-                LOG.error('gethost error on ip %s: %s'%(str(self.ip), str(e)))
-                if not str(e) in self.errors:
-                    self.errors.append(str(e))
-                return False
-                
-            LOG.debug("connecting to %s:%d" % (self.ip, self.port))
-            
-            if mode & M_TCP:
-                self.socket_tcp.connect((self.ip, self.port))
-            if mode & M_UDP:
-                self.socket_udp.connect((self.ip, self.port))
-            
-            self.connectionmode |= mode
-            self.running = True
-            #self.getGameInfo()
-            
-            #self.throwRandomData()
-            #self.packetTest()
-            #self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
-            #self.sendRaw(self.packetTest())
-            #data=self.receiveMsg_UDP()
-            
-            LOG.debug( "connect finished" )
-            return True
-        except socket.error, e:
-            LOG.error('connect error: %d (%s)' % (e[0], e[1]))
-            errorMsg = StringIO.StringIO()
-            traceback.print_exc(file=errorMsg)
-            LOG.error(errorMsg.getvalue())
-            if not str(e) in self.errors:
-                self.errors.append(str(e))
-            return False
+        LOG.debug("connecting to %s:%d" % (self.ip, self.port))
+        
+        if mode & M_TCP:
+            self.socket_tcp.connect((self.ip, self.port))
+        if mode & M_UDP:
+            self.socket_udp.connect((self.ip, self.port))
+        
+        self.connectionmode |= mode
+        self.running = True
+        #self.getGameInfo()
+        
+        #self.throwRandomData()
+        #self.packetTest()
+        #self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
+        #self.sendRaw(self.packetTest())
+        #data=self.receiveMsg_UDP()
+        
+        LOG.debug( "connect finished" )
+        return True
     def disconnect(self, mode=M_BOTH):
         if not self.socket_tcp is None and mode & M_TCP:
             LOG.debug('closing TCP socket')
@@ -175,8 +164,7 @@ class Client(threading.Thread):
                     LOG.debug(" %s:%d" % (ip, port))
                 return servers
             else:
-                LOG.debug("got unknown protocol version in response from master server %d" % protocol_version)
-                return None
+                raise _error.WrongVersion("master server list request", protocol_version, const.NETWORK_MASTER_SERVER_VERSION)
 
     
     def getGRFInfo(self, grfs):
@@ -203,7 +191,7 @@ class Client(threading.Thread):
             
             return newgrfs
         else:
-            LOG.error("unexpected reply on const.PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (p.command))
+            raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_GET_NEWGRFS", str(p.command))
 
     def getCompanyInfo(self):
         self.sendMsg_UDP(const.PACKET_UDP_CLIENT_DETAIL_INFO)
@@ -262,9 +250,9 @@ class Client(threading.Thread):
                     ret.spectators = players
                 return ret
             else:
-                LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, const.NETWORK_COMPANY_INFO_VERSION))
+                raise _error.WrongVersion("PACKET_UDP_CLIENT_DETAIL_INFO", info_version, const.NETWORK_COMPANY_INFO_VERSION)
         else:
-            LOG.error("unexpected reply on const.PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
+            raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_DETAIL_INFO", str(command))
     def getTCPCompanyInfo(self):
         self.sendMsg_TCP(const.PACKET_CLIENT_COMPANY_INFO)
         p = self.receiveMsg_TCP(True)
@@ -281,8 +269,7 @@ class Client(threading.Thread):
                         if p is None:
                             return None
                         if p.command != const.PACKET_SERVER_COMPANY_INFO:
-                            LOG.error("unexpectged reply on const.PACKET_CLIENT_COMPANY_INFO: %d" % p.command)
-                            return None
+                            raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(p.command))
                         [info_version, player_count] = p.recv_something('BB')
                     firsttime = False
                     
@@ -301,9 +288,9 @@ class Client(threading.Thread):
                     companies.append(company)
                 return companies
             else:
-                LOG.error("unknown company info version %d, supported: %d" % (info_version, const.NETWORK_COMPANY_INFO_VERSION))
+                raise _error.WrongVersion("PACKET_CLIENT_COMPANY_INFO", info_version, const.NETWORK_COMPANY_INFO_VERSION)
         else:
-            LOG.error("unexpected reply on const.PACKET_CLIENT_COMPANY_INFO: %d" % (command))
+            raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(command))
     
     def getGameInfo(self, encode_grfs=False, short=False):
         self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
@@ -379,25 +366,25 @@ class Client(threading.Thread):
         
         
         
-    def sendRaw(self, data, type=M_NONE):
+    def sendRaw(self, data, type, addr=None):
         if type == M_TCP:
             s = self.socket_tcp
             socketname = "TCP" # for errors
+            useaddr = False
         elif type == M_UDP:
             s = self.socket_udp
             socketname = "UDP" # for errors
+            useaddr = True
         else:
-            LOG.error("cannot send: unknown type")
-            return False
+            return
         if s is None:
             # not connected
-            LOG.error("cannot send: " + socketname + " not connected!")
-            return False
-        try:
+            raise _error.ConnectionError("cannot send: " + socketname + " not connected!")
+        if not addr is None and useaddr:
+            s.sendto(data, address=addr)
+        else:
             # send the data
             s.send(data)
-        except socket.error, e:
-            LOG.error("send error: %d (%s)" % (e[0], e[1]))
         return True
             
 
@@ -439,32 +426,32 @@ class Client(threading.Thread):
             data += socket.recv(bytes - len(data))
             readcounter += 1
         return data, readcounter
-    def receiveMsg_UDP(self, datapacket = False):
-        try:
-            if self.socket_udp is None:
-                return None
+    def receiveMsg_UDP(self, datapacket = False, useaddr = False):
+        if self.socket_udp is None:
+            raise _error.ConnectionError("no udp socket for receiving")
+        if useaddr:
+            data, addr = self.socket_udp.recvfrom(4096)
+        else:
             data = self.socket_udp.recv(4096)
-            #print data
-            size, command = self.parsePacketHeader(data)
-            LOG.debug("received size: %d, command: %d"% (size, command))
-            content = data[self.header_size:]
-            if datapacket:
-                return DataPacket(size, command, content)
+            addr = None
+        #print data
+        size, command = self.parsePacketHeader(data)
+        LOG.debug("received size: %d, command: %d"% (size, command))
+        content = data[self.header_size:]
+        if datapacket:
+            ret = DataPacket(size, command, content)
+            ret.addr = addr
+        else:
+            if useaddr:
+                ret = addr, size, command, content
             else:
-                return size, command, content
-        except Exception, e:
-            LOG.error('receiveMsg_UDP error: '+str(e))
-            errorMsg = StringIO.StringIO()
-            traceback.print_exc(file=errorMsg)
-            LOG.error(errorMsg.getvalue())
-            if not str(e) in self.errors:
-                self.errors.append(str(e))
+                ret = size, command, content
+        return ret
 
     def receiveMsg_TCP(self, datapacket = False):
         if self.socket_tcp is None:
-            return None
+            raise _error.ConnectionError("no tcp socket for receiving")
         note = ""
-        #LOG.debug( "receiving...")
         data, readcounter = self.receive_bytes(self.socket_tcp, self.header_size)
         if readcounter > 1:
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
@@ -493,6 +480,5 @@ class Client(threading.Thread):
         #content = struct.unpack(str(size) + 's', data)
         #content = content[0]
 
-        #LOG.debug(size, command, content)
 
         

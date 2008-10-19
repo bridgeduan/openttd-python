@@ -7,6 +7,7 @@ from openttd.client import M_UDP, Client
 from ottd_config import config
 from openttd.grfdb import GrfDB
 import openttd.constants as const
+import socket
 from log import LOG
 VERBOSE = config.getboolean("serverstats", "verbose")
 SERVERS = {}
@@ -35,27 +36,30 @@ class Grf:
 class ClientGameInfo(Client):
     # this class implements the thread start method
     def run(self):
-        self.connect(M_UDP)
-        if len(self.errors) == 0:
-            self.socket_udp.settimeout(10)
-            info = self.getGameInfo()
-            SERVERS[self.ip + ":%d" % self.port] = info
-            if not info is None:
-                info.ip = self.ip
-                info.port = self.port
-                info.newgrfs = []
-                unknowngrfs = None
-                if len(info.grfs) != 0:
-                    unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
-                    if len(unknowngrfs) != 0:
-                        unknowngrfs = self.getGRFInfo(unknowngrfs)
-                    for grf in info.grfs:
-                        if not GRFS.hasgrf(grf[1]) and not unknowngrfs is None:
-                            GRFS.addgrfinlist(unknowngrfs, grf[0])
-                        info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
-        else:
-            SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
-        self.disconnect()
+        try:
+            self.connect(M_UDP)
+            if len(self.errors) == 0:
+                self.socket_udp.settimeout(10)
+                info = self.getGameInfo()
+                SERVERS[self.ip + ":%d" % self.port] = info
+                if not info is None:
+                    info.ip = self.ip
+                    info.port = self.port
+                    info.newgrfs = []
+                    unknowngrfs = None
+                    if len(info.grfs) != 0:
+                        unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
+                        if len(unknowngrfs) != 0:
+                            unknowngrfs = self.getGRFInfo(unknowngrfs)
+                        for grf in info.grfs:
+                            if not GRFS.hasgrf(grf[1]) and not unknowngrfs is None:
+                                GRFS.addgrfinlist(unknowngrfs, grf[0])
+                            info.newgrfs.append((grf[0], grf[1], GRFS.getgrfname(grf)))
+            else:
+                SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
+            self.disconnect()
+        except socket.timeout:
+            pass
 
 def savestatstofile(filename="serverstats.bin", servers=[]):
     if not config.getboolean("serverstats", "savehistory"):
