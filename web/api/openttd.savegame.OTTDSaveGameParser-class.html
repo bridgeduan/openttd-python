@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>openttd.savegame.OTTDSaveGameParser</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="openttd-module.html">Package&nbsp;openttd</a> ::
+        <a href="openttd.savegame-module.html">Module&nbsp;savegame</a> ::
+        Class&nbsp;OTTDSaveGameParser
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="openttd.savegame.OTTDSaveGameParser-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class OTTDSaveGameParser</h1><p class="nomargin-top"><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser">source&nbsp;code</a></span></p>
+<p>openttd-python class to parse openttd savegames</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">file</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Constructor for OTTDSaveGameParser class</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readfile"></a><span class="summary-sig-name">readfile</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Read the contents of the file open, close the file and destry its 
+      reference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readfile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#writefile" class="summary-sig-name">writefile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">file</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Write contents of the self.rdp to a file, and close the file 
+      afterwards</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.writefile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readsaveheader"></a><span class="summary-sig-name">readsaveheader</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Read the savegame format, version and data and destroy self.rdp</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readsaveheader">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#writesaveheader" class="summary-sig-name">writesaveheader</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">save_format</span>,
+        <span class="summary-sig-arg">major_version</span>,
+        <span class="summary-sig-arg">minor_version</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Create a savegame header with format, version and data into self.rdp</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.writesaveheader">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">tuple</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#getSaveGameFormat" class="summary-sig-name">getSaveGameFormat</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">formatname</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Get a savegame format defenition</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.getSaveGameFormat">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="uncompress"></a><span class="summary-sig-name">uncompress</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Looks up the savegameformat and uses its decompressor to decompress 
+      the data to to self.dp</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.uncompress">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#compress" class="summary-sig-name">compress</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">format</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">uncompressed</code><code class="variable-quote">'</code></span>)</span><br />
+      Looks up the savegameformat specified with the arguments and uses its
+      compressor to compress the data to to self.data</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.compress">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">boolean</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#isSaveVersionBelow" class="summary-sig-name">isSaveVersionBelow</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">major</span>,
+        <span class="summary-sig-arg">minor</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Checks if the savegame version is below a certain one</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.isSaveVersionBelow">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">boolean</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#isSaveVersionEqualOrAbove" class="summary-sig-name">isSaveVersionEqualOrAbove</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">major</span>,
+        <span class="summary-sig-arg">minor</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Checks if the savegame version is equal or above a certain one</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.isSaveVersionEqualOrAbove">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">function</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#findChunkHandler" class="summary-sig-name">findChunkHandler</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">chunkname</span>,
+        <span class="summary-sig-arg">overwritehandlers</span>=<span class="summary-sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span><br />
+      Finds chunk handler in overwritehandlers and self.chunkHandlers, if 
+      False is specified instead of a function, a function that returns 
+      None is returned</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.findChunkHandler">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="registerChunkHandlers"></a><span class="summary-sig-name">registerChunkHandlers</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Will add all default chunkhandlers to the chunkhandlers array</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.registerChunkHandlers">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="loadChunks"></a><span class="summary-sig-name">loadChunks</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load all chunks from the save and store them in self.chunks</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.loadChunks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="handleChunks"></a><span class="summary-sig-name">handleChunks</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">chunkhandlers</span>=<span class="summary-sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span><br />
+      Calls handleChunk for every entry in self.chunks</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.handleChunks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="openttd.savegame.OTTDSaveGameParser-class.html#handleChunk" class="summary-sig-name">handleChunk</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">chunk</span>,
+        <span class="summary-sig-arg">chunkoverrides</span>=<span class="summary-sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span><br />
+      Call the chunkhandler for a specific chunk</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.handleChunk">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAPS"></a><span class="summary-sig-name">readMAPS</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAPS">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAPT"></a><span class="summary-sig-name">readMAPT</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAPT">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP1"></a><span class="summary-sig-name">readMAP1</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP1">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP2"></a><span class="summary-sig-name">readMAP2</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP2">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP3"></a><span class="summary-sig-name">readMAP3</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP3">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP4"></a><span class="summary-sig-name">readMAP4</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP4">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP5"></a><span class="summary-sig-name">readMAP5</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP5">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP6"></a><span class="summary-sig-name">readMAP6</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP6">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readMAP7"></a><span class="summary-sig-name">readMAP7</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readMAP7">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readVIEW"></a><span class="summary-sig-name">readVIEW</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readVIEW">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readDATE"></a><span class="summary-sig-name">readDATE</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readDATE">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readGLOG"></a><span class="summary-sig-name">readGLOG</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readGLOG">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readCHTS"></a><span class="summary-sig-name">readCHTS</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dp</span>,
+        <span class="summary-sig-arg">chunksize</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.readCHTS">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">dict</span>
+    </td><td class="summary">
+        <a name="chunkhandlers"></a><span class="summary-name">chunkhandlers</span><br />
+      chunkhandlers looked for by findChunkHandler
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">array</span>
+    </td><td class="summary">
+        <a name="chunks"></a><span class="summary-name">chunks</span><br />
+      all chunks loaded from file
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">raw data string</span>
+    </td><td class="summary">
+        <a name="data"></a><span class="summary-name">data</span><br />
+      compressed save data without header
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">CDataPacket instance</span>
+    </td><td class="summary">
+        <a name="dp"></a><span class="summary-name">dp</span><br />
+      containing uncompressed savegame data
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">file</span>
+    </td><td class="summary">
+        <a name="file"></a><span class="summary-name">file</span><br />
+      file used for reading/writing
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">dict</span>
+    </td><td class="summary">
+        <a name="mapsize"></a><span class="summary-name">mapsize</span><br />
+      mapsize, ['known'] will be set to True when MAPS is handled, else, 
+      default of 256x256 is used
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">CDataPacket instance</span>
+    </td><td class="summary">
+        <a name="rdp"></a><span class="summary-name">rdp</span><br />
+      containing compressed savegame, just raw from/to the file
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">string</span>
+    </td><td class="summary">
+        <a name="save_format"></a><span class="summary-name">save_format</span><br />
+      savegame format used currently (OTTD, OTTZ, OTTN)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">integer</span>
+    </td><td class="summary">
+        <a name="saveload_minor_version"></a><span class="summary-name">saveload_minor_version</span><br />
+      minor savegame version
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">integer</span>
+    </td><td class="summary">
+        <a name="saveload_version"></a><span class="summary-name">saveload_version</span><br />
+      major savegame version
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">integer</span>
+    </td><td class="summary">
+        <a name="verbosity"></a><span class="summary-name">verbosity</span><br />
+      verbosity (&gt;1 will print chunk names when handling, &gt;2 will 
+      print chunk names when loading too)
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">filename</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">file</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Constructor for OTTDSaveGameParser class</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> (string) - filename to open if no file is specified</li>
+        <li><strong class="pname"><code>file</code></strong> (file) - file to use, if not given, try to open file from filename</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="writefile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">writefile</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">filename</span>,
+        <span class="sig-arg">file</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.writefile">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write contents of the self.rdp to a file, and close the file 
+  afterwards</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> (string) - filename to open if no file is specified</li>
+        <li><strong class="pname"><code>file</code></strong> (file) - file to use, if not given, try to open file from filename</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="writesaveheader"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">writesaveheader</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">save_format</span>,
+        <span class="sig-arg">major_version</span>,
+        <span class="sig-arg">minor_version</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.writesaveheader">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a savegame header with format, version and data into 
+  self.rdp</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>save_format</code></strong> (string) - save format to use (OTTZ, OTTN, OTTD)</li>
+        <li><strong class="pname"><code>major_version</code></strong> (int) - major version to use</li>
+        <li><strong class="pname"><code>minor_version</code></strong> (int) - minor version to use ( 0 if not given)</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getSaveGameFormat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getSaveGameFormat</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">formatname</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.getSaveGameFormat">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get a savegame format defenition</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>formatname</code></strong> (string) - format to look for(uncompressed, LZO, ZLIB), if not given, this 
+          method returns the savegame format of the savegame currently 
+          loaded</li>
+    </ul></dd>
+    <dt>Returns: tuple</dt>
+        <dd>tuple containing human readable description, the way it is stored
+          in the savegame, function to uncompress, function to compress</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="compress"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compress</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">format</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">uncompressed</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.compress">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Looks up the savegameformat specified with the arguments and uses its 
+  compressor to compress the data to to self.data</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>format</code></strong> (string) - human readable format description to look for</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="isSaveVersionBelow"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isSaveVersionBelow</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">major</span>,
+        <span class="sig-arg">minor</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.isSaveVersionBelow">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks if the savegame version is below a certain one</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>major</code></strong> (integer) - major savegame version to check for</li>
+        <li><strong class="pname"><code>minor</code></strong> (integer) - minor savegame version, if not given, not checked at all</li>
+    </ul></dd>
+    <dt>Returns: boolean</dt>
+        <dd>True if the savegame version is below</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="isSaveVersionEqualOrAbove"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isSaveVersionEqualOrAbove</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">major</span>,
+        <span class="sig-arg">minor</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.isSaveVersionEqualOrAbove">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks if the savegame version is equal or above a certain one</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>major</code></strong> (integer) - major savegame version to check for</li>
+        <li><strong class="pname"><code>minor</code></strong> (integer) - minor savegame version, if not given, not checked at all</li>
+    </ul></dd>
+    <dt>Returns: boolean</dt>
+        <dd>True if the savegame version is above or equal</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findChunkHandler"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findChunkHandler</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">chunkname</span>,
+        <span class="sig-arg">overwritehandlers</span>=<span class="sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.findChunkHandler">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds chunk handler in overwritehandlers and self.chunkHandlers, if 
+  False is specified instead of a function, a function that returns None is
+  returned</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>chunkname</code></strong> (string) - chunkid to look for</li>
+        <li><strong class="pname"><code>overwritehandlers</code></strong> (dict) - checked before self.chunkHandlers</li>
+    </ul></dd>
+    <dt>Returns: function</dt>
+        <dd>chunk handler or a function that will return None</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="handleChunk"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">handleChunk</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">chunk</span>,
+        <span class="sig-arg">chunkoverrides</span>=<span class="sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="openttd.savegame-pysrc.html#OTTDSaveGameParser.handleChunk">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Call the chunkhandler for a specific chunk</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (string) - name of the chunk</li>
+        <li><strong class="pname"><code>chunk</code></strong> (raw data string) - data to put in a CDataPacket instance and pass to the handler</li>
+        <li><strong class="pname"><code>chunkoverrides</code></strong> (dict) - chunkoverrides to pass to findChunkHandler</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Oct 19 16:13:33 2008
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
