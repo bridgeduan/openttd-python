@@ -1,7 +1,6 @@
 #!/bin/env python
 # made by thomas in 5 hours - no guarantees ;)
 import sys, struct
-import logging, logging.config
 import threading
 import socket
 import random
@@ -12,38 +11,18 @@ import math
 import copy
 import traceback
 import StringIO
-import datetime
 from operator import itemgetter
 from struct_zerostrings import *
-from ottd_constants import *
 import signal
 from log import LOG
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+import constants as const
+from datastorageclass import DataStorageClass
 
 #connection modes
 M_NONE = 0
-M_TCP  = 1 
-M_UDP  = 2
+M_TCP  = 1 << 0
+M_UDP  = 1 << 1
 M_BOTH = M_TCP | M_UDP
-
-class DataStorageClass(object):
-    def __init__(self, dict={}):
-        self.__dict__ = dict
-    def __getitem__(self, key):
-        return self.__dict__[key]
-    def __getattr__(self, key):
-        if key in self.__dict__:
-            return self.__dict__[key]
-        else:
-            raise AttributeError
-    def __setattr__(self, key, value):
-        if not key == "__dict__":
-            self.__dict__[key] = value
-    def __delattr__(self, key):
-        del self.__dict__[key]
-    def getDict(self):
-        return self.__dict__
 
 class DataPacket:
     size=0
@@ -112,7 +91,6 @@ class Client(threading.Thread):
         self.debuglevel = debugLevel
         self.uid        = uid
         
-        LOG.debug('__init__')
         self.running    = True # sighandler will change this value
         self.lock       = threading.Lock()
         threading.Thread.__init__(self)
@@ -149,7 +127,7 @@ class Client(threading.Thread):
             
             #self.throwRandomData()
             #self.packetTest()
-            #self.sendMsg_UDP(PACKET_UDP_CLIENT_FIND_SERVER)
+            #self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
             #self.sendRaw(self.packetTest())
             #data=self.receiveMsg_UDP()
             
@@ -180,10 +158,10 @@ class Client(threading.Thread):
         pass
 
     def getServerList(self):
-        payload = struct.pack("B", NETWORK_MASTER_SERVER_VERSION)
-        self.sendMsg_UDP(PACKET_UDP_CLIENT_GET_LIST, payload)
+        payload = struct.pack("B", const.NETWORK_MASTER_SERVER_VERSION)
+        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_GET_LIST, payload)
         p = self.receiveMsg_UDP(datapacket=True)
-        if p.command == PACKET_UDP_MASTER_RESPONSE_LIST:
+        if p.command == const.PACKET_UDP_MASTER_RESPONSE_LIST:
             protocol_version = p.recv_uint8()
             
             if protocol_version == 1:
@@ -202,7 +180,7 @@ class Client(threading.Thread):
 
     
     def getGRFInfo(self, grfs):
-        p = DataPacket(0, PACKET_UDP_CLIENT_GET_NEWGRFS)
+        p = DataPacket(0, const.PACKET_UDP_CLIENT_GET_NEWGRFS)
         p.send_uint8(len(grfs))
         for grf in grfs:
             p.send_something('4s16s', grf)
@@ -212,7 +190,7 @@ class Client(threading.Thread):
             LOG.debug("unable to receive UDP packet")
             return None
         newgrfs = []
-        if p.command == PACKET_UDP_SERVER_NEWGRFS:
+        if p.command == const.PACKET_UDP_SERVER_NEWGRFS:
             reply_count = p.recv_uint8()
             for i in range(0, reply_count):
                 [grfid, md5sum] = p.recv_something('4s16s')
@@ -225,18 +203,18 @@ class Client(threading.Thread):
             
             return newgrfs
         else:
-            LOG.error("unexpected reply on PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (p.command))
+            LOG.error("unexpected reply on const.PACKET_UDP_CLIENT_GET_NEWGRFS: %d" % (p.command))
 
     def getCompanyInfo(self):
-        self.sendMsg_UDP(PACKET_UDP_CLIENT_DETAIL_INFO)
+        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_DETAIL_INFO)
         p = self.receiveMsg_UDP(True)
         if p is None:
             return None
-        if p.command == PACKET_UDP_SERVER_DETAIL_INFO:
+        if p.command == const.PACKET_UDP_SERVER_DETAIL_INFO:
             info_version = p.recv_uint8()
             player_count = p.recv_uint8()
             
-            if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4:
+            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4:
                 companies = []
                 
                 for i in range(0, player_count):
@@ -284,17 +262,17 @@ class Client(threading.Thread):
                     ret.spectators = players
                 return ret
             else:
-                LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
+                LOG.error("unsupported NETWORK_COMPANY_INFO_VERSION: %d. supported version: %d" % (info_version, const.NETWORK_COMPANY_INFO_VERSION))
         else:
-            LOG.error("unexpected reply on PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
+            LOG.error("unexpected reply on const.PACKET_UDP_CLIENT_DETAIL_INFO: %d" % (command))
     def getTCPCompanyInfo(self):
-        self.sendMsg_TCP(PACKET_CLIENT_COMPANY_INFO)
+        self.sendMsg_TCP(const.PACKET_CLIENT_COMPANY_INFO)
         p = self.receiveMsg_TCP(True)
         if res is None:
             return None
-        if p.command == PACKET_SERVER_COMPANY_INFO:
+        if p.command == const.PACKET_SERVER_COMPANY_INFO:
             [info_version, player_count] = p.recv_something('BB')
-            if info_version == NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
+            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
                 companies = []
                 firsttime = True
                 for i in range(0, player_count):
@@ -302,8 +280,8 @@ class Client(threading.Thread):
                         p = self.receiveMsg_TCP(True)
                         if p is None:
                             return None
-                        if p.command != PACKET_SERVER_COMPANY_INFO:
-                            LOG.error("unexpectged reply on PACKET_CLIENT_COMPANY_INFO: %d" % p.command)
+                        if p.command != const.PACKET_SERVER_COMPANY_INFO:
+                            LOG.error("unexpectged reply on const.PACKET_CLIENT_COMPANY_INFO: %d" % p.command)
                             return None
                         [info_version, player_count] = p.recv_something('BB')
                     firsttime = False
@@ -323,12 +301,12 @@ class Client(threading.Thread):
                     companies.append(company)
                 return companies
             else:
-                LOG.error("unknown company info version %d, supported: %d" % (info_version, NETWORK_COMPANY_INFO_VERSION))
+                LOG.error("unknown company info version %d, supported: %d" % (info_version, const.NETWORK_COMPANY_INFO_VERSION))
         else:
-            LOG.error("unexpected reply on PACKET_CLIENT_COMPANY_INFO: %d" % (command))
+            LOG.error("unexpected reply on const.PACKET_CLIENT_COMPANY_INFO: %d" % (command))
     
     def getGameInfo(self, encode_grfs=False, short=False):
-        self.sendMsg_UDP(PACKET_UDP_CLIENT_FIND_SERVER)
+        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
         result = self.receiveMsg_UDP()
         if result is None:
             LOG.debug("unable to receive UDP packet")
@@ -441,7 +419,7 @@ class Client(threading.Thread):
         format_payload = '15s80sbb33s'
         payload = struct.pack(format_payload, serverversion, playername, playas, netlang, uniqueid)
         
-        self.sendMsg_TCP(PACKET_CLIENT_JOIN, payload)
+        self.sendMsg_TCP(const.PACKET_CLIENT_JOIN, payload)
 
     def createPacketHeader(self, command, payload):
         return struct.pack(self.header_format, self.header_size + len(payload), command)
@@ -478,7 +456,7 @@ class Client(threading.Thread):
             LOG.error('receiveMsg_UDP error: '+str(e))
             errorMsg = StringIO.StringIO()
             traceback.print_exc(file=errorMsg)
-            logging.error(errorMsg.getvalue())
+            LOG.error(errorMsg.getvalue())
             if not str(e) in self.errors:
                 self.errors.append(str(e))
 
@@ -492,9 +470,9 @@ class Client(threading.Thread):
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
         
         size, command = self.parsePacketHeader(data)
-        if not command in (PACKET_SERVER_FRAME, PACKET_SERVER_SYNC):
-            if command in packet_names:
-                LOG.debug("received size: %d, command: %s (%d)"% (size, packet_names[command], command))
+        if not command in (const.PACKET_SERVER_FRAME, const.PACKET_SERVER_SYNC):
+            if command in const.packet_names:
+                LOG.debug("received size: %d, command: %s (%d)"% (size, const.packet_names[command], command))
             else:
                 LOG.debug("received size: %d, command: %d"% (size, command))
         size -= self.header_size # remove size of the header ...
@@ -516,10 +494,5 @@ class Client(threading.Thread):
         #content = content[0]
 
         #LOG.debug(size, command, content)
-    def dateToYMD(self, date):
-        if date == 0:
-            return (0, 0, 0)
-        ymddate = datetime.date.fromordinal(date - 365)
-        return (ymddate.year, ymddate.month, ymddate.day)
 
         
