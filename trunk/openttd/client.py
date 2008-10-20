@@ -167,13 +167,13 @@ class Client(threading.Thread):
                 raise _error.WrongVersion("master server list request", protocol_version, const.NETWORK_MASTER_SERVER_VERSION)
 
     
-    def getGRFInfo(self, grfs):
+    def getGRFInfo(self, grfs, addr=None):
         p = DataPacket(0, const.PACKET_UDP_CLIENT_GET_NEWGRFS)
         p.send_uint8(len(grfs))
         for grf in grfs:
             p.send_something('4s16s', grf)
-        self.sendMsg_UDP(p.command, p.data)
-        p = self.receiveMsg_UDP(True)
+        self.sendMsg_UDP(p.command, p.data, addr=addr)
+        p = self.receiveMsg_UDP(True, useaddr=not addr is None)
         if p is None:
             LOG.debug("unable to receive UDP packet")
             return None
@@ -189,7 +189,10 @@ class Client(threading.Thread):
             for grf in newgrfs:
                 LOG.debug(" %s - %s - %s" % (grf[0].encode("hex"), grf[1].encode("hex"), grf[2]))
             
-            return newgrfs
+            if not addr is None:
+                return p.addr, newgrfs
+            else:
+                return newgrfs
         else:
             raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_GET_NEWGRFS", str(p.command))
 
@@ -292,14 +295,18 @@ class Client(threading.Thread):
         else:
             raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(command))
     
-    def getGameInfo(self, encode_grfs=False, short=False):
-        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
-        result = self.receiveMsg_UDP()
+    def getGameInfo(self, encode_grfs=False, short=False, addr=None):
+        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER, addr=addr)
+        result = self.receiveMsg_UDP(useaddr=not addr is None)
         if result is None:
             LOG.debug("unable to receive UDP packet")
             return None
-        size, command, content = result
-        return self.processGameInfoResponse(size, command, content, encode_grfs, short)
+        if not addr is None:
+            addr, size, command, content = result
+            return addr, self.processGameInfoResponse(size, command, content, encode_grfs, short)
+        else:
+            size, command, content = result
+            return self.processGameInfoResponse(size, command, content, encode_grfs, short)
     def processGameInfoResponse(self, size, command, content, encode_grfs=False, short=False):
         p = DataPacket(size, command, content)
         
@@ -381,7 +388,7 @@ class Client(threading.Thread):
             # not connected
             raise _error.ConnectionError("cannot send: " + socketname + " not connected!")
         if not addr is None and useaddr:
-            s.sendto(data, address=addr)
+            s.sendto(data, 0, addr)
         else:
             # send the data
             s.send(data)
@@ -412,9 +419,9 @@ class Client(threading.Thread):
         return struct.pack(self.header_format, self.header_size + len(payload), command)
     def parsePacketHeader(self, header):
         return struct.unpack(self.header_format, header[:self.header_size])
-    def sendMsg(self, type, command, payload = ""):
+    def sendMsg(self, type, command, payload = "", addr=None):
         header = self.createPacketHeader(command, payload)
-        return self.sendRaw(header + payload, type)
+        return self.sendRaw(header + payload, type, addr)
     def sendMsg_TCP(self, *args, **kwargs):
         return self.sendMsg(M_TCP, *args, **kwargs)
     def sendMsg_UDP(self, *args, **kwargs):
