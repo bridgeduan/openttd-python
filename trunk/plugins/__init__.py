@@ -4,6 +4,7 @@ import pluginclass
 import StringIO
 import traceback
 import sys
+import log
 INSTANCES = {}
 MODULES = {}
 
@@ -17,10 +18,10 @@ def load_plugin(plugin):
         if not plugin in MODULES:
             MODULES[plugin] = __import__(plugin, globals(), None, [''])
     except Exception, e:
-        print('error in plugin %s: %s' % (plugin, str(e)))
+        LOG.error('error in plugin %s: %s' % (plugin, str(e)))
         errorMsg = StringIO.StringIO()
         traceback.print_exc(file=errorMsg)
-        print(errorMsg.getvalue())
+        LOG.debug(errorMsg.getvalue())
 def initialize_plugin(plugin, parent):
     """
     Initialize a plugin
