@@ -1,0 +1,38 @@
+<html><head><title>Epydoc Redirect Page</title>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="pragma" content="no-cache" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+<!--
+var pages = ["ottd_client_event.IRCPrivateNoticeChatResponse-c", "openttd.datastorageclass.DataStorageClass-c", "ottd_client_event.IRCPrivateChatResponse-c", "plugins.webserver.DataStorageJSONEncoder-c", "ottd_client_event.IRCPublicChatResponse-c", "ottd_client_event.IRCPrivateActionChat-c", "ottd_client_event.IRCPrivateNoticeChat-c", "ottd_client_event.IRCPublicActionChat-c", "ottd_client_event.IngameChatResponse-c", "plugins.stats.DataStorageJSONEncoder-c", "openttd.savegame.OTTDSaveGameParser-c", "openttd._error.UnexpectedResponse-c", "ottd_client_event.InternalCommand-c", "plugins.webserver.WebserverThread-c", "ottd_client_event.IRCPrivateChat-c", "webserver.DataStorageJSONEncoder-c", "ottd_client_event.IRCPublicChat-c", "plugins.timewarning.TimeWarning-c", "openttd._error.ConnectionError-c", "openttd.savegame.LoadException-c", "ottd_client_event.IRCToIngame-c", "ottd_client_event.IngameToIRC-c", "plugins.stats.WebserverThread-c", "plugins.webserver.StatsWriter-c", "openttd._error.ProtocolError-c", "openttd.savegame.CDataPacket-c", "ottd_client_event.IngameChat-c", "openttd._error.OpenTTDError-c", "openttd._error.WrongVersion-c", "ottd_client_event.Broadcast-c", "plugins.webserver.MyHandler-c", "plugins.webserver.WebServer-c", "plugins.pluginclass.Plugin-c", "openttd.client.DataPacket-c", "ottd_client_event.IRCChat-c", "plugins.stats.StatsWriter-c", "openttd.datastorageclass-m", "openttd.date.OpenTTDDate-c", "ottd_client_event.Event-c", "plugins.rcon.RconPlugin-c", "plugins.stats.MyHandler-c", "plugins.stats.WebServer-c", "openttd.client.Client-c", "plugins.sample.Sample-c", "webserver.myWebServer-c", "plugins.pluginclass-m", "plugins.timewarning-m", "openttd.grfdb.GrfDB-c", "webserver.MyHandler-c", "struct_zerostrings-m", "openttd.constants-m", "ottd_client_event-m", "plugins.webserver-m", "mimetools.Message-c", "openttd.savegame-m", "openttd._error-m", "openttd.client-m", "plugins.sample-m", "openttd.grfdb-m", "plugins.stats-m", "sstruct.error-c", "openttd.date-m", "plugins.rcon-m", "ottd_config-m", "webserver-m", "openttd-m", "plugins-m", "sstruct-m", "log-m"];
+var dottedName = get_anchor();
+if (dottedName) {
+    var target = redirect_url(dottedName);
+    if (target) window.location.replace(target);
+}
+// -->
+</script>
+
+<h3>Epydoc Auto-redirect page</h3>
+
+<p>When javascript is enabled, this page will redirect URLs of
+the form <tt>redirect.html#<i>dotted.name</i></tt> to the
+documentation for the object with the given fully-qualified
+dotted name.</p>
+<p><a id="message"> &nbsp; </a></p>
+
+<script type="text/javascript">
+<!--
+if (dottedName) {
+    var msg = document.getElementById("message");
+    msg.innerHTML = "No documentation found for <tt>"+
+                    dottedName+"</tt>";
+}
+// -->
+</script>
+
+</body>
+</html>

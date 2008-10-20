@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>plugins.rcon</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="plugins-module.html">Package&nbsp;plugins</a> ::
+        Module&nbsp;rcon
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="plugins.rcon-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="plugins.rcon-module.html">Module plugins.rcon</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Plugin for openttd-python</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># made by yorick (yorickvanpelt {AT} gmail {DOT} com)</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Module plugins.pluginclass=plugins.pluginclass-module.html"><a title="plugins.pluginclass" class="py-name" href="#" onclick="return doclink('link-0', 'pluginclass', 'link-0');">pluginclass</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module struct_zerostrings=struct_zerostrings-module.html"><a title="struct_zerostrings" class="py-name" href="#" onclick="return doclink('link-1', 'struct_zerostrings', 'link-1');">struct_zerostrings</a></tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">ottd_constants</tt> <tt class="py-keyword">as</tt> <tt class="py-name">const</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"> </tt>
+<a name="RconPlugin"></a><div id="RconPlugin-def"><a name="L7"></a><tt class="py-lineno"> 7</tt> <a class="py-toggle" href="#" id="RconPlugin-toggle" onclick="return toggle('RconPlugin');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="plugins.rcon.RconPlugin-class.html">RconPlugin</a><tt class="py-op">(</tt><tt class="py-base-class">pluginclass</tt><tt class="py-op">.</tt><tt class="py-base-class">Plugin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RconPlugin-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="RconPlugin-expanded"><a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line">    <tt id="link-2" class="py-name" targets="Variable plugins.rcon.RconPlugin.lastevent=plugins.rcon.RconPlugin-class.html#lastevent"><a title="plugins.rcon.RconPlugin.lastevent" class="py-name" href="#" onclick="return doclink('link-2', 'lastevent', 'link-2');">lastevent</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="RconPlugin.init"></a><div id="RconPlugin.init-def"><a name="L9"></a><tt class="py-lineno"> 9</tt> <a class="py-toggle" href="#" id="RconPlugin.init-toggle" onclick="return toggle('RconPlugin.init');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="plugins.rcon.RconPlugin-class.html#init">init</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RconPlugin.init-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="RconPlugin.init-expanded"><a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Method plugins.pluginclass.Plugin.registerChatCommand()=plugins.pluginclass.Plugin-class.html#registerChatCommand"><a title="plugins.pluginclass.Plugin.registerChatCommand" class="py-name" href="#" onclick="return doclink('link-3', 'registerChatCommand', 'link-3');">registerChatCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"rcon"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Method plugins.rcon.RconPlugin.rconCommand()=plugins.rcon.RconPlugin-class.html#rconCommand"><a title="plugins.rcon.RconPlugin.rconCommand" class="py-name" href="#" onclick="return doclink('link-4', 'rconCommand', 'link-4');">rconCommand</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Method plugins.pluginclass.Plugin.registerCallback()=plugins.pluginclass.Plugin-class.html#registerCallback"><a title="plugins.pluginclass.Plugin.registerCallback" class="py-name" href="#" onclick="return doclink('link-5', 'registerCallback', 'link-5');">registerCallback</a></tt><tt class="py-op">(</tt><tt class="py-string">"on_receive_packet"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method plugins.rcon.RconPlugin.onPacket()=plugins.rcon.RconPlugin-class.html#onPacket"><a title="plugins.rcon.RconPlugin.onPacket" class="py-name" href="#" onclick="return doclink('link-6', 'onPacket', 'link-6');">onPacket</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="RconPlugin.rconCommand"></a><div id="RconPlugin.rconCommand-def"><a name="L12"></a><tt class="py-lineno">12</tt> <a class="py-toggle" href="#" id="RconPlugin.rconCommand-toggle" onclick="return toggle('RconPlugin.rconCommand');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="plugins.rcon.RconPlugin-class.html#rconCommand">rconCommand</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">event</tt><tt class="py-op">,</tt> <tt class="py-param">commandstr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RconPlugin.rconCommand-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="RconPlugin.rconCommand-expanded"><a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">        <tt class="py-name">argv</tt> <tt class="py-op">=</tt> <tt class="py-name">commandstr</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">argv</tt><tt class="py-op">)</tt> <tt class="py-op">&lt;</tt> <tt class="py-number">3</tt><tt class="py-op">:</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">            <tt class="py-name">event</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Method ottd_client_event.IRCPrivateChat.respond()=ottd_client_event.IRCPrivateChat-class.html#respond,Method ottd_client_event.IRCPrivateNoticeChat.respond()=ottd_client_event.IRCPrivateNoticeChat-class.html#respond,Method ottd_client_event.IRCPublicChat.respond()=ottd_client_event.IRCPublicChat-class.html#respond,Method ottd_client_event.IngameChat.respond()=ottd_client_event.IngameChat-class.html#respond,Method ottd_client_event.IngameChatResponse.respond()=ottd_client_event.IngameChatResponse-class.html#respond,Method ottd_client_event.InternalCommand.respond()=ottd_client_event.InternalCommand-class.html#respond"><a title="ottd_client_event.IRCPrivateChat.respond
+ottd_client_event.IRCPrivateNoticeChat.respond
+ottd_client_event.IRCPublicChat.respond
+ottd_client_event.IngameChat.respond
+ottd_client_event.IngameChatResponse.respond
+ottd_client_event.InternalCommand.respond" class="py-name" href="#" onclick="return doclink('link-7', 'respond', 'link-7');">respond</a></tt><tt class="py-op">(</tt><tt class="py-string">"Usage: rcon &lt;password&gt; &lt;msg&gt;"</tt><tt class="py-op">)</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="plugins.rcon.RconPlugin.lastevent" class="py-name" href="#" onclick="return doclink('link-8', 'lastevent', 'link-2');">lastevent</a></tt> <tt class="py-op">=</tt> <tt class="py-name">event</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">        <tt class="py-name">msg</tt> <tt class="py-op">=</tt> <tt class="py-name">commandstr</tt><tt class="py-op">[</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">argv</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">+</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">argv</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-op">]</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line">        <tt class="py-name">payload</tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="struct_zerostrings" class="py-name" href="#" onclick="return doclink('link-9', 'struct_zerostrings', 'link-1');">struct_zerostrings</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Function struct_zerostrings.packExt()=struct_zerostrings-module.html#packExt"><a title="struct_zerostrings.packExt" class="py-name" href="#" onclick="return doclink('link-10', 'packExt', 'link-10');">packExt</a></tt><tt class="py-op">(</tt><tt class="py-string">'zz'</tt><tt class="py-op">,</tt> <tt class="py-name">argv</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">msg</tt><tt class="py-op">)</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Module openttd.client=openttd.client-module.html"><a title="openttd.client" class="py-name" href="#" onclick="return doclink('link-11', 'client', 'link-11');">client</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method openttd.client.Client.sendMsg_TCP()=openttd.client.Client-class.html#sendMsg_TCP"><a title="openttd.client.Client.sendMsg_TCP" class="py-name" href="#" onclick="return doclink('link-12', 'sendMsg_TCP', 'link-12');">sendMsg_TCP</a></tt><tt class="py-op">(</tt><tt class="py-name">const</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Variable openttd.constants.PACKET_CLIENT_RCON=openttd.constants-module.html#PACKET_CLIENT_RCON"><a title="openttd.constants.PACKET_CLIENT_RCON" class="py-name" href="#" onclick="return doclink('link-13', 'PACKET_CLIENT_RCON', 'link-13');">PACKET_CLIENT_RCON</a></tt><tt class="py-op">,</tt> <tt class="py-name">payload</tt><tt class="py-op">)</tt> </tt>
+</div><a name="RconPlugin.onPacket"></a><div id="RconPlugin.onPacket-def"><a name="L21"></a><tt class="py-lineno">21</tt> <a class="py-toggle" href="#" id="RconPlugin.onPacket-toggle" onclick="return toggle('RconPlugin.onPacket');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="plugins.rcon.RconPlugin-class.html#onPacket">onPacket</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">command</tt><tt class="py-op">,</tt> <tt class="py-param">content</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RconPlugin.onPacket-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="RconPlugin.onPacket-expanded"><a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-14" class="py-name" targets="Variable openttd.client.DataPacket.command=openttd.client.DataPacket-class.html#command"><a title="openttd.client.DataPacket.command" class="py-name" href="#" onclick="return doclink('link-14', 'command', 'link-14');">command</a></tt> <tt class="py-op">==</tt> <tt class="py-name">const</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable openttd.constants.PACKET_SERVER_RCON=openttd.constants-module.html#PACKET_SERVER_RCON"><a title="openttd.constants.PACKET_SERVER_RCON" class="py-name" href="#" onclick="return doclink('link-15', 'PACKET_SERVER_RCON', 'link-15');">PACKET_SERVER_RCON</a></tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="plugins.rcon.RconPlugin.lastevent" class="py-name" href="#" onclick="return doclink('link-16', 'lastevent', 'link-2');">lastevent</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">            <tt class="py-op">[</tt><tt class="py-name">color</tt><tt class="py-op">,</tt> <tt class="py-name">message</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Variable openttd.client.DataPacket.size=openttd.client.DataPacket-class.html#size,Variable openttd.savegame.CDataPacket.size=openttd.savegame.CDataPacket-class.html#size"><a title="openttd.client.DataPacket.size
+openttd.savegame.CDataPacket.size" class="py-name" href="#" onclick="return doclink('link-17', 'size', 'link-17');">size</a></tt> <tt class="py-op">=</tt> <tt id="link-18" class="py-name"><a title="struct_zerostrings" class="py-name" href="#" onclick="return doclink('link-18', 'struct_zerostrings', 'link-1');">struct_zerostrings</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Function struct_zerostrings.unpackExt()=struct_zerostrings-module.html#unpackExt"><a title="struct_zerostrings.unpackExt" class="py-name" href="#" onclick="return doclink('link-19', 'unpackExt', 'link-19');">unpackExt</a></tt><tt class="py-op">(</tt><tt class="py-string">'Hz'</tt><tt class="py-op">,</tt> <tt class="py-name">content</tt><tt class="py-op">)</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="plugins.rcon.RconPlugin.lastevent" class="py-name" href="#" onclick="return doclink('link-20', 'lastevent', 'link-2');">lastevent</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="ottd_client_event.IRCPrivateChat.respond
+ottd_client_event.IRCPrivateNoticeChat.respond
+ottd_client_event.IRCPublicChat.respond
+ottd_client_event.IngameChat.respond
+ottd_client_event.IngameChatResponse.respond
+ottd_client_event.InternalCommand.respond" class="py-name" href="#" onclick="return doclink('link-21', 'respond', 'link-7');">respond</a></tt><tt class="py-op">(</tt><tt class="py-name">message</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://openttd-python.googlecode.com">OpenTTD-Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Oct 20 13:03:13 2008
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
