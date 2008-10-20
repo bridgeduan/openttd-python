@@ -233,10 +233,6 @@ class SpectatorClient(Client):
             elif command == 'unloadirc' and not self.irc is None:
                 self.stopIRC()
                 Broadcast("unloaded IRC", parentclient=self)
-            elif command == 'startwebserver':
-                self.startWebserver()
-            elif command == 'stopwebserver':
-                self.stopWebserver()
             elif command == 'reconnect':
                 payload = packExt('z', "%s (reconnecting)" % config.get("openttd", "quitmessage"))
                 Broadcast("Reconnecting to server", parentclient=self, parent=event)
@@ -272,16 +268,6 @@ class SpectatorClient(Client):
         if commandstring in self.commands:
             self.commands[commandstring](event, command)
         
-    def startWebserver(self):
-        if not config.getboolean("webserver", "enable") or not self.webserver is None:
-            return
-        from webserver import myWebServer
-        LOG.debug("starting webserver ...")
-        port = config.getint("webserver", "port")
-        self.webserver = myWebServer(self, port)
-        self.webserver.start()
-        Broadcast("webserver started on port %d"%port, parentclient=self)
-        
     def startIRC(self):
         from irc_lib import IRCBotThread
         self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self, self.irc_server_port)
@@ -301,13 +287,6 @@ class SpectatorClient(Client):
         self.reconnectCond = False
         self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
     
-    def stopWebserver(self):
-        if self.webserver:
-            LOG.debug("stopping webserver ...")
-            self.webserver.stop()
-            self.webserver = None
-            Broadcast("webserver stopped", parentclient=self)
-
     def on_irc_pubmsg(self, c, e):
         if not e.source() is None and e.source().find('!') != -1:
             IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
@@ -399,57 +378,6 @@ class SpectatorClient(Client):
             self.doCallback("on_server_newmap")
             self.runCond = False
     
-    def updateStats(self):
-        available = True
-        try:
-            import pickle
-        except ImportError:
-            available=False
-        if not available:
-            LOG.error("error while loading pickle module, stats saving disabled!")
-            return
-
-        LOG.debug("updating stats...")
-        tstart = time.time()
-        
-        fn = config.get("stats", "cachefilename")
-        obj=[]
-        firstSave=False
-        try:
-            f = open(fn, 'rb')
-            obj = pickle.load(f)
-            f.close()
-        except IOError:
-            firstSave=True
-            
-        value = [
-                self.getGameInfo(encode_grfs=True, short=not firstSave),
-                self.getCompanyInfo().companies,
-                tstart
-                ]
-        
-        obj.append(value)
-        
-        try:
-            f = open(fn, 'wb')
-            #if you use python < 2.3 use this line:
-            #pickle.dump(obj, f)
-            pickle.dump(obj, f, 1)
-            f.close()
-        except IOError:
-            LOG.error("error while saving stats cache file!")
-        
-        tdiff = time.time() - tstart
-        fs = float(os.path.getsize(fn)) / float(1024)
-        LOG.debug("stats updated in %0.5f seconds. File is %.2fKB big (%d lines)"%(tdiff, fs, len(obj)))
-    
-    def clearStats(self):
-        fn = config.get("stats", "cachefilename")
-        try:
-            os.remove(fn)
-            LOG.debug("stats cleared")
-        except:
-            pass
     def findPlayerByNick(self, nick):
         for client in self.playerlist:
             if self.playerlist[client]['name'] == nick:
@@ -581,17 +509,8 @@ class SpectatorClient(Client):
                 # auto start IRC
                 if config.getboolean("irc", "autojoin"):
                     self.startIRC()
-                if config.getboolean("webserver", "autostart"):
-                    self.startWebserver()
                 
                 ignoremsgs = []
-                companyrefresh_interval = 120 #every two minutes
-                companyrefresh_last = 0
-                
-                
-                doStats = config.getboolean("stats", "enable")
-                if doStats:
-                    self.clearStats()
                 
                 while self.runCond:
                     size, command, content = self.receiveMsg_TCP()
@@ -610,10 +529,6 @@ class SpectatorClient(Client):
                         #print "sending ACK"
                         self.sendMsg_TCP(const.PACKET_CLIENT_ACK, payload)
                         frameCounter=0
-                    
-                    if doStats and time.time() - companyrefresh_last > companyrefresh_interval:
-                        self.updateStats()
-                        companyrefresh_last = time.time()
                     
                     if command == const.PACKET_SERVER_COMMAND:
                         [player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
