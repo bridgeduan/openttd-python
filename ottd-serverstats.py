@@ -97,20 +97,30 @@ def main():
     # query the servers
     GRFS.loadfromfile("newgrfs.grflist")
     counter = 0
+    clients = []
     for server in servers:
         counter += 1
         client = ClientGameInfo(server[0], server[1], False, counter)
         client.start()
+        clients.append(client)
         
     t = time.time()
     ln=0
     #time.time() - t < 5
-    while len(SERVERS.keys()) < len(servers):
-        if VERBOSE:
-            if abs(len(SERVERS.keys()) - ln) > 10:
-                print "%3d/%3d servers queried, % 6.2f %%" % (len(SERVERS.keys()), len(servers), (float(len(SERVERS.keys()))/float(len(servers)))*100.0)
+    for client in clients:
+        firsttime = True
+        didmsg = False
+        while client.isAlive():
+            client.join(1)
+            if VERBOSE and abs(len(SERVERS.keys()) - ln) > 10:
+                didmsg = True
+                sys.stdout.write("%3d/%3d servers queried, % 6.2f %%" % (len(SERVERS.keys()), len(servers), (float(len(SERVERS.keys()))/float(len(servers)))*100.0))
                 ln = len(SERVERS.keys())
-    
+            if VERBOSE and not firsttime:
+                didmsg = True
+                sys.stdout.write('.')
+            firsttime = False
+        if didmsg: sys.stdout.write('\n')
     
     # save the grf list if it is changed
     GRFS.savetofile("newgrfs.grflist")

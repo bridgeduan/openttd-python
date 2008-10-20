@@ -99,18 +99,6 @@ class IngameChat(Event):
             self.playercompany = self.parentclient.playerlist[clientid]['company']
         self.dispatch()
     
-    def __repr__(self):
-        """
-        @todo: remove this
-        """
-        return "IngameChat<msg='%s', playerid=%d, playername='%s', self_sent=%d, broadcast=%d, distribution=%s>" % (
-                    self.msg,
-                    self.playerid,
-                    self.playername,
-                    self.self_sent,
-                    self.broadcast,
-                    self.distribution
-                )
     def isCommand(self):
         """
         Check if the message could be a command
