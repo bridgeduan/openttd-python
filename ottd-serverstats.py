@@ -37,10 +37,10 @@ class ClientGameInfo(Client):
     # this class implements the thread start method
     def run(self):
         try:
-            self.connect(M_UDP)
             if len(self.errors) == 0:
+                self.createsocket(M_UDP)
                 self.socket_udp.settimeout(10)
-                info = self.getGameInfo()
+                addr, info = self.getGameInfo(addr=(self.ip, self.port))
                 SERVERS[self.ip + ":%d" % self.port] = info
                 if not info is None:
                     info.ip = self.ip
@@ -50,7 +50,7 @@ class ClientGameInfo(Client):
                     if len(info.grfs) != 0:
                         unknowngrfs = GRFS.getgrfsnotinlist(info.grfs)
                         if len(unknowngrfs) != 0:
-                            unknowngrfs = self.getGRFInfo(unknowngrfs)
+                            addr, unknowngrfs = self.getGRFInfo(unknowngrfs, (self.ip, self.port))
                         for grf in info.grfs:
                             if not GRFS.hasgrf(grf[1]) and not unknowngrfs is None:
                                 GRFS.addgrfinlist(unknowngrfs, grf[0])
@@ -243,7 +243,7 @@ def main():
         print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0]), item[1][1])
 
     print ""
-    print "used GRFs (%d used, %d unique known, %d in database):" % (grfcount, len(used_grfs), GRFS.getdbcount())
+    print "used GRFs (%d used, %d unique, %d in database):" % (grfcount, len(used_grfs), GRFS.getdbcount())
     for item in sorted(used_grfs.values(), reverse=True):
         print "% 52s: %3d (% 5.1f%%), %3d clients" % (item.name[:52], item.usedcount, item.getUsedPercent(grfcount), item.totalclients)
     
