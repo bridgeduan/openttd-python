@@ -23,17 +23,7 @@ configvalues = {
         "channel":"#openttd-python",
         "quitmessage":"bot shutting down..."
     },
-    "webserver":{
-        "enable":"On",
-        "autostart":"Off",
-        "port":"8080"
-    },
     "irccommands":{},
-    "serverstats":{
-        "verbose":"Off",
-        "savenewgrfs":"On",
-        "savehistory":"On"
-    }
 }
 def LoadConfig():
     config.read('config.cfg')

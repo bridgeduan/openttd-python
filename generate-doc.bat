@@ -1,2 +1,2 @@
-c:\Python26\Scripts\epydoc.py -v --config web/api/epydoc.cfg
+c:\Python26\Scripts\epydoc.py -v --config plugins/web/api/epydoc.cfg
 @pause
