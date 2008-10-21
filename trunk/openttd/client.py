@@ -146,9 +146,9 @@ class Client(threading.Thread):
         #overwrite
         pass
 
-    def getServerList(self):
+    def getServerList(self, addr=(const.NETWORK_MASTER_SERVER_HOST, const.NETWORK_MASTER_SERVER_PORT)):
         payload = struct.pack("B", const.NETWORK_MASTER_SERVER_VERSION)
-        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_GET_LIST, payload)
+        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_GET_LIST, payload, addr=addr)
         p = self.receiveMsg_UDP(datapacket=True)
         if p.command == const.PACKET_UDP_MASTER_RESPONSE_LIST:
             protocol_version = p.recv_uint8()
@@ -197,46 +197,76 @@ class Client(threading.Thread):
             raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_GET_NEWGRFS", str(p.command))
 
     def getCompanyInfo(self):
-        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_DETAIL_INFO)
-        p = self.receiveMsg_UDP(True)
-        if p is None:
-            return None
-        if p.command == const.PACKET_UDP_SERVER_DETAIL_INFO:
-            info_version = p.recv_uint8()
-            player_count = p.recv_uint8()
+        return self.CompanyInfo_Get()
+    def CompanyInfo_Get(self, addr=None):
+        self.CompanyInfo_Request(addr)
+        return self.CompanyInfo_Get_Response(not addr is None)
+    def CompanyInfo_Request(self, addr=None):
+        """
+        Requests the gameinfo from a certain address, or to the connected one
+        @param addr: address to request from
+        @type  addr: tuple with (ip, port)
+        """
+        if not addr is None:
+            self.sendMsg_UDP(const.PACKET_UDP_CLIENT_DETAIL_INFO, addr=addr)
+        else:
+            self.sendMsg_UDP(const.PACKET_UDP_CLIENT_DETAIL_INFO)
+    def CompanyInfo_Get_Response(self, useaddr=False):
+        """
+        Receives and processes a response
+        @param     useaddr: to return the address or not
+        @type      useaddr: bool
+        @returns:           processed data or (addr, processed data)
+        @rtype:             DataStorageClass or tuple
+        """
+        p = self.CompanyInfo_Receive(useaddr)
+        info = self.CompanyInfo_Process(p)
+        if useaddr:
+            return p.addr, info
+        else:
+            return info
+    def CompanyInfo_Receive(self, useaddr=False):
+        """
+        Receives the companyinfo (gives address if useaddr is True)
+        @param useaddr: to return the address or not
+        @type  useaddr: bool
+        @returns:       received info
+        @rtype:         DataPacket
+        """
+        p = self.receiveMsg_UDP(datapacket=True, useaddr=useaddr)
+        if not p.command == const.PACKET_UDP_SERVER_DETAIL_INFO:
+            raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_DETAIL_INFO", str(p.command))
+        return p
+    def CompanyInfo_Process(self, p):
+        """
+        Processes a companyinfo response
+        @param           p: DataPacket to read from
+        @type            p: DataPacket
+        @returns:           processed data
+        @rtype:             DataStorageClass
+        """
+        info_version = p.recv_uint8()
+        player_count = p.recv_uint8()
+        
+        if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4:
+            companies = []
             
-            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4:
-                companies = []
+            for i in range(0, player_count):
+                company = DataStorageClass()
                 
-                for i in range(0, player_count):
-                    company = DataStorageClass()
-                    
-                    company.number = p.recv_uint8()
-                    company.company_name     = p.recv_str()
-                    company.inaugurated_year = p.recv_uint32()
-                    company.company_value    = p.recv_uint64()
-                    company.money            = p.recv_uint64()
-                    company.income           = p.recv_uint64()
-                    company.performance      = p.recv_uint16()
-                    company.password_protected = p.recv_bool()
-                    company.vehicles = p.recv_something('H'*5)
-                    company.stations = p.recv_something('H'*5)
-                    
-                    if info_version == 4:
-                        # get the client information from version 4
-                        players = []
-                        while p.recv_bool():
-                            player = DataStorageClass()
-                            player.client_name = p.recv_str()
-                            player.unique_id   = p.recv_str()
-                            player.join_date   = p.recv_uint32()
-                            players.append(player)
-                        company.clients = players
-                    
-                    companies.append(company)
+                company.number = p.recv_uint8()
+                company.company_name     = p.recv_str()
+                company.inaugurated_year = p.recv_uint32()
+                company.company_value    = p.recv_uint64()
+                company.money            = p.recv_uint64()
+                company.income           = p.recv_uint64()
+                company.performance      = p.recv_uint16()
+                company.password_protected = p.recv_bool()
+                company.vehicles = p.recv_something('H'*5)
+                company.stations = p.recv_something('H'*5)
                 
                 if info_version == 4:
-                    # get the list of spectators from version 4
+                    # get the client information from version 4
                     players = []
                     while p.recv_bool():
                         player = DataStorageClass()
@@ -244,18 +274,27 @@ class Client(threading.Thread):
                         player.unique_id   = p.recv_str()
                         player.join_date   = p.recv_uint32()
                         players.append(player)
-                        
-                ret = DataStorageClass()
-                ret.info_version = info_version
-                ret.player_count = player_count
-                ret.companies    = companies
-                if info_version == 4:
-                    ret.spectators = players
-                return ret
-            else:
-                raise _error.WrongVersion("PACKET_UDP_CLIENT_DETAIL_INFO", info_version, const.NETWORK_COMPANY_INFO_VERSION)
-        else:
-            raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_DETAIL_INFO", str(command))
+                    company.clients = players
+                
+                companies.append(company)
+            
+            if info_version == 4:
+                # get the list of spectators from version 4
+                players = []
+                while p.recv_bool():
+                    player = DataStorageClass()
+                    player.client_name = p.recv_str()
+                    player.unique_id   = p.recv_str()
+                    player.join_date   = p.recv_uint32()
+                    players.append(player)
+                    
+            ret = DataStorageClass()
+            ret.info_version = info_version
+            ret.player_count = player_count
+            ret.companies    = companies
+            if info_version == 4:
+                ret.spectators = players
+            return ret
     def getTCPCompanyInfo(self):
         self.sendMsg_TCP(const.PACKET_CLIENT_COMPANY_INFO)
         p = self.receiveMsg_TCP(True)
