@@ -46,10 +46,37 @@ class SpectatorClient(Client):
         "on_mainloop": []
     }
     commands = {}
-    
+    def __init__(self, ip, port, debugLevel, password):
+        Client.__init__(self, ip, port, debugLevel)
+        self.password = password
+        self.reconnectCond = True
+        
+        plugins.load_plugins()
+        plugins.initialize_plugins(self)
     # this class implements the thread start method
     def run(self):
-        pass
+        # endless loop
+        while self.reconnectCond:
+            # retry to connect every 20 seconds
+            while not self.connect(M_BOTH):
+                time.sleep(20)
+        
+            # fetch any fatal errors and try to reconnect to the server
+            try:
+                gameinfo = self.getGameInfo()
+                self.revision = gameinfo.server_revision
+                self.joinGame()
+                self.cleanup()
+            except Exception, e:
+                self.cleanup()
+                LOG.error('main loop error: '+str(e))
+                errorMsg = StringIO.StringIO()
+                traceback.print_exc(file=errorMsg)
+                LOG.debug(errorMsg.getvalue())
+            
+            if self.reconnectCond:
+                # sleep a second
+                time.sleep(1)
     
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
         payload = packExt('bbHz', chattype, desttype, dest, msg)
@@ -395,7 +422,7 @@ class SpectatorClient(Client):
         payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
         #print "buffer size: %d" % payload_size
         self.sendMsg_TCP(const.PACKET_CLIENT_JOIN, payload)
-        self.runCond=True
+        self.runCond = True
         while self.runCond:
             size, command, content = self.receiveMsg_TCP()
             LOG.debug("got command %s" % const.packet_names[command])
@@ -635,39 +662,20 @@ def main():
                 print "Error: could not import psyco"
                 sys.exit(1)
 
-    client = SpectatorClient(ip, port, True)
-    client.password = password
-    client.reconnectCond = True
+    client = SpectatorClient(ip, port, True, password)
     client.cmdlineoptions = options
-
-    plugins.load_plugins()
-    plugins.initialize_plugins(client)
     
-    
-    # endless loop
-    while client.reconnectCond:
-        # retry to connect every 20 seconds
-        while not client.connect(M_BOTH):
-            time.sleep(20)
-        
-        # fetch any fatal errors and try to reconnect to the server
+    client.start()
+    while client.isAlive():
         try:
-            gameinfo = client.getGameInfo()
-            client.revision = gameinfo.server_revision
-            client.joinGame()
-            client.cleanup()
+            client.join(10) # wake up every 10 seconds to check for keyboardinterrupts
         except (KeyboardInterrupt, SystemExit):
-            client.runCond = False
-            client.reconnectCond = False
-        except Exception, e:
-            client.cleanup()
-            LOG.error('main loop error: '+str(e))
-            errorMsg = StringIO.StringIO()
-            traceback.print_exc(file=errorMsg)
-            LOG.debug(errorMsg.getvalue())
-            
-        # sleep a second
-        time.sleep(1)
+            if client.isAlive():
+                try:
+                    client.quit()
+                except Exception, e:
+                    sys.exit(0)
+
 
     sys.exit(0)
 
