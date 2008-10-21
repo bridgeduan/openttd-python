@@ -82,7 +82,7 @@ class DataPacket:
 class Client(threading.Thread):
     header_format = "hb"
     header_size   = struct.calcsize("hb")
-    def __init__(self, ip, port, debugLevel=0, uid=None):
+    def __init__(self, ip="", port=0, debugLevel=0, uid=None):
         self.socket_udp = None
         self.socket_tcp = None
         self.errors     = []
@@ -96,10 +96,10 @@ class Client(threading.Thread):
         self.lock       = threading.Lock()
         threading.Thread.__init__(self)
     def createsocket(self, mode=M_BOTH):
-        if mode & M_TCP:
+        if mode & M_TCP and self.socket_tcp is None:
             self.socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket_tcp.settimeout(5)
-        if mode & M_UDP:
+        if mode & M_UDP and self.socket_udp is None:
             self.socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.socket_udp.settimeout(5)
         
@@ -296,20 +296,65 @@ class Client(threading.Thread):
             raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(command))
     
     def getGameInfo(self, encode_grfs=False, short=False, addr=None):
-        self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER, addr=addr)
-        result = self.receiveMsg_UDP(useaddr=not addr is None)
-        if result is None:
-            LOG.debug("unable to receive UDP packet")
-            return None
-        if not addr is None:
-            addr, size, command, content = result
-            return addr, self.processGameInfoResponse(size, command, content, encode_grfs, short)
-        else:
-            size, command, content = result
-            return self.processGameInfoResponse(size, command, content, encode_grfs, short)
+        return self.GameInfo_Get(addr, encode_grfs, short)
     def processGameInfoResponse(self, size, command, content, encode_grfs=False, short=False):
         p = DataPacket(size, command, content)
-        
+        return self.GameInfo_Process(p, encode_grfs, short)
+    def GameInfo_Get(self, addr=None, encode_grfs=False, short=False):
+        self.GameInfo_Request(addr)
+        return self.GameInfo_Get_Response(not addr is None, encode_grfs, short)
+    def GameInfo_Request(self, addr=None):
+        """
+        Requests the gameinfo from a certain address, or to the connected one
+        @param addr: address to request from
+        @type  addr: tuple with (ip, port)
+        """
+        if not addr is None:
+            self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER, addr=addr)
+        else:
+            self.sendMsg_UDP(const.PACKET_UDP_CLIENT_FIND_SERVER)
+    def GameInfo_Get_Response(self, useaddr=False, encode_grfs=False, short=False):
+        """
+        Receives and processes a response
+        @param     useaddr: to return the address or not
+        @type      useaddr: bool
+        @param encode_grfs: return the grfs in hex if True
+        @type  encode_grfs: bool
+        @param       short: only return the things that could change?
+        @type        short: bool
+        @returns:           processed data or (addr, processed data)
+        @rtype:             DataStorageClass or tuple
+        """
+        p = self.GameInfo_Receive(useaddr)
+        info = self.GameInfo_Process(p, encode_grfs, short)
+        if useaddr:
+            return p.addr, info
+        else:
+            return info
+    def GameInfo_Receive(self, useaddr=False):
+        """
+        Receives the gameinfo (gives address if useaddr is True)
+        @param useaddr: to return the address or not
+        @type  useaddr: bool
+        @returns:       received info
+        @rtype:         DataPacket
+        """
+        p = self.receiveMsg_UDP(datapacket=True, useaddr=useaddr)
+        if not p.command == const.PACKET_UDP_SERVER_RESPONSE:
+            raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_FIND_SERVER", str(p.command))
+        return p
+    def GameInfo_Process(self, p, encode_grfs=False, short=False):
+        """
+        Processes a gameinfo response
+        @param           p: DataPacket to read from
+        @type            p: DataPacket
+        @param encode_grfs: return the grfs in hex if True
+        @type  encode_grfs: bool
+        @param       short: only return the things that could change?
+        @type        short: bool
+        @returns:           processed data
+        @rtype:             DataStorageClass
+        """
         info = DataStorageClass()
         info.game_info_version = p.recv_uint8()
         
