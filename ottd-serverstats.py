@@ -90,9 +90,9 @@ def savestatstofile(filename="serverstats.bin", servers=[]):
 def main():
     # get the server list
     client_master = Client(const.NETWORK_MASTER_SERVER_HOST, const.NETWORK_MASTER_SERVER_PORT, False)
-    client_master.connect(M_UDP)
+    client_master.createsocket(M_UDP)
     servers = client_master.getServerList()
-    client_master.disconnect()
+    del client_master
     
     # query the servers
     GRFS.loadfromfile("newgrfs.grflist")
