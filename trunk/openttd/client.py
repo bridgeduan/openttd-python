@@ -220,7 +220,7 @@ class Client(threading.Thread):
         @rtype:             DataStorageClass or tuple
         """
         p = self.CompanyInfo_Receive(useaddr)
-        info = self.CompanyInfo_Process(p)
+        info = self.CompanyInfo_Process(p=p)
         if useaddr:
             return p.addr, info
         else:
@@ -237,14 +237,18 @@ class Client(threading.Thread):
         if not p.command == const.PACKET_UDP_SERVER_DETAIL_INFO:
             raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_DETAIL_INFO", str(p.command))
         return p
-    def CompanyInfo_Process(self, p):
+    def CompanyInfo_Process(self, data="", p=None):
         """
         Processes a companyinfo response
         @param           p: DataPacket to read from
         @type            p: DataPacket
+        @param        data: data to use when p is not given
+        @type         data: string
         @returns:           processed data
         @rtype:             DataStorageClass
         """
+        if p is None:
+            p = DataPacket(len(data), const.PACKET_UDP_SERVER_DETAIL_INFO, data)
         info_version = p.recv_uint8()
         player_count = p.recv_uint8()
         
@@ -336,9 +340,8 @@ class Client(threading.Thread):
     
     def getGameInfo(self, encode_grfs=False, short=False, addr=None):
         return self.GameInfo_Get(addr, encode_grfs, short)
-    def processGameInfoResponse(self, size, command, content, encode_grfs=False, short=False):
-        p = DataPacket(size, command, content)
-        return self.GameInfo_Process(p, encode_grfs, short)
+    def processGameInfoResponse(self, size, command, content, encode_grfs, short):
+        return self.GameInfo_Process(content, encode_grfs=encode_grfs, short=short)
     def GameInfo_Get(self, addr=None, encode_grfs=False, short=False):
         self.GameInfo_Request(addr)
         return self.GameInfo_Get_Response(not addr is None, encode_grfs, short)
@@ -365,7 +368,7 @@ class Client(threading.Thread):
         @rtype:             DataStorageClass or tuple
         """
         p = self.GameInfo_Receive(useaddr)
-        info = self.GameInfo_Process(p, encode_grfs, short)
+        info = self.GameInfo_Process(p=p, encode_grfs=encode_grfs, short=short)
         if useaddr:
             return p.addr, info
         else:
@@ -382,11 +385,13 @@ class Client(threading.Thread):
         if not p.command == const.PACKET_UDP_SERVER_RESPONSE:
             raise _error.UnexpectedResponse("PACKET_UDP_CLIENT_FIND_SERVER", str(p.command))
         return p
-    def GameInfo_Process(self, p, encode_grfs=False, short=False):
+    def GameInfo_Process(self, data="", p=None, encode_grfs=False, short=False):
         """
         Processes a gameinfo response
         @param           p: DataPacket to read from
         @type            p: DataPacket
+        @param        data: data to use when p is not given
+        @type         data: string
         @param encode_grfs: return the grfs in hex if True
         @type  encode_grfs: bool
         @param       short: only return the things that could change?
@@ -394,6 +399,8 @@ class Client(threading.Thread):
         @returns:           processed data
         @rtype:             DataStorageClass
         """
+        if p is None:
+            p = DataPacket(len(data), const.PACKET_UDP_SERVER_RESPONSE, data)
         info = DataStorageClass()
         info.game_info_version = p.recv_uint8()
         
@@ -572,4 +579,10 @@ class Client(threading.Thread):
         #content = content[0]
 
 
-        
+    def hash_company_password(self, password, server_unique_id, game_seed):
+        if len(password) == 0:
+            return ""
+        salted_pw = map(ord, password)
+        salted_pw = [0] * (32-len(salted_pw)) + salted_pw # pad with zeros
+        for i in range(0, 32):
+            salted_pw[i] ^= ord(server_unique_id[i]) ^ (game_seed >> i)
