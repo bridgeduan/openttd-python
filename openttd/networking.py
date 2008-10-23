@@ -41,7 +41,7 @@ def createPacketHeader(command, payload):
     @param command: packet type
     @type  command: uint8
     """
-    return struct.pack(const.HEADER_FORMAT, const.HEADER_SIZE + len(payload), command)
+    return const.HEADER.pack(const.HEADER.size + len(payload), command)
 def parsePacketHeader(header):
     """
     parse a packet header
@@ -50,4 +50,4 @@ def parsePacketHeader(header):
     @rtype:        tuple
     @returns:      (size, packettype)
     """
-    return struct.unpack(const.HEADER_FORMAT, header[:const.HEADER_SIZE])
+    return const.HEADER.unpack_from(header)

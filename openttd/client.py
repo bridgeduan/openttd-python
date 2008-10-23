@@ -530,7 +530,7 @@ class Client(threading.Thread):
         #print data
         size, command = networking.parsePacketHeader(data)
         LOG.debug("received size: %d, command: %d"% (size, command))
-        content = data[const.HEADER_SIZE:]
+        content = data[const.HEADER.size:]
         if datapacket:
             ret = DataPacket(size, command, content)
             ret.addr = addr
@@ -546,7 +546,7 @@ class Client(threading.Thread):
             raise _error.ConnectionError("no tcp socket for receiving")
         raw = ""
         note = ""
-        data, readcounter = self.receive_bytes(self.socket_tcp, const.HEADER_SIZE)
+        data, readcounter = self.receive_bytes(self.socket_tcp, const.HEADER.size)
         if readcounter > 1:
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
         raw += data
@@ -556,7 +556,7 @@ class Client(threading.Thread):
                 LOG.debug("received size: %d, command: %s (%d)"% (size, const.packet_names[command], command))
             else:
                 LOG.debug("received size: %d, command: %d"% (size, command))
-        size -= const.HEADER_SIZE # remove size of the header ...
+        size -= const.HEADER.size # remove size of the header ...
         data, readcounter = self.receive_bytes(self.socket_tcp, size)
         if readcounter > 1:
             note += "DATA SEGMENTED INTO %s SEGMENTS!" % readcounter

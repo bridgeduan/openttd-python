@@ -13,3 +13,4 @@ import savegame
 from datastorageclass import DataStorageClass
 import date
 import grfdb
+import structz
