@@ -15,7 +15,7 @@ from operator import itemgetter
 import signal
 
 from log import LOG
-from struct_zerostrings import *
+import structz
 import constants as const
 from datastorageclass import DataStorageClass
 import _error
@@ -45,11 +45,11 @@ class DataPacket:
         @rtype:      array
         @returns:    array with unpacked stuff
         """
-        ret, size = unpackFromExt(type, self.data[self.offset:])
+        size, ret = structz.unpack_from(type, self.data, self.offset)
         self.offset += size
         return ret
     def send_something(self, type, something):
-        buf = packExt(type, *something)
+        buf = structz.pack(type, *something)
         self.size += len(buf)
         self.data += buf
     def recv_str(self):

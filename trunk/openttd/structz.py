@@ -58,7 +58,7 @@ def getEfmt(fmt):
     @rtype    : tuple
     @returns:   (endianness, struct format)
     """
-    format = "<"
+    format = "="
     if len(fmt) > 0 and fmt[0] in ('@','=','<','>','!'):
         format = fmt[0]
         if len(fmt) > 1:
@@ -178,15 +178,15 @@ def unpack_from(fmt, str, offset=0):
             ind += 1
             if len(f) > 0:
                 s = Struct(e+f)
-                unp += list(s.unpack_from(string, offset))
+                unp += list(s.unpack_from(string, offs))
                 offs += s.size
             if not ind == len(sl):
-                offplus, unpplus = get_zstring(string[offset:])
+                offplus, unpplus = get_zstring(string[offs:])
                 offs += offplus
                 unp.append(unpplus)
         return offs, tuple(unp)
     
-def calc_size(fmt, *argv):
+def calcsize(fmt, *argv):
     """
     calculate the size of a format
     @param    fmt: format to use
