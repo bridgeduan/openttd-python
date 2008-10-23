@@ -8,6 +8,7 @@ if not hasattr(sys, "version_info") or sys.version_info < (2,4):
 del sys
 
 import client
+import networking
 import savegame
 from datastorageclass import DataStorageClass
 import date

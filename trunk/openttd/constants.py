@@ -310,3 +310,8 @@ saveload_chunk_types = {
     "CH_PRI_SHL":        4,
     "CH_NUM_PRI_LEVELS": 4,
 }
+
+import struct
+HEADER_FORMAT = "<HB"
+HEADER_SIZE   = struct.calcsize(HEADER_FORMAT)
+del struct

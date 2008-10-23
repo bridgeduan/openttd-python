@@ -12,12 +12,14 @@ import copy
 import traceback
 import StringIO
 from operator import itemgetter
-from struct_zerostrings import *
 import signal
+
 from log import LOG
+from struct_zerostrings import *
 import constants as const
 from datastorageclass import DataStorageClass
 import _error
+import networking
 
 #connection modes
 M_NONE = 0
@@ -80,8 +82,6 @@ class DataPacket:
         return self.send_something('B', [i])
 
 class Client(threading.Thread):
-    header_format = "hb"
-    header_size   = struct.calcsize("hb")
     def __init__(self, ip="", port=0, debugLevel=0, uid=None):
         self.socket_udp = None
         self.socket_tcp = None
@@ -505,13 +505,8 @@ class Client(threading.Thread):
         payload = struct.pack(format_payload, serverversion, playername, playas, netlang, uniqueid)
         
         self.sendMsg_TCP(const.PACKET_CLIENT_JOIN, payload)
-
-    def createPacketHeader(self, command, payload):
-        return struct.pack(self.header_format, self.header_size + len(payload), command)
-    def parsePacketHeader(self, header):
-        return struct.unpack(self.header_format, header[:self.header_size])
     def sendMsg(self, type, command, payload = "", addr=None):
-        header = self.createPacketHeader(command, payload)
+        header = networking.createPacketHeader(command, payload)
         return self.sendRaw(header + payload, type, addr)
     def sendMsg_TCP(self, *args, **kwargs):
         return self.sendMsg(M_TCP, *args, **kwargs)
@@ -533,9 +528,9 @@ class Client(threading.Thread):
             data = self.socket_udp.recv(4096)
             addr = None
         #print data
-        size, command = self.parsePacketHeader(data)
+        size, command = networking.parsePacketHeader(data)
         LOG.debug("received size: %d, command: %d"% (size, command))
-        content = data[self.header_size:]
+        content = data[const.HEADER_SIZE:]
         if datapacket:
             ret = DataPacket(size, command, content)
             ret.addr = addr
@@ -549,22 +544,23 @@ class Client(threading.Thread):
     def receiveMsg_TCP(self, datapacket = False):
         if self.socket_tcp is None:
             raise _error.ConnectionError("no tcp socket for receiving")
+        raw = ""
         note = ""
-        data, readcounter = self.receive_bytes(self.socket_tcp, self.header_size)
+        data, readcounter = self.receive_bytes(self.socket_tcp, const.HEADER_SIZE)
         if readcounter > 1:
             note += "HEADER SEGMENTED INTO %s SEGMENTS!" % readcounter
-        
-        size, command = self.parsePacketHeader(data)
+        raw += data
+        size, command = networking.parsePacketHeader(data)
         if not command in (const.PACKET_SERVER_FRAME, const.PACKET_SERVER_SYNC):
             if command in const.packet_names:
                 LOG.debug("received size: %d, command: %s (%d)"% (size, const.packet_names[command], command))
             else:
                 LOG.debug("received size: %d, command: %d"% (size, command))
-        size -= self.header_size # remove size of the header ...
+        size -= const.HEADER_SIZE # remove size of the header ...
         data, readcounter = self.receive_bytes(self.socket_tcp, size)
         if readcounter > 1:
             note += "DATA SEGMENTED INTO %s SEGMENTS!" % readcounter
-        
+        raw += data
         if not self.running:
             return None
         if len(note) > 0:
@@ -577,12 +573,3 @@ class Client(threading.Thread):
             return size, command, content
         #content = struct.unpack(str(size) + 's', data)
         #content = content[0]
-
-
-    def hash_company_password(self, password, server_unique_id, game_seed):
-        if len(password) == 0:
-            return ""
-        salted_pw = map(ord, password)
-        salted_pw = [0] * (32-len(salted_pw)) + salted_pw # pad with zeros
-        for i in range(0, 32):
-            salted_pw[i] ^= ord(server_unique_id[i]) ^ (game_seed >> i)

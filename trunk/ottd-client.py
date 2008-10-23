@@ -12,6 +12,7 @@ from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
 
 import plugins
+import openttd.networking
 import openttd.constants as const
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
@@ -327,7 +328,7 @@ class SpectatorClient(Client):
             IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_action(self, c, e):
-        if e.target() == self.irc.channel and not irc.source() is None and e.source().find('!') != -1:
+        if e.target() == self.irc.channel and not e.source() is None and e.source().find('!') != -1:
             IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
         elif not e.source() is None:
             # it is a private action
@@ -461,14 +462,9 @@ class SpectatorClient(Client):
                         self.runCond=False
                         self.reconnectCond = False
                 elif type == const.NETWORK_COMPANY_PASSWORD:
-                    #if self.password != '':
-                    #salted_password=""*32
-                    #password="apassword"
-                    #for i in range(1,32):
-                    #    salted_password[i] = int(password[i]) ^ uniqueid[i] ^ (seed >> i)
-                    #    LOG.info(i)
-                    #LOG.info(salted_password)
-                    #else:
+                    #ret = openttd.networking.hash_company_password(self.password, uniqueid, seed)
+                    #payload = packExt('Bz', type, ret)
+                    #self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
                     LOG.info("company is password protected, not supported, exiting!")
                     self.runCond=False
                     self.reconnectCond=False
