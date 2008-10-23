@@ -58,7 +58,7 @@ def getEfmt(fmt):
     @rtype    : tuple
     @returns:   (endianness, struct format)
     """
-    format = "="
+    format = "<"
     if len(fmt) > 0 and fmt[0] in ('@','=','<','>','!'):
         format = fmt[0]
         if len(fmt) > 1:
@@ -133,7 +133,7 @@ def pack(fmt, *argv):
     if not "z" in fmt:
         # normal pack
         s = Struct(e+fmt)
-        return s.size, s.pack(*argv)
+        return s.pack(*argv)
     else:
         sl = fmt.split("z")
         ind = 0

@@ -6,14 +6,13 @@ import StringIO
 import traceback
 import time
 from log import LOG
-from openttd.client import M_TCP, M_UDP, M_BOTH, Client
+from openttd.client import M_TCP, M_UDP, M_BOTH, Client, DataPacket
 from ottd_config import config, LoadConfig 
-from struct_zerostrings import packExt, unpackExt, unpackFromExt
 from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
 
 import plugins
 import openttd.networking
-import openttd.constants as const
+from openttd import structz, const
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
@@ -80,7 +79,7 @@ class SpectatorClient(Client):
                 time.sleep(1)
     
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
-        payload = packExt('bbHz', chattype, desttype, dest, msg)
+        payload = structz.pack('bbHz', chattype, desttype, dest, msg)
         self.sendMsg_TCP(const.PACKET_CLIENT_CHAT, payload)
         
     def sendTCPmsg(self, msg, payload):
@@ -102,7 +101,7 @@ class SpectatorClient(Client):
         text = "test123"
         cbid = 0
         player = self.playas
-        payload = packExt('bIIIIzB', player, command, p1, p2, tile, text, cbid)
+        payload = structz.pack('bIIIIzB', player, command, p1, p2, tile, text, cbid)
         self.sendMsg_TCP(const.PACKET_CLIENT_COMMAND, payload)
         
     def getCompanyString(self, id, withplayers=True):
@@ -262,7 +261,7 @@ class SpectatorClient(Client):
                 self.stopIRC()
                 Broadcast("unloaded IRC", parentclient=self)
             elif command == 'reconnect':
-                payload = packExt('z', "%s (reconnecting)" % config.get("openttd", "quitmessage"))
+                payload = structz.pack('z', "%s (reconnecting)" % config.get("openttd", "quitmessage"))
                 Broadcast("Reconnecting to server", parentclient=self, parent=event)
                 self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
             elif command.startswith("load_plugin ") and len(command) > 12:
@@ -311,7 +310,7 @@ class SpectatorClient(Client):
             self.irc = None
     
     def quit(self):
-        payload = packExt('z', config.get("openttd", "quitmessage"))
+        payload = structz.pack('z', config.get("openttd", "quitmessage"))
         self.reconnectCond = False
         self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
     
@@ -340,7 +339,7 @@ class SpectatorClient(Client):
     def handlePacket(self, command, content):
         self.doCallback("on_receive_packet", [command, content])
         if command == const.PACKET_SERVER_QUIT:
-            [cid, msg], size = unpackExt('Hz', content)
+            cid, msg = structz.unpack('Hz', content)
             if cid == self.client_id:
                 self.runCond = False
                 LOG.info("Quit from server")
@@ -357,14 +356,14 @@ class SpectatorClient(Client):
                         del self.irc.bridges_ingame_irc[name]
         
         elif command == const.PACKET_SERVER_ERROR:
-            [errornum], size = unpackFromExt('B', content, 0)
+            (errornum,) = structz.unpack('B', content)
             self.doCallback("on_self_quit", [errornum])
             if errornum in const.error_names:
                 IngameToIRC("Disconnected from server: %s" % const.error_names[errornum][1], parentclient=self)
             self.runCond = False
         
         elif command == const.PACKET_SERVER_ERROR_QUIT:
-            [cid, errornum], size = unpackExt('HB', content)
+            cid, errornum = structz.unpack('HB', content)
             if cid == self.client_id:
                 self.doingloop = False
                 self.doCallback("on_self_quit", [errornum])
@@ -375,7 +374,7 @@ class SpectatorClient(Client):
                 del self.playerlist[cid]
 
         elif command == const.PACKET_SERVER_CLIENT_INFO:
-            [cid, playas, name], size = unpackExt('HBz', content)
+            cid, playas, name = structz.unpack('HBz', content)
             if cid == self.client_id:
                 self.playername = name
                 self.playas = playas
@@ -387,7 +386,7 @@ class SpectatorClient(Client):
             self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1, 'id': cid}
         
         elif command == const.PACKET_SERVER_JOIN:
-            [playerid], size = unpackFromExt('H', content, 0)
+            (playerid, ) = structz.unpack('H', content)
             if playerid in self.playerlist:
                 if playerid != self.client_id:
                     IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
@@ -420,7 +419,7 @@ class SpectatorClient(Client):
         self.playas = const.PLAYER_SPECTATOR
         language = const.NETLANG_ANY
         network_id =  config.get("openttd", "uniqueid")
-        payload = packExt('zzBBz', cversion, self.playername, self.playas, language, network_id)
+        payload = structz.pack('zzBBz', cversion, self.playername, self.playas, language, network_id)
         #print "buffer size: %d" % payload_size
         self.sendMsg_TCP(const.PACKET_CLIENT_JOIN, payload)
         self.runCond = True
@@ -435,15 +434,13 @@ class SpectatorClient(Client):
                 self.runCond=False
                 self.reconnectCond=False
             if command == const.PACKET_SERVER_CHECK_NEWGRFS:
-                offset = 0
-                [grfcount], size = unpackFromExt('B', content, offset)
-                offset += size
+                p = DataPacket(size, command, content)
+                grfcount = p.recv_uint8()
                 grfs = []
-                if grfcount != 0:
-                    for i in range(0, grfcount):
-                        [grfid, md5sum], size = unpackFromExt('4s16s', content[offset:])
-                        offset += size
-                        grfs.append((grfid, md5sum))
+                for i in range(0, grfcount):
+                    grfid, md5sum = p.recv_something('4s16s')
+                    grfs.append((grfid, md5sum))
+                if grfcount > 0:
                     LOG.debug("installed grfs (%d):" % len(grfs))
                     for grf in grfs:
                         LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].__str__().encode("hex")))
@@ -451,11 +448,11 @@ class SpectatorClient(Client):
                 self.sendMsg_TCP(const.PACKET_CLIENT_NEWGRFS_CHECKED)
                 
             elif command == const.PACKET_SERVER_NEED_PASSWORD:
-                [type,seed,uniqueid], size = unpackExt('BIz', content)
+                type,seed,uniqueid = structz.unpack('BIz', content)
                 if type == const.NETWORK_GAME_PASSWORD:
                     if self.password != '':
                         LOG.info("server is password protected, sending password ...")
-                        payload = packExt('Bz', const.NETWORK_GAME_PASSWORD, self.password)
+                        payload = structz.pack('Bz', const.NETWORK_GAME_PASSWORD, self.password)
                         self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
                     else:
                         LOG.info("server is password protected, but no pass provided, exiting!")
@@ -463,7 +460,7 @@ class SpectatorClient(Client):
                         self.reconnectCond = False
                 elif type == const.NETWORK_COMPANY_PASSWORD:
                     #ret = openttd.networking.hash_company_password(self.password, uniqueid, seed)
-                    #payload = packExt('Bz', type, ret)
+                    #payload = structz.pack('Bz', type, ret)
                     #self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
                     LOG.info("company is password protected, not supported, exiting!")
                     self.runCond=False
@@ -473,7 +470,7 @@ class SpectatorClient(Client):
             elif command == const.PACKET_SERVER_WELCOME:
                 LOG.info("yay, we are on the server :D (getting the map now ...)")
                 
-                [self.client_id, self.generation_seed, self.servernetworkid], size = unpackExt('HIz', content)
+                self.client_id, self.generation_seed, self.servernetworkid = structz.unpack('HIz', content)
                 
                 self.socket_tcp.settimeout(600000000)
                 
@@ -490,23 +487,19 @@ class SpectatorClient(Client):
                     self.handlePacket(command, content)
                     
                     if command == const.PACKET_SERVER_WAIT:
-                        [num], res = unpackFromExt('B', content)
+                        (num,) = structz.unpack('B', content)
                         Broadcast("Waiting for map download...%d in line" % num, parentclient=self)
                     
                     if command == const.PACKET_SERVER_MAP:
                         offset = 0
-                        [command2], size2 = unpackFromExt('B', content[offset:])
+                        size2, (command2,) = structz.unpack_from('B', content, offset)
                         offset += size2
                         
                         if command2 == const.MAP_PACKET_START:
                             LOG.info("start downloading map!")
-                            [framecounter], size2 = unpackFromExt('I', content[offset:])
-                            offset += size2
-                            
-                            [position], size2 = unpackFromExt('I', content[offset:])
-                            offset += size2
+                            size, (framecounter, position) = structz.unpack_from('II', content, offset)
                         elif command2 == const.MAP_PACKET_NORMAL:
-                            mapsize_done += size
+                            mapsize_done += size - offset
                             if not maptmp is None:
                                 maptmp.write(content[offset:])
                             if int(mapsize_done / 1024) % 100 == 0:
@@ -541,20 +534,20 @@ class SpectatorClient(Client):
                     self.handlePacket(command, content)
                     if command == const.PACKET_SERVER_FRAME:
                         old_framecounter = self.frame_server
-                        [self.frame_server, self.frame_max], size = unpackFromExt('II', content)
+                        size, (self.frame_server, self.frame_max) = structz.unpack_from('II', content)
                         #if self.debug:
                         #    print "got frame %d, %d" % (frame_server, frame_max)
                         frameCounter += (self.frame_server - old_framecounter)
                         self.doCallback("on_frame", [self.frame_server])
                         
                     if frameCounter >= 74:
-                        payload = packExt('I', self.frame_server)
+                        payload = structz.pack('I', self.frame_server)
                         #print "sending ACK"
                         self.sendMsg_TCP(const.PACKET_CLIENT_ACK, payload)
                         frameCounter=0
                     
                     if command == const.PACKET_SERVER_COMMAND:
-                        [player, command2, p1, p2, tile, text, callback, frame, my_cmd], size = unpackFromExt('BIIIIzBIB', content)
+                        size, (player, command2, p1, p2, tile, text, callback, frame, my_cmd) = structz.unpack_from('BIIIIzBIB', content)
 
                         commandid = command2 & 0xff
                         #print commandid
@@ -583,7 +576,7 @@ class SpectatorClient(Client):
                         """
     
                     if command == const.PACKET_SERVER_CHAT:
-                        [actionid, playerid, self_sent, msg], size = unpackExt('bHbz', content)
+                        actionid, playerid, self_sent, msg = structz.unpack('bHbz', content)
                         self_sent = (playerid == self.client_id) or self_sent
                         if playerid in self.playerlist:
                             if not self_sent:
