@@ -1,7 +1,7 @@
 #!/bin/env python
 # reading openttd .sav files with python
 # made by yorickvanpelt {AT} gmail {DOT} com
-import struct
+import structz
 from constants import saveload_chunk_types
 import array
 
@@ -27,14 +27,9 @@ class CDataPacket:
         @rtype:      list
         @returns:    list with unpacked stuff
         """
-        try:
-            s = struct.Struct(type)
-            size = s.size
-            ret = s.unpack(self.data[self.offset:self.offset+size])
-        except AttributeError:
-            size = struct.calcsize(type)
-            ret = struct.unpack(type, self.data[self.offset:self.offset+size])
-        self.offset += size
+        s = structz.Struct(type)
+        ret = s.unpack_from(self.data, self.offset)
+        self.offset += s.size
         return ret
     def write_something(self, type, something):
         """
@@ -44,15 +39,9 @@ class CDataPacket:
         @param something: list with stuff to be packed
         @type  something: list
         """
-        try:
-            s = struct.Struct(type)
-            buf = s.pack(*something)
-            size = s.size
-        except AttributeError:
-            buf = struct.pack(type, *something)
-            size = len(buf)
-        self.size += size
-        self.data += buf
+        s = structz.Struct(type)
+        self.data += s.pack(*something)
+        self.size += s.size
     def read_str(self, len):
         return self.read_something(str(len)+'s')[0]
     def read_uint8(self):
@@ -120,7 +109,7 @@ class CDataPacket:
         return i
     def read_array(self, format, number):
         a = array.array(format)
-        end_offs = self.offset + struct.calcsize(format) * number
+        end_offs = self.offset + structz.calcsize(format) * number
         a.fromstring(self.data[self.offset:end_offs])
         self.offset = end_offs
         return a.tolist()
