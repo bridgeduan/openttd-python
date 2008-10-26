@@ -130,16 +130,21 @@ class SpectatorClient(Client):
 
     def processCommand(self, event):
         LOG.debug("processing command '%s'" % event.msg)
+        command_prefix = config.get("main", "commandprefix")
         if not event.isCommand():
             return
-        if not event.msg.startswith('!'):
+        if not event.msg.startswith(command_prefix):
             command = event.msg
         else:
-            command = event.msg[1:]
+            command = event.msg[len(command_prefix):]
+        if len(command) < 1:
+            return
+        argv = command.split()
+        
         if config.has_option('irccommands', command):
             rawcommand = config.get('irccommands', command)
             if not len(rawcommand) > 0:
-                return       
+                return
             interpolation = {
                 "frame": self.frame_server,
                 "time": time.ctime().__str__(),
@@ -169,11 +174,11 @@ class SpectatorClient(Client):
             for clientid in self.playerlist.keys():
                 eventstr = "Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company']))
                 event.respond(eventstr)
-        elif command.startswith('setupbridge') and not self.irc is None:
-            arg = command[12:]
-            if len(arg)<1:
+        elif argv[0] == "setupbridge" and not self.irc is None:
+            if len(argv) != 2:
                 event.respond("Usage: !setupbridge <name>")
             else:
+                arg = argv[1]
                 if event.isFromIRC():
                     if arg in self.irc.bridges_ingame_irc:
                         event.respond("User already has a bridge")
@@ -201,7 +206,7 @@ class SpectatorClient(Client):
                     self.irc.bridges_ingame_irc[event.playername.split('!')[0]] = arg
                     self.irc.say_nick(arg, "Set up a chatbridge from you to %s" % event.playername, 0)
                     event.respond("Set up bridge to %s" % arg)
-        elif command.startswith('removebridge') and not self.irc is None:
+        elif argv[0] == "removebridge" and not self.irc is None:
             if event.isFromIRC():
                 if event.playername in self.irc.bridges_irc_ingame:
                     otherend = self.findPlayerByNick(self.irc.bridges_irc_ingame[event.playername])
@@ -221,16 +226,15 @@ class SpectatorClient(Client):
                     event.respond("Removed bridge")
                 else:
                     event.respond("You currently don't have any bridge to IRC")
-        elif command.startswith('notice') and not self.irc is None:
-            arg = command[7:]
-            if len(arg)<1:
-                event.respond("Usage: !notice <name> <msg>")
+        elif argv[0] == 'notice' and not self.irc is None:
+            if len(argv) != 3:
+                event.respond('Usage: notice <name> <msg>')
             else:
                 try:
-                    name = arg.split(' ')[0]
-                    msg = arg[len(name) + 1:]
+                    name = argv[1]
+                    msg = command[len(argv[0]) + len(argv[1]) + 2:]
                 except:
-                    event.respond("Usage: !notice <name> <msg>")
+                    event.respond("Usage: notice <name> <msg>")
                     return
                 if event.isFromIRC():
                     client = self.findPlayerByNick(name) 
@@ -266,8 +270,8 @@ class SpectatorClient(Client):
                 self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
             elif command.startswith("load_plugin ") and len(command) > 12:
                 arg = command[12:]
-                plugins.load_plugin(arg)
-                plugins.initialize_plugins(parent=self, module=arg)
+                plugins.load_plugin(arg, obj=self.plugins['modules'])
+                plugins.initialize_plugins(self, module=arg, obj=self.plugins['instances'])
 
         # cases not using if/elif
         if command.startswith("lastactive") and len(command) >11:
