@@ -8,21 +8,25 @@ import log
 INSTANCES = {}
 MODULES = {}
 
-def load_plugin(plugin):
+def load_plugin(plugin, obj=None):
     """
     Load a plugin
     @type  plugin: string
     @param plugin: plugin to import
     """
+    if not obj is None:
+        modarray = obj
+    else:
+        modarray = MODULES
     try:
-        if not plugin in MODULES:
-            MODULES[plugin] = __import__(plugin, globals(), None, [''])
+        if not plugin in modarray:
+            modarray[plugin] = __import__(plugin, globals(), None, [''])
     except Exception, e:
         LOG.error('error in plugin %s: %s' % (plugin, str(e)))
         errorMsg = StringIO.StringIO()
         traceback.print_exc(file=errorMsg)
         LOG.debug(errorMsg.getvalue())
-def initialize_plugin(plugin, parent):
+def initialize_plugin(plugin, parent, obj=None):
     """
     Initialize a plugin
 
@@ -32,10 +36,14 @@ def initialize_plugin(plugin, parent):
     @type  parent: SpectatorClient instance
     @param parent: the parent to pass to the plugin
     """
-    if not plugin in INSTANCES:
-        INSTANCES[plugin] = plugin(parent) 
+    if not obj is None:
+        instancearray = obj
+    else:
+        instancearray = INSTANCES
+    if not plugin in instancearray:
+        instancearray[plugin] = plugin(parent) 
 
-def initialize_plugins(parent=None, module=None):
+def initialize_plugins(parent=None, module=None, obj=None):
     """
     Initialize all plugins
 
@@ -47,8 +55,8 @@ def initialize_plugins(parent=None, module=None):
     """
     for plugin in pluginclass.Plugin.__subclasses__():
         if module is None or plugin.__module__ == "plugins." + str(module):
-            initialize_plugin(plugin, parent)
-def load_plugins():
+            initialize_plugin(plugin, parent, obj)
+def load_plugins(obj=None):
     """
     Load all plugins found in the plugins directory
 
@@ -59,7 +67,7 @@ def load_plugins():
         if plugin.endswith(".py"):
             plugin = plugin[:-3]
             if not plugin in ["__init__", "pluginclass"]:
-                load_plugin(plugin)
+                load_plugin(plugin, obj)
 def main():
     load_plugins()
     initialize_plugins()

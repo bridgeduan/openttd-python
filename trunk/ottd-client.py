@@ -23,36 +23,36 @@ class SpectatorClient(Client):
     irc_server = config.get("irc", "server")
     irc_server_port = config.getint("irc", "serverport")
     irc_channel = config.get("irc", "channel")
-    playerlist = {}
-    webserver = None        
     version = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
-    callbacks = {
-        "on_map_done": [],
-        "on_user_join": [],
-        "on_user_disconnect": [],
-        "on_user_quit": [],
-        "on_self_join": [],
-        "on_self_quit": [],
-        "on_server_newmap": [],
-        "on_server_shutdown": [],
-        "on_irc_user_join": [],
-        "on_irc_user_quit": [],
-        "on_irc_user_part": [],
-        "on_irc_joined": [],
-        "on_irc_kicked": [],
-        "on_receive_command": [],
-        "on_receive_packet": [],
-        "on_frame": [],
-        "on_mainloop": []
-    }
-    commands = {}
     def __init__(self, ip, port, debugLevel, password):
         Client.__init__(self, ip, port, debugLevel)
         self.password = password
         self.reconnectCond = True
-        
-        plugins.load_plugins()
-        plugins.initialize_plugins(self)
+        self.playerlist = {}
+        self.callbacks = {
+            "on_map_done": [],
+            "on_user_join": [],
+            "on_user_disconnect": [],
+            "on_user_quit": [],
+            "on_self_join": [],
+            "on_self_quit": [],
+            "on_server_newmap": [],
+            "on_server_shutdown": [],
+            "on_irc_user_join": [],
+            "on_irc_user_quit": [],
+            "on_irc_user_part": [],
+            "on_irc_joined": [],
+            "on_irc_kicked": [],
+            "on_receive_command": [],
+            "on_receive_packet": [],
+            "on_frame": [],
+            "on_mainloop": []
+        }
+        self.commands = {}
+
+        self.plugins = {'modules': {}, 'instances': {}}
+        plugins.load_plugins(self.plugins['modules'])
+        plugins.initialize_plugins(self, self.plugins['instances'])
     # this class implements the thread start method
     def run(self):
         # endless loop
@@ -344,17 +344,18 @@ class SpectatorClient(Client):
                 self.runCond = False
                 LOG.info("Quit from server")
                 self.doCallback("on_self_quit", [-1, msg])
+
             else:
                 if cid in self.playerlist:
                     IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
-                    name = self.playerlist[cid]['name']
-                    del self.playerlist[cid]
-                    self.doCallback("on_user_quit", [name, msg])
-                    if not self.irc is None and name in self.irc.bridges_ingame_irc:
-                        # remove chatbridge
-                        del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
-                        del self.irc.bridges_ingame_irc[name]
-        
+                    self.doCallback("on_user_quit", [self.playerlist[cid]['name'], msg])
+            if cid in self.playerlist:
+                name = self.playerlist[cid]['name']
+                del self.playerlist[cid]
+                if not self.irc is None and name in self.irc.bridges_ingame_irc:
+                    # remove chatbridge
+                    del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
+                    del self.irc.bridges_ingame_irc[name]
         elif command == const.PACKET_SERVER_ERROR:
             (errornum,) = structz.unpack('B', content)
             self.doCallback("on_self_quit", [errornum])
