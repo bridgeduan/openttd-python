@@ -70,6 +70,8 @@ class OTTDIRCBot(SingleServerIRCBot):
         if self.runCond:
             self.connection.execute_delayed(self.reconnection_interval,
                                             self._connected_checker)
+        if hasattr(self, "disconnect_event"):
+            self.disconnect_event.set()
         
     def get_version(self):
         return "openttd-python client %s (http://openttd-python.googlecode.com)" % self.parentclient.version
@@ -94,7 +96,9 @@ class IRCBotThread(threading.Thread):
     def stop(self, msg="The ottdbot flies away!"):
         self.bot.runCond = False
         self.bot.ircobj.runCond = False
-        self.bot.die(msg)
+        self.bot.disconnect_event = threading.Event()
+        self.bot.disconnect(msg)
+        self.bot.disconnect_event.wait()
         
     def getSaid(self):
         if self.bot:

@@ -348,6 +348,8 @@ class SpectatorClient(Client):
                 self.runCond = False
                 LOG.info("Quit from server")
                 self.doCallback("on_self_quit", [-1, msg])
+                if not self.reconnectCond:
+                    self.stopIRC()
 
             else:
                 if cid in self.playerlist:
