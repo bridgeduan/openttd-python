@@ -5,6 +5,7 @@ import StringIO
 import traceback
 import sys
 import log
+from log import LOG
 INSTANCES = {}
 MODULES = {}
 
