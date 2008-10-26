@@ -4,6 +4,7 @@
 import structz
 from constants import saveload_chunk_types
 import array
+import sys
 
 class LoadException(Exception):
     """
@@ -111,6 +112,7 @@ class CDataPacket:
         a = array.array(format)
         end_offs = self.offset + structz.calcsize(format) * number
         a.fromstring(self.data[self.offset:end_offs])
+        if sys.byteorder != 'big': a.byteswap()
         self.offset = end_offs
         return a.tolist()
 
