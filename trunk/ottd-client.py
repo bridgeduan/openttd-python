@@ -52,7 +52,7 @@ class SpectatorClient(Client):
 
         self.plugins = {'modules': {}, 'instances': {}}
         plugins.load_plugins(self.plugins['modules'])
-        plugins.initialize_plugins(self, self.plugins['instances'])
+        plugins.initialize_plugins(self, obj=self.plugins['instances'])
     # this class implements the thread start method
     def run(self):
         # endless loop
@@ -348,8 +348,6 @@ class SpectatorClient(Client):
                 self.runCond = False
                 LOG.info("Quit from server")
                 self.doCallback("on_self_quit", [-1, msg])
-                if not self.reconnectCond:
-                    self.stopIRC()
 
             else:
                 if cid in self.playerlist:
@@ -595,6 +593,8 @@ class SpectatorClient(Client):
                                     IngameChat(msg, playerid, type="private", parentclient=self)
                         #LOG.debug(res.__str__())
                     self.doCallback("on_mainloop")
+                if not self.reconnectCond:
+                    self.stopIRC()
     def cleanup(self):
         self.disconnect()
         self.playerlist = {}
