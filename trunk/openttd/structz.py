@@ -118,7 +118,7 @@ def unpack(fmt, str):
                 offs += offplus
                 unp.append(unpplus)
         if not offs is len(str):
-            raise Exception("unpack requires string that matches format size, try to use unpack_from")
+            raise Exception("unpack requires string that matches format size, try to use unpack_from, (fmt: %s, str: %s" % (fmt, str.encode('hex')))
         return tuple(unp)
 def pack(fmt, *argv):
     """
