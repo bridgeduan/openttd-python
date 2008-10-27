@@ -70,17 +70,23 @@ class SpectatorClient(Client):
             except Exception, e:
                 self.cleanup()
                 LOG.error('main loop error: '+str(e))
-                errorMsg = StringIO.StringIO()
-                traceback.print_exc(file=errorMsg)
-                LOG.debug(errorMsg.getvalue())
+                LOG.error(self.get_traceback())
             
             if self.reconnectCond:
                 # sleep a second
                 time.sleep(1)
+    def get_traceback(self):
+        errorMsg = StringIO.StringIO()
+        traceback.print_exc(file=errorMsg)
+        return errorMsg.getvalue()
     
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
         payload = structz.pack('bbHz', chattype, desttype, dest, msg)
-        self.sendMsg_TCP(const.PACKET_CLIENT_CHAT, payload)
+        try:
+            self.sendMsg_TCP(const.PACKET_CLIENT_CHAT, payload)
+        except Exception, e:
+            LOG.error("error while sending chat: %s" % e)
+            LOG.error(self.get_traceback())
         
     def sendTCPmsg(self, msg, payload):
         self.sendMsg_TCP(msg, payload)
