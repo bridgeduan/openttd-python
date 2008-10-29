@@ -58,7 +58,7 @@ class ClientGameInfo(Client):
             else:
                 SERVERS[self.ip + ":%d" % self.port] = ", ".join(self.errors)
             self.disconnect()
-        except socket.timeout:
+        except (socket.timeout, UnicodeDecodeError), e:
             pass
 
 def savestatstofile(filename="serverstats.bin", servers=[]):
@@ -139,7 +139,6 @@ def main():
     myottdservers = 0
     newgrf_servers = 0
     newgrf_clients = 0
-    
     for k in SERVERS.keys():
         if type(SERVERS[k]) == type(""):
             servererr+=1
@@ -149,7 +148,7 @@ def main():
         if not SERVERS[k] is None:
             server = SERVERS[k]
             #if VERBOSE:
-            #    print "%3d: %s"%(k,server.__str__())
+            #    print "%s: %s"%(k,server.getDict().__str__())
             for i in ["server_count","game_date","start_date","companies_max","companies_on","spectators_max","use_password","clients_max","clients_on","spectators_on","dedicated"]:
                 if not i in counters.keys():
                     counters[i] = 0
