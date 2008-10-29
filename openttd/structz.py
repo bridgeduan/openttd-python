@@ -73,8 +73,8 @@ def get_zstring(str):
     @returns:   size, string
     """
     pos = str.find("\x00")
-    slice = str[:pos].decode()
-    size = len(slice) + 1
+    slice = str[:pos].decode('utf8')
+    size = len(str[:pos]) + 1
     return size, slice
 def mak_zstring(str):
     """
@@ -84,7 +84,7 @@ def mak_zstring(str):
     @rtype:     string
     @returns:   zero-terminated string
     """
-    return str.encode()+"\x00"
+    return str.encode('utf8')+"\x00"
     
 def unpack(fmt, str):
     """

@@ -438,9 +438,9 @@ class Client(threading.Thread):
             info.clients_on      = p.recv_uint8()
             info.spectators_on   = p.recv_uint8()
             if info.game_info_version < 3: # 16-bit dates were removed from version 3
-                info.game_date  = p.recv_uint16() + DAYS_TILL_ORIGINAL_BASE_YEAR
+                info.game_date  = p.recv_uint16() + const.DAYS_TILL_ORIGINAL_BASE_YEAR
                 if not short:
-                    info.start_date = p.recv_uint16() + DAYS_TILL_ORIGINAL_BASE_YEAR
+                    info.start_date = p.recv_uint16() + const.DAYS_TILL_ORIGINAL_BASE_YEAR
                 else:
                     p.recv_uint16()
             if not short:
