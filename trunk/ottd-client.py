@@ -326,22 +326,26 @@ class SpectatorClient(Client):
     
     def on_irc_pubmsg(self, c, e):
         if not e.source() is None and e.source().find('!') != -1:
-            IRCPublicChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+            msg = e.arguments()[0].decode('latin-1')
+            IRCPublicChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_privmsg(self, c, e):
         if not e.source() is None and e.source().find('!') != -1:
-            IRCPrivateChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+            msg = e.arguments()[0].decode('latin-1')
+            IRCPrivateChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_notice(self, c, e):
         if not e.source() is None and e.source().find('!') != -1:
-            IRCPrivateNoticeChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+            msg = e.arguments()[0].decode('latin-1')
+            IRCPrivateNoticeChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
 
     def on_irc_action(self, c, e):
+        msg = e.arguments()[0].decode('latin-1')
         if e.target() == self.irc.channel and not e.source() is None and e.source().find('!') != -1:
-            IRCPublicActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+            IRCPublicActionChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
         elif not e.source() is None:
             # it is a private action
-            IRCPrivateActionChat(e.arguments()[0], e.source().split('!')[0], parentclient=self, parentircevent=e)
+            IRCPrivateActionChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
     
     def on_irc_internal(self, msg):
         IRCToIngame(msg, parentclient=self)
