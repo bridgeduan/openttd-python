@@ -8,13 +8,13 @@ import time
 from log import LOG
 from openttd.client import M_TCP, M_UDP, M_BOTH, Client, DataPacket
 from ottd_config import config, LoadConfig 
-from ottd_client_event import IngameChat, IRCPublicChat, IRCPrivateChat, IRCPrivateNoticeChat, Broadcast, IngameToIRC, InternalCommand, IRCPublicActionChat, IRCPrivateActionChat, IRCToIngame
-
-import plugins
 import openttd.networking
 from openttd import structz, const
+from ottd_client_event import IngameChat, Broadcast, IngameToIRC, InternalCommand, IRCToIngame
 
+import plugins
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+
 
 SVNREVISION = "$Rev$"
 
@@ -323,32 +323,6 @@ class SpectatorClient(Client):
         payload = structz.pack('z', config.get("openttd", "quitmessage"))
         self.reconnectCond = False
         self.sendMsg_TCP(const.PACKET_CLIENT_QUIT, payload)
-    
-    def on_irc_pubmsg(self, c, e):
-        if not e.source() is None and e.source().find('!') != -1:
-            msg = e.arguments()[0].decode('latin-1')
-            IRCPublicChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
-
-    def on_irc_privmsg(self, c, e):
-        if not e.source() is None and e.source().find('!') != -1:
-            msg = e.arguments()[0].decode('latin-1')
-            IRCPrivateChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
-    
-    def on_irc_notice(self, c, e):
-        if not e.source() is None and e.source().find('!') != -1:
-            msg = e.arguments()[0].decode('latin-1')
-            IRCPrivateNoticeChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
-
-    def on_irc_action(self, c, e):
-        msg = e.arguments()[0].decode('latin-1')
-        if e.target() == self.irc.channel and not e.source() is None and e.source().find('!') != -1:
-            IRCPublicActionChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
-        elif not e.source() is None:
-            # it is a private action
-            IRCPrivateActionChat(msg, e.source().split('!')[0], parentclient=self, parentircevent=e)
-    
-    def on_irc_internal(self, msg):
-        IRCToIngame(msg, parentclient=self)
         
     def handlePacket(self, command, content):
         self.doCallback("on_receive_packet", [command, content])

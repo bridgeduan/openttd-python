@@ -1,8 +1,11 @@
-import socket, time, threading, copy
+import socket, time, threading, copy, sys, os.path
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from ircbot import SingleServerIRCBot, IRCDict
-from irclib import nm_to_n, nm_to_h, irc_lower, ip_numstr_to_quad, ip_quad_to_numstr, IRC
+from irclib import nm_to_n, nm_to_h, irc_lower, ip_numstr_to_quad, ip_quad_to_numstr, IRC, is_channel
 from log import *
 from ottd_config import *
+import ottd_client_event as evt
+from ottd_client_event import IRCChat, IRCToIngame
 
 class OTTDIRCBot(SingleServerIRCBot):
     runCond = True
@@ -17,24 +20,26 @@ class OTTDIRCBot(SingleServerIRCBot):
 
     def on_welcome(self, c, e):
         c.join(self.channel)
-        self.parentclient.on_irc_internal("IRC bridge running")
+        IRCToIngame("IRC bridge running", parentclient=self.parentclient)
         self.parentclient.doCallback("on_irc_joined")
 
     def on_privmsg(self, c, e):
-        self.parentclient.on_irc_privmsg(c, e)
+        IRCChat(c, e, self.parentclient)
     def on_privnotice(self, c, e):
-        self.parentclient.on_irc_notice(c, e)
+        IRCChat(c, e, self.parentclient)
 
     def on_action(self, c, e):
-        self.parentclient.on_irc_action(c, e)
+        IRCChat(c, e, self.parentclient)
 
     def on_pubmsg(self, c, e):
-        self.parentclient.on_irc_pubmsg(c, e)
+        if not e.source() is None and e.source().find('!') != -1:
+            IRCChat(c, e, self.parentclient)
         
     def on_kick(self, c, e):
-        self.parentclient.on_irc_internal("we got kicked from the channel, trying to rejoin")
-        self.parentclient.doCallback("on_irc_kicked")
-        c.join(self.channel)
+        if e.arguments()[0] == c.get_nickname():
+            IRCToIngame("kicked from channel", parentclient=self.parentclient)
+            self.parentclient.doCallback("on_irc_kicked")
+            c.join(self.channel)
     def on_join(self, c, e):
         self.parentclient.doCallback("on_irc_user_join", [c, e])
     def on_part(self, c, e):
