@@ -43,7 +43,6 @@ class OTTDIRCBot(SingleServerIRCBot):
     def on_join(self, c, e):
         self.parentclient.doCallback("on_irc_user_join", [c, e])
     def on_part(self, c, e):
-        print e.source(), e.target()
         self.parentclient.doCallback("on_irc_user_part", [c, e])
     def on_quit(self, c, e):
         self.parentclient.doCallback("on_irc_user_quit", [c, e])
