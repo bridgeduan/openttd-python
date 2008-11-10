@@ -111,23 +111,22 @@ class SpectatorClient(Client):
         self.sendMsg_TCP(const.PACKET_CLIENT_COMMAND, payload)
         
     def getCompanyString(self, id, withplayers=True):
-        if withplayers:
-            players = []
-            for clientid2 in self.playerlist.keys():
-                if self.playerlist[clientid2]['company'] == id:
-                    players.append(self.playerlist[clientid2]['name'])
         if id == const.PLAYER_SPECTATOR:
             companystring = "spectators"
         else:
             companystring = "company %d" % (id+1)
-        if withplayers:
-            if len(players) < 4:
-                return "%s (%s)" % (companystring, (", ".join(players)))
-            else:
-                return "%s (%d players)" % (companystring, len(players))
+        if not withplayers: return companystring
+        
+        players = []
+        for client in self.playerlist:
+            cl = self.playerlist[clientid]
+            if cl['company'] == id:
+                players.append(cl['name'])
+        if len(players) < 4:
+            return companystring + " (" + ", ".join(players) + ")"
         else:
-            return companystring
-            
+            return companystring + " (%d players)" % (len(players))
+        
     def doCallback(self, callback, arguments=[]):
         if callback in self.callbacks:
             for callback in self.callbacks[callback]:
@@ -180,58 +179,6 @@ class SpectatorClient(Client):
             for clientid in self.playerlist.keys():
                 eventstr = "Client #%d: %s, playing in %s" % (clientid, self.playerlist[clientid]['name'], self.getCompanyString(self.playerlist[clientid]['company']))
                 event.respond(eventstr)
-        elif argv[0] == "setupbridge" and not self.irc is None:
-            if len(argv) != 2:
-                event.respond("Usage: !setupbridge <name>")
-            else:
-                arg = argv[1]
-                if event.isFromIRC():
-                    if arg in self.irc.bridges_ingame_irc:
-                        event.respond("User already has a bridge")
-                        return
-                    if event.playername in self.irc.bridges_irc_ingame:
-                        event.respond("You already have a bridge")
-                    target = self.findPlayerByNick(arg)
-                    if target is None:
-                        event.respond("Unknown user (case sensitive!)")
-                        return
-                    self.irc.bridges_ingame_irc[arg] = event.playername
-                    self.irc.bridges_irc_ingame[event.playername] = arg
-                    event.respond("Set up bridge to %s" % arg)
-                    self.sendChat("Set up a chatbridge from you to %s" % event.playername, desttype=const.DESTTYPE_CLIENT, dest=target['id'], chattype=const.NETWORK_ACTION_CHAT_CLIENT)
-                else:
-                    if arg in self.irc.bridges_irc_ingame:
-                        event.respond("User already has a bridge")
-                        return
-                    if event.playername in self.irc.bridges_ingame_irc:
-                        event.respond("You already have a bridge")
-                    if not self.irc.bot.channels[self.irc.channel].has_user(arg):
-                        event.respond("Unknown user (case sensitive!)")
-                        return
-                    self.irc.bridges_irc_ingame[arg] = event.playername.split('!')[0]
-                    self.irc.bridges_ingame_irc[event.playername.split('!')[0]] = arg
-                    self.irc.say_nick(arg, "Set up a chatbridge from you to %s" % event.playername, 0)
-                    event.respond("Set up bridge to %s" % arg)
-        elif argv[0] == "removebridge" and not self.irc is None:
-            if event.isFromIRC():
-                if event.playername in self.irc.bridges_irc_ingame:
-                    otherend = self.findPlayerByNick(self.irc.bridges_irc_ingame[event.playername])
-                    if not otherend is None:
-                        self.sendChat("Removed chatbridge", desttype=const.DESTTYPE_CLIENT, dest=otherend['id'], chattype=const.NETWORK_ACTION_CHAT_CLIENT)
-                    del self.irc.bridges_ingame_irc[self.irc.bridges_irc_ingame[event.playername]]
-                    del self.irc.bridges_irc_ingame[event.playername]
-                    event.respond("Removed bridge")
-                else:
-                    event.respond("You currently don't have any bridge to ingame")
-            else:
-                if event.playername in self.irc.bridges_ingame_irc:
-                    if self.irc.bot.channels[self.irc.channel].has_user(self.irc.bridges_ingame_irc[event.playername]):
-                        self.irc.say_nick(self.irc.bridges_ingame_irc[event.playername], "removed chatbridge", 0)
-                    del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[event.playername]]
-                    del self.irc.bridges_ingame_irc[event.playername]
-                    event.respond("Removed bridge")
-                else:
-                    event.respond("You currently don't have any bridge to IRC")
         elif argv[0] == 'notice' and not self.irc is None:
             if len(argv) != 3:
                 event.respond('Usage: notice <name> <msg>')
@@ -340,10 +287,6 @@ class SpectatorClient(Client):
             if cid in self.playerlist:
                 name = self.playerlist[cid]['name']
                 del self.playerlist[cid]
-                if not self.irc is None and name in self.irc.bridges_ingame_irc:
-                    # remove chatbridge
-                    del self.irc.bridges_irc_ingame[self.irc.bridges_ingame_irc[name]]
-                    del self.irc.bridges_ingame_irc[name]
         elif command == const.PACKET_SERVER_ERROR:
             (errornum,) = structz.unpack('B', content)
             self.doCallback("on_self_quit", [errornum])

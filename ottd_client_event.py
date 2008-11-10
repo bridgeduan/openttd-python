@@ -164,11 +164,6 @@ class IngameChat(Event):
             self.parentclient.irc.say("<%s> %s" % (self.playername, self.msg), 0)   
         elif self.type == "team":
             self.parentclient.irc.say("[company: %d]<%s> %s" % (self.playercompany,self.playername, self.msg), 0)
-        elif self.type == "private":
-            if self.playername in self.parentclient.irc.bridges_ingame_irc:
-                self.parentclient.irc.say_nick(self.parentclient.irc.bridges_ingame_irc[self.playername], "[bridge] <%s> %s" % (self.playername, self.msg), 0)
-            else:
-                self.parentclient.irc.say("[private]<%s> %s" % (self.playername, self.msg), 0)
         return True
     def isByOp(self):
         """
@@ -252,6 +247,7 @@ class IRCChat(Event, object):
     playername = property(fget=_getNick)
     channel = property(fget=_getChannel)
     private = property(fget=_isPrivate)
+    notice = property(fget=_isNotice)
     def isCommand(self):
         return self.msg.startswith(config.get("main", "commandprefix")) and not self._isAction()
     def sendToGame(self):
@@ -259,12 +255,6 @@ class IRCChat(Event, object):
         if not self.private:
             self.parentclient.sendChat(self.__str__())
             return True
-        elif not self._isNotice() and self.playername in self.parentclient.irc.bridges_irc_ingame:
-            target = self.parentclient.irc.bridges_irc_ingame[self.playername]
-            target = self.parentclient.findPlayerByNick(target)
-            if target is None: return
-            target['id']
-            self.parentclient.sendChat("[bridge] " + self.__str__(), const.DESTTYPE_CLIENT, target['id'], const.NETWORK_ACTION_CHAT_CLIENT)
     def sendToLog(self):
         if self.private:
             prefix = "IRC private chat: "

@@ -43,6 +43,7 @@ class OTTDIRCBot(SingleServerIRCBot):
     def on_join(self, c, e):
         self.parentclient.doCallback("on_irc_user_join", [c, e])
     def on_part(self, c, e):
+        print e.source(), e.target()
         self.parentclient.doCallback("on_irc_user_part", [c, e])
     def on_quit(self, c, e):
         self.parentclient.doCallback("on_irc_user_quit", [c, e])
@@ -93,8 +94,6 @@ class IRCBotThread(threading.Thread):
         self.port=port
         self.bot=None
         self.parentclient = parentclient
-        self.bridges_irc_ingame = {}
-        self.bridges_ingame_irc = {}
         threading.Thread.__init__(self)
         
     def run(self):
