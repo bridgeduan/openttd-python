@@ -372,7 +372,7 @@ class SpectatorClient(Client):
                     IngameToIRC("%s changed nick to %s" % (self.playerlist[cid]['name'], name), parentclient=self)
                 if playas != self.playerlist[cid]['company']:
                     if (playas == 255):
-                        IngameToIRC("%s has gone bankrupt!" % (self.playerlist[cid]['name']), parentclient=self)
+                        IngameToIRC("%s joined spectators." % (self.playerlist[cid]['name']), parentclient=self)
                     else:
                         IngameToIRC("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), parentclient=self)
             self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1, 'id': cid}
