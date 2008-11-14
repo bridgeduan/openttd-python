@@ -261,7 +261,7 @@ class SpectatorClient(Client):
     def stopIRC(self):
         if not self.irc is None:
             try:
-                self.irc.stop()
+                self.irc.stop(config.get("irc", "quitmessage"))
             except SystemExit:
                 pass
             self.irc = None

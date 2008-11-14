@@ -106,10 +106,6 @@ class IRCBotThread(threading.Thread):
         self.bot.disconnect(msg)
         self.bot.disconnect_event.wait()
         
-    def getSaid(self):
-        if self.bot:
-            return self.bot.getSaid()
-        
     def say(self, msg, type):
         if self.bot:
             return self.bot.say(msg, type)
