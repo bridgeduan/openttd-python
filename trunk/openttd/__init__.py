@@ -11,6 +11,7 @@ import client
 import networking
 import savegame
 from datastorageclass import DataStorageClass
+from packet import DataPacket
 import date
 import grfdb
 import structz

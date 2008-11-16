@@ -6,7 +6,8 @@ import StringIO
 import traceback
 import time
 from log import LOG
-from openttd.client import M_TCP, M_UDP, M_BOTH, Client, DataPacket
+from openttd.client import M_TCP, M_UDP, M_BOTH, Client
+from openttd.packet import DataPacket
 from ottd_config import config, LoadConfig 
 import openttd.networking
 from openttd.datastorageclass import DataStorageClass
