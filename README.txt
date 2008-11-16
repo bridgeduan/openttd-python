@@ -97,7 +97,7 @@ on_irc_user_quit    Called when someone leaves the IRC channel,  arguments: IRC 
 on_irc_user_part    Called when someone disconnects from IRC,    arguments: IRC connection object, IRC event, see ircbot.py for more info
 on_irc_joined       Called when the welcome-msg is received,  no arguments
 on_irc_kicked       Called when the bot is kicked,            no arguments
-on_receive_command  Called when a command is received,           arguments: player, command2, p1, p2, tile, text, callback, frame, my_cmd
+on_receive_command  Called when a command is received,           arguments: DataStorageClass with company, cmd, p1, p2, tile, text, callback, frame, my_cmd
 on_receive_packet   Called when a packet is received,            arguments: packet-id, packet contents
 on_frame            Called when a frame is received,             arguments: current framecounter
 on_mainloop         Called every time in the main loop,       no arguments

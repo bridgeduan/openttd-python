@@ -9,6 +9,7 @@ from log import LOG
 from openttd.client import M_TCP, M_UDP, M_BOTH, Client, DataPacket
 from ottd_config import config, LoadConfig 
 import openttd.networking
+from openttd.datastorageclass import DataStorageClass
 from openttd import structz, const
 from ottd_client_event import IngameChat, Broadcast, IngameToIRC, InternalCommand, IRCToIngame
 
@@ -482,15 +483,23 @@ class SpectatorClient(Client):
                         frameCounter=0
                     
                     if command == const.PACKET_SERVER_COMMAND:
-                        size, (player, command2, p1, p2, tile, text, callback, frame, my_cmd) = structz.unpack_from('BIIIIzBIB', content)
+                        p = DataPacket(size, command, content)
+                        cp = DataStorageClass()
+                        cp.company = p.recv_uint8()
+                        cp.cmd     = p.recv_uint32()
+                        cp.p1      = p.recv_uint32()
+                        cp.p2      = p.recv_uint32()
+                        cp.tile    = p.recv_uint32()
+                        cp.text    = p.recv_str()
+                        cp.callback= p.recv_uint8()
+                        cp.frame   = p.recv_uint32()
+                        cp.my_cmd  = p.recv_bool()
 
-                        commandid = command2 & 0xff
-                        #print commandid
+                        commandid = cp.cmd & 0xff
                         if commandid in const.command_names.keys():
-                            LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, const.command_names[commandid].__str__(), player, text))
+                            LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, const.command_names[commandid].__str__(), cp.company, cp.text))
 
-                        #print player, command2, p1, p2, tile, text, callback, frame, my_cmd
-                        self.doCallback("on_receive_command", [player, command2, p1, p2, tile, text, callback, frame, my_cmd])
+                        self.doCallback("on_receive_command", [cp])
     
                         """
                         # some example  implementation
@@ -515,12 +524,9 @@ class SpectatorClient(Client):
                         self_sent = (playerid == self.client_id) or self_sent
                         if playerid in self.playerlist:
                             if not self_sent:
-                                if actionid == const.NETWORK_ACTION_CHAT:
-                                    IngameChat(msg, playerid, type="public", parentclient=self)
-                                elif actionid == const.NETWORK_ACTION_CHAT_COMPANY:
-                                    IngameChat(msg, playerid, type="team", parentclient=self)
-                                elif actionid == const.NETWORK_ACTION_CHAT_CLIENT:
-                                    IngameChat(msg, playerid, type="private", parentclient=self)
+                                type_map = {const.NETWORK_ACTION_CHAT:"public", const.NETWORK_ACTION_CHAT_COMPANY:"team", const.NETWORK_ACTION_CHAT_CLIENT:"private"}
+                                if actionid in type_map:
+                                    IngameChat(msg, playerid, type=type_map[actionid], parentclient=self)
                         #LOG.debug(res.__str__())
                     self.doCallback("on_mainloop")
                 if not self.reconnectCond:
