@@ -74,7 +74,7 @@ def get_zstring(str):
     """
     pos = str.find("\x00")
     slice = str[:pos].decode('utf8')
-    size = len(str[:pos]) + 1
+    size = pos + 1
     return size, slice
 def mak_zstring(str):
     """
@@ -204,7 +204,6 @@ def calcsize(fmt, *argv):
         sl = fmt.split("z")
         ind = 0
         offs = 0
-        p = ""
         size = 0
         for f in sl:
             ind += 1
@@ -217,4 +216,4 @@ def calcsize(fmt, *argv):
                 # the zerostring
                 size += len(mak_zstring(argv[offs]))
                 offs += 1
-        return len(p)
+        return size
