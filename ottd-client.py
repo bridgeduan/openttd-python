@@ -560,8 +560,8 @@ def parseArgs():
         argparser.print_help()
     
     if len(args) == 0:
-        ip = "127.0.0.1"
-        port = 3979
+	argparser.print_help()
+	sys.exit(0)
     elif len(args) == 1:
         ipport = args[0].split(':')
         if len(ipport) == 1:
