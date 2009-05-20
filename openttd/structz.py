@@ -1,6 +1,6 @@
 """unpacking/packing zero-terminated strings with python"""
 import struct
-
+decodeerror = 'strict'
 class Struct(object):
     """
     Class that allows you to use python 2.5-style struct objects with 2.4
@@ -73,7 +73,7 @@ def get_zstring(str):
     @returns:   size, string
     """
     pos = str.find("\x00")
-    slice = str[:pos].decode('utf8')
+    slice = str[:pos].decode('utf8', decodeerror)
     size = pos + 1
     return size, slice
 def mak_zstring(str):

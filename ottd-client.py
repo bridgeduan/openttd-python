@@ -83,7 +83,7 @@ class SpectatorClient(Client):
         return errorMsg.getvalue()
     
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
-        payload = structz.pack('bbHz', chattype, desttype, dest, msg)
+        payload = structz.pack('BBIzQ', chattype, desttype, dest, msg, 0)
         try:
             self.sendMsg_TCP(const.PACKET_CLIENT_CHAT, payload)
         except Exception, e:
@@ -121,7 +121,7 @@ class SpectatorClient(Client):
         
         players = []
         for client in self.playerlist:
-            cl = self.playerlist[clientid]
+            cl = self.playerlist[client]
             if cl['company'] == id:
                 players.append(cl['name'])
         if len(players) < 4:
@@ -255,6 +255,8 @@ class SpectatorClient(Client):
             self.commands[commandstring](event, command)
         
     def startIRC(self):
+        if not self.irc is None:
+            return
         from irc_lib import IRCBotThread
         self.irc = IRCBotThread(self.irc_channel, config.get("irc", "nickname"), self.irc_server, self, self.irc_server_port)
         self.irc.start()
@@ -276,15 +278,15 @@ class SpectatorClient(Client):
     def handlePacket(self, command, content):
         self.doCallback("on_receive_packet", [command, content])
         if command == const.PACKET_SERVER_QUIT:
-            cid, msg = structz.unpack('Hz', content)
+            cid = structz.unpack('I', content)
             if cid == self.client_id:
                 self.runCond = False
                 LOG.info("Quit from server")
-                self.doCallback("on_self_quit", [-1, msg])
+                self.doCallback("on_self_quit", [-1])
 
             else:
                 if cid in self.playerlist:
-                    IngameToIRC("%s has quit the game (%s)" % (self.playerlist[cid]['name'], msg), parentclient=self)
+                    IngameToIRC("%s has quit the game" % (self.playerlist[cid]['name']), parentclient=self)
                     self.doCallback("on_user_quit", [self.playerlist[cid]['name'], msg])
             if cid in self.playerlist:
                 name = self.playerlist[cid]['name']
@@ -297,7 +299,7 @@ class SpectatorClient(Client):
             self.runCond = False
         
         elif command == const.PACKET_SERVER_ERROR_QUIT:
-            cid, errornum = structz.unpack('HB', content)
+            cid, errornum = structz.unpack('IB', content)
             if cid == self.client_id:
                 self.doingloop = False
                 self.doCallback("on_self_quit", [errornum])
@@ -308,7 +310,7 @@ class SpectatorClient(Client):
                 del self.playerlist[cid]
 
         elif command == const.PACKET_SERVER_CLIENT_INFO:
-            cid, playas, name = structz.unpack('HBz', content)
+            cid, playas, name = structz.unpack('IBz', content)
             if cid == self.client_id:
                 self.playername = name
                 self.playas = playas
@@ -319,11 +321,11 @@ class SpectatorClient(Client):
                     if (playas == 255):
                         IngameToIRC("%s joined spectators." % (self.playerlist[cid]['name']), parentclient=self)
                     else:
-                        IngameToIRC("%s has been moved to company %d" % (self.playerlist[cid]['name'], playas), parentclient=self)
+                        IngameToIRC("%s has moved to company %d" % (self.playerlist[cid]['name'], playas + 1), parentclient=self)
             self.playerlist[cid] = {'name':name, 'company':playas, 'lastactive':-1, 'id': cid}
         
         elif command == const.PACKET_SERVER_JOIN:
-            (playerid, ) = structz.unpack('H', content)
+            (playerid, ) = structz.unpack('I', content)
             if playerid in self.playerlist:
                 if playerid != self.client_id:
                     IngameToIRC("%s has joined the game" % self.playerlist[playerid]['name'], parentclient=self)
@@ -407,7 +409,7 @@ class SpectatorClient(Client):
             elif command == const.PACKET_SERVER_WELCOME:
                 LOG.info("yay, we are on the server :D (getting the map now ...)")
                 
-                self.client_id, self.generation_seed, self.servernetworkid = structz.unpack('HIz', content)
+                self.client_id, self.generation_seed, self.servernetworkid = structz.unpack('IIz', content)
                 
                 self.socket_tcp.settimeout(600000000)
                 
@@ -521,7 +523,7 @@ class SpectatorClient(Client):
                         """
     
                     if command == const.PACKET_SERVER_CHAT:
-                        actionid, playerid, self_sent, msg = structz.unpack('bHbz', content)
+                        actionid, playerid, self_sent, msg, data = structz.unpack('BIbzQ', content)
                         self_sent = (playerid == self.client_id) or self_sent
                         if playerid in self.playerlist:
                             if not self_sent:
