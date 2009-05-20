@@ -1,6 +1,6 @@
 #!/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
-from openttd.client import Client, M_UDP
+from openttd.client import Client, M_UDP, M_TCP
 from openttd.grfdb import GrfDB
 import openttd.date
 import sys
@@ -39,7 +39,8 @@ def main():
                 client.connect(M_TCP)
                 cis = client.getTCPCompanyInfo()
                 using_tcp = True
-            except:
+            except Exception, e:
+                print "exception when connecting using tcp, trying udp: %s" % e
                 cisi = client.getCompanyInfo()
                 cis = cisi.companies
                 using_tcp = False
@@ -53,7 +54,7 @@ def main():
                 for k in ["company_name", "inaugurated_year", "company_value", "money", "income", "performance", "password_protected"]:
                     print "%20s: %s"%(k, getattr(ci, k))
                 if using_tcp:
-                    print "%20s: %s"%("Clients", ci.players)
+                    print "%20s: %s"%("Clients", ci.clients)
                 elif cisi.info_version < 5:
                     print "%20s:"%("Clients")
                     for cli in ci.clients:

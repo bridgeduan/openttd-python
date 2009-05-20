@@ -205,7 +205,7 @@ class Client(threading.Thread):
             for i in range(0, player_count):
                 company = DataStorageClass()
                 
-                company.number = p.recv_uint8()
+                company.number = p.recv_uint8() + 1
                 company.company_name     = p.recv_str()
                 company.inaugurated_year = p.recv_uint32()
                 company.company_value    = p.recv_uint64()
@@ -248,44 +248,32 @@ class Client(threading.Thread):
             return ret
     def getTCPCompanyInfo(self):
         self.sendMsg_TCP(const.PACKET_CLIENT_COMPANY_INFO)
-        p = self.receiveMsg_TCP(True)
-        if p is None:
-            return None
-        if p.command == const.PACKET_SERVER_COMPANY_INFO:
-            [info_version, player_count] = p.recv_something('BB')
-            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 5 or info_version == 4: #4 and 5 are the same:
-                companies = []
-                firsttime = True
-                for i in range(0, player_count):
-                    if not firsttime:
-                        p = self.receiveMsg_TCP(True)
-                        if p is None:
-                            return None
-                        if p.command != const.PACKET_SERVER_COMPANY_INFO:
-                            raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(p.command))
-                        [info_version, player_count] = p.recv_something('BB')
-                    firsttime = False
-                    
-                    company = DataStorageClass()
-                    company.number           = p.recv_uint8() + 1
-                    company.company_name     = p.recv_str()
-                    company.inaugurated_year = p.recv_uint32()
-                    company.company_value    = p.recv_uint64()
-                    company.money            = p.recv_uint64()
-                    company.income           = p.recv_uint64()
-                    company.performance      = p.recv_uint16()
-                    company.password_protected = p.recv_bool()
-                    company.vehicles         = p.recv_something('H'*5)
-                    company.stations         = p.recv_something('H'*5)
-                    if info_version > 5:
-                        company.ai           = p.recv_bool()
-                    company.clients          = p.recv_str()
-                    companies.append(company)
-                return companies
-            else:
+        companies = []
+        while 1:
+            p = self.receiveMsg_TCP(True)
+            if p.command != const.PACKET_SERVER_COMPANY_INFO:
+                raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(command))
+            [info_version, last] = p.recv_something('BB')
+            if not info_version == const.NETWORK_COMPANY_INFO_VERSION and not info_version == 5 and not info_version == 4:
                 raise _error.WrongVersion("PACKET_CLIENT_COMPANY_INFO", info_version, const.NETWORK_COMPANY_INFO_VERSION)
-        else:
-            raise _error.UnexpectedResponse("PACKET_CLIENT_COMPANY_INFO", str(command))
+            if last == 0:
+                break
+            company = DataStorageClass()
+            company.number           = p.recv_uint8() + 1
+            company.company_name     = p.recv_str()
+            company.inaugurated_year = p.recv_uint32()
+            company.company_value    = p.recv_uint64()
+            company.money            = p.recv_uint64()
+            company.income           = p.recv_uint64()
+            company.performance      = p.recv_uint16()
+            company.password_protected = p.recv_bool()
+            company.vehicles         = p.recv_something('H'*5)
+            company.stations         = p.recv_something('H'*5)
+            if info_version > 5:
+                company.ai           = p.recv_bool()
+            company.clients          = p.recv_str()
+            companies.append(company)
+        return companies
     
     def getGameInfo(self, encode_grfs=False, short=False, addr=None):
         return self.GameInfo_Get(addr, encode_grfs, short)
