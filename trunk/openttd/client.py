@@ -199,7 +199,7 @@ class Client(threading.Thread):
         info_version = p.recv_uint8()
         player_count = p.recv_uint8()
         
-        if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4:
+        if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 5 or info_version == 4:
             companies = []
             
             for i in range(0, player_count):
@@ -249,11 +249,11 @@ class Client(threading.Thread):
     def getTCPCompanyInfo(self):
         self.sendMsg_TCP(const.PACKET_CLIENT_COMPANY_INFO)
         p = self.receiveMsg_TCP(True)
-        if res is None:
+        if p is None:
             return None
         if p.command == const.PACKET_SERVER_COMPANY_INFO:
             [info_version, player_count] = p.recv_something('BB')
-            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 4: #4 and 5 are the same:
+            if info_version == const.NETWORK_COMPANY_INFO_VERSION or info_version == 5 or info_version == 4: #4 and 5 are the same:
                 companies = []
                 firsttime = True
                 for i in range(0, player_count):
@@ -277,7 +277,9 @@ class Client(threading.Thread):
                     company.password_protected = p.recv_bool()
                     company.vehicles         = p.recv_something('H'*5)
                     company.stations         = p.recv_something('H'*5)
-                    company.players          = p.recv_str()
+                    if info_version > 5:
+                        company.ai           = p.recv_bool()
+                    company.clients          = p.recv_str()
                     companies.append(company)
                 return companies
             else:

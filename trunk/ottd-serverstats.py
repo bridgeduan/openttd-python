@@ -239,7 +239,10 @@ def main():
     print ""
     print "used maps:"
     for item in sorted(counters["map_name"].items(), key=itemgetter(1), reverse=True):
-        print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0]), item[1][1])
+        try:
+            print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0], item[1][0], percent(item[1][0]), item[1][1])
+        except UnicodeEncodeError:
+            print " % 50s: %3d (% 5.1f%%), %3d clients" % (item[0].encode('utf_8'), item[1][0], percent(item[1][0]), item[1][1])
 
     print ""
     print "used GRFs (%d used, %d unique, %d in database):" % (grfcount, len(used_grfs), GRFS.getdbcount())

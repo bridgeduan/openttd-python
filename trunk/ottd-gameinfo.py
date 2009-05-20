@@ -80,7 +80,7 @@ def main():
         grfdatabase.loadfromfile("newgrfs.grflist")
         unknowngrfs = grfdatabase.getgrfsnotinlist(gi.grfs)
         if len(unknowngrfs) > 0:
-            unknowngrfs=client.getGRFInfo(gi.unknowngrfs)
+            unknowngrfs=client.getGRFInfo(unknowngrfs)
         for grf in gi.grfs:
             if not grfdatabase.hasgrf(grf[1]) and not unknowngrfs is None:
                 grfdatabase.addgrfinlist(unknowngrfs, grf[0])
