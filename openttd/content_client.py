@@ -88,6 +88,7 @@ class ContentClient(client.Client):
         for dep in entry.dependencies:
             print " " * 10 + "%d" % dep
         print "%d tags:" % entry.tag_count + ", ".join(entry.tags)
+        print "md5sum:", entry.md5sum[0].encode('hex')
         print "-"
         print entry.description
         

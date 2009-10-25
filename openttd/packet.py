@@ -21,10 +21,12 @@ class DataPacket:
         size, ret = structz.unpack_from(type, self.data, self.offset)
         self.offset += size
         return ret
+    def send_raw(self, data):
+        self.size += len(data)
+        self.data += data
     def send_something(self, type, something):
         buf = structz.pack(type, *something)
-        self.size += len(buf)
-        self.data += buf
+        self.send_raw(buf)
     def recv_str(self):
         return self.recv_something('z')[0]
     def recv_uint8(self):
