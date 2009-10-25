@@ -117,7 +117,7 @@ def unpack(fmt, str):
                 offplus, unpplus = get_zstring(string[offs:])
                 offs += offplus
                 unp.append(unpplus)
-        if not offs is len(str):
+        if not offs == len(str):
             raise Exception("unpack requires string that matches format size, try to use unpack_from, (fmt: %s, str: %s" % (fmt, str.encode('hex')))
         return tuple(unp)
 def pack(fmt, *argv):
