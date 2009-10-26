@@ -278,7 +278,7 @@ class SpectatorClient(Client):
     def handlePacket(self, command, content):
         self.doCallback("on_receive_packet", [command, content])
         if command == const.PACKET_SERVER_QUIT:
-            cid = structz.unpack('I', content)
+            cid, = structz.unpack('I', content)
             if cid == self.client_id:
                 self.runCond = False
                 LOG.info("Quit from server")
