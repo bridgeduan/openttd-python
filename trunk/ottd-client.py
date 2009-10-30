@@ -287,7 +287,7 @@ class SpectatorClient(Client):
             else:
                 if cid in self.playerlist:
                     IngameToIRC("%s has quit the game" % (self.playerlist[cid]['name']), parentclient=self)
-                    self.doCallback("on_user_quit", [self.playerlist[cid]['name'], msg])
+                    self.doCallback("on_user_quit", [self.playerlist[cid]['name']])
             if cid in self.playerlist:
                 name = self.playerlist[cid]['name']
                 del self.playerlist[cid]

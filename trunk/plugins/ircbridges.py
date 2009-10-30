@@ -86,7 +86,7 @@ class Bridges(pluginclass.Plugin):
                 return
             nick = self.remove_bridge_ingame_irc(event.playername)
             event.respond("removed bridge to %s" % nick)
-    def ingame_quit(self, name, msg):
+    def ingame_quit(self, name):
         self.remove_bridge_ingame_irc(name)
     def irc_quit(self, c, e):
         nm_to_n = lambda nm: nm.split("!")[0]
