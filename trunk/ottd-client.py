@@ -26,9 +26,11 @@ class SpectatorClient(Client):
     irc_server_port = config.getint("irc", "serverport")
     irc_channel = config.get("irc", "channel")
     version = 'r'+SVNREVISION.strip('$').split(':')[-1].strip()
-    def __init__(self, ip, port, debugLevel, password):
+    def __init__(self, ip, port, debugLevel, password, company=const.PLAYER_SPECTATOR, cpassword=""):
         Client.__init__(self, ip, port, debugLevel)
         self.password = password
+        self.playas = company
+        self.cpassword = cpassword
         self.reconnectCond = True
         self.playerlist = {}
         self.callbacks = {
@@ -354,8 +356,6 @@ class SpectatorClient(Client):
         #construct join packet
         cversion = self.revision
         self.playername =  config.get("openttd", "nickname")
-        password = 'citrus'
-        self.playas = const.PLAYER_SPECTATOR
         language = const.NETLANG_ANY
         network_id =  config.get("openttd", "uniqueid")
         payload = structz.pack('zzBBz', cversion, self.playername, self.playas, language, network_id)
@@ -398,12 +398,15 @@ class SpectatorClient(Client):
                         self.runCond=False
                         self.reconnectCond = False
                 elif type == const.NETWORK_COMPANY_PASSWORD:
-                    #ret = openttd.networking.hash_company_password(self.password, uniqueid, seed)
-                    #payload = structz.pack('Bz', type, ret)
-                    #self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
-                    LOG.info("company is password protected, not supported, exiting!")
-                    self.runCond=False
-                    self.reconnectCond=False
+                    if self.cpassword != '':
+                        LOG.info("company is password protected, sending password ...")
+                        ret = openttd.networking.hash_company_password(self.cpassword, uniqueid, seed)
+                        payload = structz.pack('Bz', type, ret)
+                        self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
+                    else:
+                        LOG.info("company is password protected, but no pass provided, exiting!")
+                        self.runCond=False
+                        self.reconnectCond=False
 
                 
             elif command == const.PACKET_SERVER_WELCOME:
@@ -548,6 +551,8 @@ def parseArgs():
     argparser = optparse.OptionParser(usage=usage, description=description, version='r'+SVNREVISION.strip('$').split(':')[-1].strip())
     argparser.set_defaults(use_psyco=0)
     argparser.add_option("-p", "--password", dest="password", help="use password PASSWORD to join the server", type="string")
+    argparser.add_option("-k", "--company-password", dest="companypassword", help="use password PASSWORD to join the company", type="string")
+    argparser.add_option("-c", "--company", dest="company", help="join company COMPANY", type="int", default=const.PLAYER_SPECTATOR)
     argparser.add_option("--enable-psyco", dest="use_psyco", action="store_const", const=1, help="Force using psyco")
     argparser.add_option("--disable-psyco", dest="use_psyco", action="store_const", const=-1, help="Don't use psyco")
     
@@ -579,12 +584,16 @@ def parseArgs():
         password = options.password
     else:
         password = ''
+    if options.companypassword:
+        cpassword = options.companypassword
+    else:
+        cpassword = ''
         
-    return (ip, port, password, options.use_psyco, options)
+    return (ip, port, password, options.use_psyco, options.company, cpassword, options)
 
 def main():
     import sys
-    ip, port, password, use_psyco, options = parseArgs()
+    ip, port, password, use_psyco, company, cpassword, options = parseArgs()
         
     if use_psyco > -1:
         # Import Psyco if available
@@ -597,7 +606,7 @@ def main():
                 print "Error: could not import psyco"
                 sys.exit(1)
 
-    client = SpectatorClient(ip, port, True, password)
+    client = SpectatorClient(ip, port, True, password, company, cpassword)
     client.cmdlineoptions = options
     
     client.start()
