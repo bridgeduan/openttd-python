@@ -6,23 +6,24 @@ from packet import DataPacket
 def hash_company_password(password, server_unique_id, game_seed):
     """
     hash a company password
-    WARNING: this does not work and is still broken, its output is incorrect
     @param         password: password to hash
     @type          password: string
     @param server_unique_id: unique id of the server
     @type  server_unique_id: hex string
     @param        game_seed: game seed to use
-    @type         game_seed: uint8
+    @type         game_seed: int
     @returns:                hashed password
     @rtype:                  hex string
     """
     if len(password) == 0:
         return ""
-    uid_hash = server_unique_id.decode("hex")
-    salted_pw = map(ord, password)
-    salted_pw += [0] * (16-len(salted_pw)) # pad with zeros
-    for i in range(0, 16):
-        salted_pw[i] ^= ord(uid_hash[i]) ^ (game_seed >> i) & 0xFF
+    salted_pw = []
+    for i in range(32):
+        if len(password) > i:
+            salted_pw.append(ord(password[i]))
+        else:
+            salted_pw.append(0)
+        salted_pw[i] ^= ord(server_unique_id[i]) ^ (game_seed >> i) & 0xFF
     sp = "".join(map(chr, salted_pw))
     try:
         import hashlib
