@@ -1175,15 +1175,17 @@ _special = "-[]\\`^{}"
 nick_characters = string.ascii_letters + string.digits + _special
 _ircstring_translation = string.maketrans(string.ascii_uppercase + "[]\\^",
                                           string.ascii_lowercase + "{}|~")
-
+_ircunicode_translation = dict((ord(a), b) for a, b in zip(unicode(string.uppercase + "[]\\^"), unicode(string.lowercase + "{}|~")))
 def irc_lower(s):
     """Returns a lowercased string.
 
     The definition of lowercased comes from the IRC specification (RFC
     1459).
     """
-    return s.translate(_ircstring_translation)
-
+    if type(s) is str:
+        return s.translate(_ircstring_translation)
+    elif type(s) is unicode:
+        return s.translate(_ircunicode_translation)
 def _ctcp_dequote(message):
     """[Internal] Dequote a message according to CTCP specifications.
 

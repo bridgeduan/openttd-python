@@ -228,8 +228,11 @@ class IRCChat(Event, object):
     def _getMsg(self):
         return self.event.arguments()[0].decode('latin-1')
     def _getNick(self):
-        nm_to_n = lambda nm: nm.split("!")[0]
-        return nm_to_n(self.event.source())
+        if self.event.source() != None:
+            result = self.event.source().split("!")[0]
+        else:
+            result = ""
+        return result
     def _getChannel(self):
         trgt = self.event.target()
         is_channel = lambda c: c and c[0] in "#&+!"
