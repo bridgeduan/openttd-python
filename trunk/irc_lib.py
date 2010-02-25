@@ -48,7 +48,7 @@ class OTTDIRCBot(SingleServerIRCBot):
         self.parentclient.doCallback("on_irc_user_quit", [c, e])
     
     def say(self, msg, type):
-        msg = msg.encode('latin-1')
+        msg = msg.encode('utf-8')
         try:
             if type == 0:
                 self.connection.privmsg(self.channel, msg)
@@ -58,7 +58,7 @@ class OTTDIRCBot(SingleServerIRCBot):
             pass
     
     def say_nick(self, nick, msg, type):
-        msg = msg.encode('latin-1')
+        msg = msg.encode('utf-8')
         try:
             if type == 0:
                 self.connection.privmsg(nick, msg)
@@ -67,7 +67,7 @@ class OTTDIRCBot(SingleServerIRCBot):
         except:
             pass
     def notice(self, nick, msg):
-        msg = msg.encode('latin-1')
+        msg = msg.encode('utf-8')
         try:
             self.connection.notice(nick, msg)
         except:

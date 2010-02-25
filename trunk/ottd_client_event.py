@@ -226,7 +226,7 @@ class IRCChat(Event, object):
         self.parent = parent
         self.dispatch()
     def _getMsg(self):
-        return self.event.arguments()[0].decode('latin-1')
+        return self.event.arguments()[0].decode('utf-8')
     def _getNick(self):
         if self.event.source() != None:
             result = self.event.source().split("!")[0]
@@ -298,7 +298,7 @@ class IRCChatResponse(IRCChat):
         else:
             return "%s: %s" % (self.playername, self.msg)
     def sendToIRC(self):
-        msg = self.__str__().encode('latin-1')
+        msg = self.__str__().encode('utf-8')
         if self.private:
             trgt = self.playername
         else:
