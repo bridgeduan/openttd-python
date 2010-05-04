@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 # made by thomas {AT} thomasfischer {DOT} biz
 import time, sys
 from operator import itemgetter
@@ -136,7 +136,6 @@ def main():
     counters["map_set"] = {} # landscape
     used_grfs = {}
     grfcount = 0
-    myottdservers = 0
     newgrf_servers = 0
     newgrf_clients = 0
     for k in SERVERS.keys():
@@ -169,9 +168,6 @@ def main():
                     counters[i][key] = [0, 0]
                 counters[i][key][0] += 1
                 counters[i][key][1] += server.clients_on
-            
-            if server.server_name.find("myottd.net") >= 0:
-                myottdservers += 1
                 
             # grf stats
             grfs = SERVERS[k].newgrfs
@@ -197,15 +193,13 @@ def main():
         print '#'*79
     print "OpenTTD Server statistics (%s):" % time.ctime()
     print "the master server currently knows %d servers, %d are up, %d could be queried" % (len(SERVERS.keys()), len(SERVERS.keys()) - servererr, counters["server_count"])
-    print "there are currently %d clients online, a maximum of %d can be online (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
+    print "client: %d / %d (%.2f%%)" % (counters["clients_on"], counters["clients_max"], percent(counters["clients_on"], counters["clients_max"]))
     print "companies: %d / %d (%.2f%%)" % (counters["companies_on"], counters["companies_max"], percent(counters["companies_on"], counters["companies_max"]))
     print "spectators: %d / %d (%.2f%%)" % (counters["spectators_on"], counters["spectators_max"], percent(counters["spectators_on"], counters["spectators_max"]))
-    print "%3d of %3d servers have a password               (%.2f%%)" % (counters["use_password"], counters["server_count"], percent(counters["use_password"]))
-    print "%3d of %3d servers are dedicated                 (%.2f%%)" % (counters["dedicated"], counters["server_count"], percent(counters["dedicated"]))
-    print "%3d of %3d servers have newgrfs                  (%.2f%%)" % (newgrf_servers, counters["server_count"], percent(newgrf_servers))
-    print "%3d of %3d players are playing on newgrf servers (%.2f%%)" % (newgrf_clients, counters["clients_on"], percent(newgrf_clients, counters["clients_on"]))
-    print "%3d of %3d servers are hosted by myottd.net      (%.2f%%)" % (myottdservers, counters["server_count"], percent(myottdservers))
-    
+    print "%3d / %3d servers have a password               (%.2f%%)" % (counters["use_password"], counters["server_count"], percent(counters["use_password"]))
+    print "%3d / %3d servers are dedicated                 (%.2f%%)" % (counters["dedicated"], counters["server_count"], percent(counters["dedicated"]))
+    print "%3d / %3d servers have newgrfs                  (%.2f%%)" % (newgrf_servers, counters["server_count"], percent(newgrf_servers))
+    print "%3d / %3d players are playing on newgrf servers (%.2f%%)" % (newgrf_clients, counters["clients_on"], percent(newgrf_clients, counters["clients_on"]))    
     
     print ""
     print "used versions:"
