@@ -16,3 +16,4 @@ import date
 import grfdb
 import structz
 import constants as const
+import version
