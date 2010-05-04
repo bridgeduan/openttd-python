@@ -385,30 +385,27 @@ class SpectatorClient(Client):
                         LOG.debug(" %s - %s" % (grf[0].encode("hex"), grf[1].__str__().encode("hex")))
                 LOG.debug("step2 - got installed GRFs, joining ...")
                 self.sendMsg_TCP(const.PACKET_CLIENT_NEWGRFS_CHECKED)
-                
-            elif command == const.PACKET_SERVER_NEED_PASSWORD:
-                type,seed,uniqueid = structz.unpack('BIz', content)
-                if type == const.NETWORK_GAME_PASSWORD:
-                    if self.password != '':
-                        LOG.info("server is password protected, sending password ...")
-                        payload = structz.pack('Bz', const.NETWORK_GAME_PASSWORD, self.password)
-                        self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
-                    else:
-                        LOG.info("server is password protected, but no pass provided, exiting!")
-                        self.runCond=False
-                        self.reconnectCond = False
-                elif type == const.NETWORK_COMPANY_PASSWORD:
-                    if self.cpassword != '':
-                        LOG.info("company is password protected, sending password ...")
-                        ret = openttd.networking.hash_company_password(self.cpassword, uniqueid, seed)
-                        payload = structz.pack('Bz', type, ret)
-                        self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
-                    else:
-                        LOG.info("company is password protected, but no pass provided, exiting!")
-                        self.runCond=False
-                        self.reconnectCond=False
+            elif command == const.PACKET_SERVER_NEED_GAME_PASSWORD:
+                if self.password != '':
+                    LOG.info("server is password protected, sending password ...")
+                    payload = structz.pack('z', self.password)
+                    send.sendMsg_TCP(const.PACKET_CLIENT_GAME_PASSWORD, payload)
+                else:
+                    LOG.info("server is password protected, but no pass provided, exiting!")
+                    self.runCond=False
+                    self.reconnectCond = False
+            elif command == const.PACKET_SERVER_NEED_COMPANY_PASSWORD:
+                if self.cpassword != '':
+                    LOG.info("company is password protected, sending password ...")
+                    seed, uniqueid = struct.unpack('Iz', content)
+                    ret = openttd.networking.hash_company_password(self.cpassword, uniqueid, seed)
+                    payload = structz.pack('z', ret)
+                    self.sendMsg_TCP(const.PACKET_CLIENT_PASSWORD, payload)
+                else:
+                    LOG.info("company is password protected, but no pass provided, exiting!")
+                    self.runCond=False
+                    self.reconnectCond=False
 
-                
             elif command == const.PACKET_SERVER_WELCOME:
                 LOG.info("yay, we are on the server :D (getting the map now ...)")
                 
