@@ -2,6 +2,7 @@
 # OpenTTD Version Parser
 import constants as const
 import httplib
+import dateutil.parser
 from log import LOG
 class OTTDFingerConnection(httplib.HTTPConnection):
     def __init__(self):
@@ -17,25 +18,26 @@ class OTTDFingerConnection(httplib.HTTPConnection):
             raise Exception("Couldn't request tags list")
         data1 = r1.read()
         data2 = [i.strip().split() for i in data1.split('\n') if i]
+        data2 = [(int(i[0]), dateutil.parser.parse(i[1]).date(), i[2].strip()) for i in data2]
         self.tags = data2
     def gettaginfo(self, tag):
         if not self.tags:
             self.get_tags()
         search = tag.strip()
         for i in self.tags:
-            if i[2].strip() == search:
+            if i[2] == search:
                 return i
         return None
     def gettagrev(self, tag):
         tinfo = self.gettaginfo(tag)
-        if tinfo and len(tinfo) > 2:
-            return int(tinfo[0])
+        if tinfo:
+            return tinfo[0]
         return 0
     def gettagdate(self, tag):
         tinfo = self.gettaginfo(tag)
-        if tinfo and len(tinfo) > 2:
+        if tinfo:
             return tinfo[1]
-        return ""
+        return None
     def __del__(self):
         self.close()
 def generate_newgrf_version(major, minor, build, release=False, revision=0):
