@@ -13,6 +13,7 @@ import openttd.networking
 from openttd.datastorageclass import DataStorageClass
 from openttd import structz, const
 from ottd_client_event import IngameChat, Broadcast, IngameToIRC, InternalCommand, IRCToIngame
+import openttd.version
 
 import plugins
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
@@ -68,7 +69,8 @@ class SpectatorClient(Client):
             # fetch any fatal errors and try to reconnect to the server
             try:
                 gameinfo = self.getGameInfo()
-                self.revision = gameinfo.server_revision
+                self.revision = openttd.version.parse_version(gameinfo.server_revision)
+                self.get_taginfo()
                 self.joinGame()
                 self.cleanup()
             except Exception, e:
@@ -83,7 +85,9 @@ class SpectatorClient(Client):
         errorMsg = StringIO.StringIO()
         traceback.print_exc(file=errorMsg)
         return errorMsg.getvalue()
-    
+    def get_taginfo(self):
+        self.finger = openttd.version.OTTDFingerConnection()
+        self.finger.close()
     def sendChat(self, msg, desttype=const.DESTTYPE_BROADCAST, dest=0, chattype=const.NETWORK_ACTION_CHAT):
         payload = structz.pack('BBIzQ', chattype, desttype, dest, msg, 0)
         try:
@@ -159,7 +163,7 @@ class SpectatorClient(Client):
                 "time": time.ctime().__str__(),
                 "ip": self.ip,
                 "port": self.port,
-                "ottdversion": self.revision,
+                "ottdversion": str(self.revision),
                 "botversion": self.version,
             }
             proccommand = rawcommand % interpolation
@@ -354,7 +358,7 @@ class SpectatorClient(Client):
     
     def joinGame(self):
         #construct join packet
-        cversion = self.revision
+        cversion = str(self.revision)
         self.playername =  config.get("openttd", "nickname")
         language = const.NETLANG_ANY
         network_id =  config.get("openttd", "uniqueid")
@@ -414,7 +418,7 @@ class SpectatorClient(Client):
                 self.socket_tcp.settimeout(600000000)
                 
                 downloadDone = False
-                self.sendMsg_TCP(const.PACKET_CLIENT_GETMAP)
+                self.sendMsg_TCP(const.PACKET_CLIENT_GETMAP, structz.pack('I', self.revision.get_newgrf_version(self.finger)))
                 mapsize_done = 0
                 maptmp = None
                 if config.getboolean("openttd", "savemap"):
