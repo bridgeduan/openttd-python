@@ -1,11 +1,65 @@
 #!/usr/bin/env python
 # OpenTTD Version Parser
+import constants as const
+import httplib
+from log import LOG
+class OTTDFingerConnection(httplib.HTTPConnection):
+    def __init__(self):
+        httplib.HTTPConnection.__init__(self, const.OPENTTD_FINGER_SERVER, const.OPENTTD_FINGER_PORT)
+        self.tags = None
+    def get_tags(self):
+        LOG.info("Getting tags from openttd finger server")
+        LOG.debug("HTTP GET %s" % const.OPENTTD_FINGER_TAGS_URL)
+        self.request("GET", const.OPENTTD_FINGER_TAGS_URL)
+        r1 = self.getresponse()
+        LOG.debug("%d %s" % (r1.status, r1.reason))
+        if r1.status != 200:
+            raise Exception("Couldn't request tags list")
+        data1 = r1.read()
+        data2 = [i.strip().split() for i in data1.split('\n') if i]
+        self.tags = data2
+    def gettaginfo(self, tag):
+        if not self.tags:
+            self.get_tags()
+        search = tag.strip()
+        for i in self.tags:
+            if i[2].strip() == search:
+                return i
+        return None
+    def gettagrev(self, tag):
+        tinfo = self.gettaginfo(tag)
+        if tinfo and len(tinfo) > 2:
+            return int(tinfo[0])
+        return 0
+    def gettagdate(self, tag):
+        tinfo = self.gettaginfo(tag)
+        if tinfo and len(tinfo) > 2:
+            return tinfo[1]
+        return ""
+    def __del__(self):
+        self.close()
+def generate_newgrf_version(major, minor, build, release=False, revision=0):
+    """
+    The NewGRF revision of OTTD:
+    bits  meaning.
+    28-31 major version
+    24-27 minor version
+    20-23 build
+       19 1 if it is a release, 0 if it is not.
+     0-18 revision number; 0 for releases and when the revision is unknown.
 
+    The 19th bit is there so the development/betas/alpha, etc. leading to a
+    final release will always have a lower version number than the released
+    version, thus making comparisions on specific revisions easy.
+    """
+    return major << 28 | minor << 24 | build << 20 | (release & 1) << 19 | (revision & ((1 << 19) - 1))
 class OpenTTDVersion(object):
     """ OpenTTD Version Base Class """
     @classmethod
     def parsefull(cls, version):
         return cls(*cls.parse(version))
+    def get_newgrf_version(self, fingerconnection):
+        return 0
 
 class OpenTTDVersionStable(OpenTTDVersion):
     """ OpenTTD Stable version (like 1.0.0) """
@@ -35,6 +89,9 @@ class OpenTTDVersionStable(OpenTTDVersion):
         if len(spl) == 4:
             subbuild = int(spl[3])
         return major, minor, build, subbuild
+    def get_newgrf_version(self, fingerconnection):
+        tag_rev = fingerconnection.gettagrev(str(self))
+        return generate_newgrf_version(self.major, self.minor, self.build, True, tag_rev)
 class OpenTTDVersionRC(OpenTTDVersionStable):
     """ OpenTTD Release Candidate builds (like 1.0.0-RC1) """
     def __init__(self, major, minor, build, rcno, subbuild=0):
