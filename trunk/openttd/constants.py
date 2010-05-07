@@ -341,9 +341,12 @@ NETLANG_ANY=0
 NETWORK_MASTER_SERVER_VERSION = 1
 NETWORK_MASTER_SERVER_HOST    = "master.openttd.org"
 NETWORK_CONTENT_SERVER_HOST   = "content.openttd.org"
+NETWORK_CONTENT_MIRROR_HOST   = "binaries.openttd.org"
 NETWORK_MASTER_SERVER_PORT    = 3978
 NETWORK_CONTENT_SERVER_PORT   = 3978
+NETWORK_CONTENT_MIRROR_PORT   = 80
 NETWORK_MASTER_SERVER_WELCOME_MESSAGE = "OpenTTDRegister"
+NETWORK_CONTENT_MIRROR_URL    = "/bananas" 
 
 OPENTTD_FINGER_SERVER = "finger.openttd.org"
 OPENTTD_FINGER_PORT   = "80"
@@ -394,7 +397,20 @@ ContentType = {
  'AI_LIBRARY'   : 4, # The content consists of an AI library
  'SCENARIO'     : 5, # The content consists of a scenario
  'HEIGHTMAP'    : 6, # The content consists of a heightmap
- 'END'          : 7  # Helper to mark the end of the types
+ 'BASE_SOUNDS'  : 7, # The content consists of base sounds
+ 'BASE_MUSIC'   : 8, # The content consists of base music 
+ 'END'          : 9  # Helper to mark the end of the types
+}
+ContentTypeDescr = {
+ 1: 'BASE_GRAPHICS',
+ 2: 'NEWGRF',
+ 3: 'AI',
+ 4: 'AI_LIBRARY',
+ 5: 'SCENARIO',
+ 6: 'HEIGHTMAP',
+ 7: 'BASE_SOUNDS',
+ 8: 'BASE_MUSIC',
+ 9: 'END'
 }
 
 PACKET_CONTENT_CLIENT_INFO_LIST      =0# Queries the content server for a list of info of a given content type

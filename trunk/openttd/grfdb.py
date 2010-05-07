@@ -65,6 +65,13 @@ class GrfDB:
         if md5 in self.__database:
             return True
         return False
+    def getgrf(self, md5):
+        """
+        Return all info known about a grf
+        """
+        if self.hasgrf(md5):
+            return self.__database[md5]
+        return None
     def getdbcount(self):
         """
         Get the number of grfs in the database
