@@ -3,8 +3,6 @@
 # made by yorickvanpelt {AT} gmail {DOT} com
 import structz
 import sys
-import array
-HasBit = lambda x,y:(x & (1 << y)) != 0;
 class NewGRFDataPacket:
     size=0
     data=0
@@ -154,7 +152,6 @@ class NewGRFPalette(object):
         self.data = self.file.read()
         if file is None:
             self.file.close()
-
 class NewGRFParser(object):
     def __init__(self, filename="", file=None):
         if file is None:
@@ -175,8 +172,8 @@ class NewGRFParser(object):
         sprite = NewGRFRealSprite()
         sprite.height = self.rdp.read_byte()
         sprite.width  = self.rdp.read_uint16()
-        sprite.x_offs = self.rdp.read_uint16()
-        sprite.y_offs = self.rdp.read_uint16()
+        sprite.x_offs = self.rdp.read_int16()
+        sprite.y_offs = self.rdp.read_int16()
         # 0x02 indicates it is a compressed sprite, so we can't rely on 'num' to be valid.
         # In case it is uncompressed, the size is 'num' - 8 (header-size).
         if type & 0x02:
@@ -213,7 +210,7 @@ class NewGRFParser(object):
             for y in range(sprite.height):
                 last_item = False
                 # Look up in the header-table where the real data is stored for this row
-                offset = (dest[y*2+1] << 8) | dest_orig[y * 2]
+                offset = (ord(dest[y*2+1]) << 8) | ord(dest[y * 2])
                 while True:
                     if offset + 2 > len(dest):
                         raise NewGRFCorruptSprite()
@@ -233,12 +230,10 @@ class NewGRFParser(object):
             if len(dest) < sprite.width * sprite.height:
                 raise NewGRFCorruptSprite()
             sprite.data = dest
-        sprite.data = dest
         sprite.type = type
         self.sprites.append(sprite)
-        print sprite
+        return sprite
     def readsprite(self):
-        print "Reading sprite..."
         size = self.rdp.read_uint16()
         if not size: return
         info = self.rdp.read_byte()
@@ -250,27 +245,6 @@ class NewGRFParser(object):
             else:
                 spr = NewGRFAction(data)
             self.sprites.append(spr)
-            print spr
+            return spr
         else:
-            self.read_real_sprite(size, info)
-def usage():
-    print "Usage: %s file" % sys.argv[0]
-def main(argv):
-    if len(argv) != 2:
-        usage()
-        return
-    file = argv[1].strip()
-    print "Reading file %s" % file
-    c = NewGRFParser(file)
-    c.readfile()
-    while c.rdp.offset != c.rdp.size:
-        c.readsprite()
-    print "Total %d sprites" % len(c.sprites)
-    return c
-if __name__ == '__main__':
-    try:
-        import psyco
-        psyco.full()
-        print "using psyco..."
-    except ImportError: pass
-    main(sys.argv)
+            return self.read_real_sprite(size, info)
