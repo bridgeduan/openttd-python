@@ -492,40 +492,21 @@ class SpectatorClient(Client):
                     if command == const.PACKET_SERVER_COMMAND:
                         p = DataPacket(size, command, content)
                         cp = DataStorageClass()
-                        cp.company = p.recv_uint8()
-                        cp.cmd     = p.recv_uint32()
-                        cp.p1      = p.recv_uint32()
-                        cp.p2      = p.recv_uint32()
-                        cp.tile    = p.recv_uint32()
-                        cp.text    = p.recv_str()
-                        cp.callback= p.recv_uint8()
-                        cp.frame   = p.recv_uint32()
-                        cp.my_cmd  = p.recv_bool()
-
-                        commandid = cp.cmd & 0xff
-                        if commandid in const.command_names.keys():
-                            LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, const.command_names[commandid].__str__(), cp.company, cp.text))
+                        cp.company   = p.recv_uint8()
+                        cp.cmd       = p.recv_uint32() # The command-id to execute (a value of the CMD_* enums)
+                        cp.commandid = cp.cmd & 0xff
+                        cp.p1        = p.recv_uint32() # Additional data for the command (for the CommandProc)
+                        cp.p2        = p.recv_uint32() # Additional data for the command (for the CommandProc)
+                        cp.tile      = p.recv_uint32() # The tile to apply the command on (for the CommandProc)
+                        cp.text      = p.recv_str()    # The text to pass 
+                        cp.callback  = p.recv_uint8()
+                        cp.frame     = p.recv_uint32() # framenumber
+                        cp.my_cmd    = p.recv_bool()
+                        #if commandid in const.command_names.keys():
+                        #    LOG.debug("got command: %d(%s) from company %d: '%s'" % (commandid, const.command_names[commandid].__str__(), cp.company, cp.text))
 
                         self.doCallback("on_receive_command", [cp])
-    
-                        """
-                        # some example  implementation
-                        companystr = self.getCompanyString(player)
-                        if commandid == 61: #CMD_RENAME_SIGN
-                            if text != '':
-                                self.processEvent(BotEvent("%s renames a sign: '%s'" % (companystr, text)))
-                        elif commandid == 46: #CMD_SET_PLAYER_COLOR
-                            self.processEvent(BotEvent("%s changed their color"%companystr))
-                        elif commandid == 52: #CMD_CHANGE_COMPANY_NAME
-                            self.processEvent(BotEvent("%s changed their company name to '%s'"%(companystr, text)))
-                        elif commandid == 53: #CMD_CHANGE_PRESIDENT_NAME
-                            self.processEvent(BotEvent("%s changed their presidents name to '%s'"%(companystr, text)))
-                        elif commandid == 43: #CMD_BUILD_INDUSTRY
-                            self.processEvent(BotEvent("%s built a new industry"%(companystr)))
-                        elif commandid == 44: #CMD_BUILD_COMPANY_HQ
-                            self.processEvent(BotEvent("%s built their new HQ"%(companystr)))
-                        """
-    
+
                     if command == const.PACKET_SERVER_CHAT:
                         actionid, playerid, self_sent, msg, data = structz.unpack('BIbzQ', content)
                         self_sent = (playerid == self.client_id) or self_sent
