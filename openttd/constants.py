@@ -1,3 +1,5 @@
+from const_commands import *
+
 # OTTD Constants
 SEND_MTU                     = 1460 # Number of bytes we can pack in a single packet
 
@@ -115,151 +117,30 @@ packet_names = {
     40:"PACKET_END"
 }
 
-command_names = {
-    0 : ['CMD_BUILD_RAILROAD_TRACK',         'build a rail track'],
-    1 : ['CMD_REMOVE_RAILROAD_TRACK',        'remove a rail track'],
-    2 : ['CMD_BUILD_SINGLE_RAIL',            'build a single rail track'],
-    3 : ['CMD_REMOVE_SINGLE_RAIL',           'remove a single rail track'],
-    4 : ['CMD_LANDSCAPE_CLEAR',              'demolish a tile'],
-    5 : ['CMD_BUILD_BRIDGE',                 'build a bridge'],
-    6 : ['CMD_BUILD_RAILROAD_STATION',       'build a railroad station'],
-    7 : ['CMD_BUILD_TRAIN_DEPOT',            'build a train depot'],
-    8 : ['CMD_BUILD_SIGNALS',                'build a signal'],
-    9 : ['CMD_REMOVE_SIGNALS',               'remove a signal'],
-    10 : ['CMD_TERRAFORM_LAND',               'terraform a tile'],
-    11 : ['CMD_PURCHASE_LAND_AREA',           'purchase a tile'],
-    12 : ['CMD_SELL_LAND_AREA',               'sell a bought tile before'],
-    13 : ['CMD_BUILD_TUNNEL',                 'build a tunnel'],
+def parseCommands(cmdstr):
+	num = 0
+	result = {}
+	lines = cmdstr.split("\n")
+	for line in lines:
+		args = line.split(",")
+		if len(args) < 2:
+			continue
+		
+		cmd_id   = num
+		cmd_name = args[0].strip()
+		cmd_desc = args[1].strip('/< ')
+		result[cmd_id] = [cmd_name, cmd_desc]
+		#print " %d = '%s' : '%s'" % (cmd_id, cmd_name, cmd_desc)
+		num += 1
+	return result
 
-    14 : ['CMD_REMOVE_FROM_RAILROAD_STATION', 'remove a tile station'],
-    15 : ['CMD_CONVERT_RAIL',                 'convert a rail type'],
+# parse the commands
+command_names = parseCommands(str_commands)
+# create a map in the inverse direction
+commands = {}
+for i in command_names:
+	commands[command_names[i][0]] = i
 
-    16 : ['CMD_BUILD_TRAIN_WAYPOINT',         'build a waypoint'],
-    17 : ['CMD_RENAME_WAYPOINT',              'rename a waypoint'],
-    18 : ['CMD_REMOVE_TRAIN_WAYPOINT',        'remove a waypoint'],
-
-    19 : ['CMD_BUILD_ROAD_STOP',              'build a road stop'],
-    20 : ['CMD_REMOVE_ROAD_STOP',             'remove a road stop'],
-    21 : ['CMD_BUILD_LONG_ROAD',              'build a complete road (not a "half" one)'],
-    22 : ['CMD_REMOVE_LONG_ROAD',             'remove a complete road (not a "half" one)'],
-    23 : ['CMD_BUILD_ROAD',                   'build a "half" road'],
-    24 : ['CMD_REMOVE_ROAD',                  'remove a "half" road'],
-    25 : ['CMD_BUILD_ROAD_DEPOT',             'build a road depot'],
-
-    26 : ['CMD_BUILD_AIRPORT',                'build an airport'],
-
-    27 : ['CMD_BUILD_DOCK',                   'build a dock'],
-
-    28 : ['CMD_BUILD_SHIP_DEPOT',             'build a ship depot'],
-    29 : ['CMD_BUILD_BUOY',                   'build a buoy'],
-
-    30 : ['CMD_PLANT_TREE',                   'plant a tree'],
-
-    31 : ['CMD_BUILD_RAIL_VEHICLE',           'build a rail vehicle'],
-    32 : ['CMD_MOVE_RAIL_VEHICLE',            'move a rail vehicle (in the depot)'],
-
-    33 : ['CMD_SELL_RAIL_WAGON',              'sell a rail wagon'],
-
-    34 : ['CMD_SEND_TRAIN_TO_DEPOT',          'send a train to a depot'],
-    35 : ['CMD_FORCE_TRAIN_PROCEED',          'proceed a train to pass a red signal'],
-    36 : ['CMD_REVERSE_TRAIN_DIRECTION',      'turn a train around'],
-
-    37 : ['CMD_MODIFY_ORDER',                 'modify an order (like set full-load)'],
-    38 : ['CMD_SKIP_TO_ORDER',                'skip an order to the next of specific one'],
-    39 : ['CMD_DELETE_ORDER',                 'delete an order'],
-    40 : ['CMD_INSERT_ORDER',                 'insert a new order'],
-
-    41 : ['CMD_CHANGE_SERVICE_INT',           'change the server interval of a vehicle'],
-
-    42 : ['CMD_BUILD_INDUSTRY',               'build a new industry'],
-
-    43 : ['CMD_BUILD_COMPANY_HQ',             'build the company headquarter'],
-    44 : ['CMD_SET_COMPANY_MANAGER_FACE',     'set the manager\'s face of the company'],
-    45 : ['CMD_SET_COMPANY_COLOUR',            'set the colour of the company'],
-
-    46 : ['CMD_INCREASE_LOAN',                'increase the loan from the bank'],
-    47 : ['CMD_DECREASE_LOAN',                'decrease the loan from the bank'],
-
-    48 : ['CMD_WANT_ENGINE_PREVIEW',          'confirm the preview of an engine'],
-
-    49 : ['CMD_RENAME_VEHICLE',               'rename a whole vehicle'],
-    50 : ['CMD_RENAME_ENGINE',                'rename a engine (in the engine list)'],
-    51 : ['CMD_RENAME_COMPANY',               'change the company name'],
-    52 : ['CMD_RENAME_PRESIDENT',             'change the president name'],
-    53 : ['CMD_RENAME_STATION',               'rename a station'],
-
-    54 : ['CMD_SELL_AIRCRAFT',                'sell an aircraft'],
-    55 : ['CMD_BUILD_AIRCRAFT',               'build an aircraft'],
-    56 : ['CMD_SEND_AIRCRAFT_TO_HANGAR',      'send an aircraft to a hanger'],
-    57 : ['CMD_REFIT_AIRCRAFT',               'refit the cargo space of an aircraft'],
-
-    58 : ['CMD_PLACE_SIGN',                   'place a sign'],
-    59 : ['CMD_RENAME_SIGN',                  'rename a sign'],
-
-    60 : ['CMD_BUILD_ROAD_VEH',               'build a road vehicle'],
-    61 : ['CMD_SELL_ROAD_VEH',                'sell a road vehicle'],
-    62 : ['CMD_SEND_ROADVEH_TO_DEPOT',        'send a road vehicle to the depot'],
-    63 : ['CMD_TURN_ROADVEH',                 'turn a road vehicle around'],
-    64 : ['CMD_REFIT_ROAD_VEH',               'refit the cargo space of a road vehicle'],
-
-    65 : ['CMD_PAUSE',                        'pause the game'],
-
-    66 : ['CMD_BUY_SHARE_IN_COMPANY',         'buy a share from a company'],
-    67 : ['CMD_SELL_SHARE_IN_COMPANY',        'sell a share from a company'],
-    68 : ['CMD_BUY_COMPANY',                  'buy a company which is bankrupt'],
-
-    69 : ['CMD_BUILD_TOWN',                   'build a town'],
-
-    70 : ['CMD_RENAME_TOWN',                  'rename a town'],
-    71 : ['CMD_DO_TOWN_ACTION',               'do a action from the town detail window (like advertises or bribe)'],
-
-    72 : ['CMD_SELL_SHIP',                    'sell a ship'],
-    73 : ['CMD_BUILD_SHIP',                   'build a new ship'],
-    74 : ['CMD_SEND_SHIP_TO_DEPOT',           'send a ship to a depot'],
-    75 : ['CMD_REFIT_SHIP',                   'refit the cargo space of a ship'],
-
-    76 : ['CMD_ORDER_REFIT',                  'change the refit informaction of an order (for "goto depot" )'],
-    77 : ['CMD_CLONE_ORDER',                  'clone (and share) an order'],
-    78 : ['CMD_CLEAR_AREA',                   'clear an area'],
-
-    79 : ['CMD_MONEY_CHEAT',                  'do the money cheat'],
-    80 : ['CMD_BUILD_CANAL',                  'build a canal'],
-
-    81 : ['CMD_COMPANY_CTRL',                 'used in multiplayer to create a new companies etc.'],
-    82 : ['CMD_LEVEL_LAND',                   'level land'],
-
-    83 : ['CMD_REFIT_RAIL_VEHICLE',           'refit the cargo space of a train'],
-    84 : ['CMD_RESTORE_ORDER_INDEX',          'restore vehicle order-index and service interval'],
-    85 : ['CMD_BUILD_LOCK',                   'build a lock'],
-
-    86 : ['CMD_BUILD_SIGNAL_TRACK',           'add signals along a track (by dragging)'],
-    87 : ['CMD_REMOVE_SIGNAL_TRACK',          'remove signals along a track (by dragging)'],
-
-    88 : ['CMD_GIVE_MONEY',                   'give money to another company'],
-    89 : ['CMD_CHANGE_SETTING',               'change a setting'],
-
-    90 : ['CMD_SET_AUTOREPLACE',              'set an autoreplace entry'],
-
-    91 : ['CMD_CLONE_VEHICLE',                'clone a vehicle'],
-    92 : ['CMD_START_STOP_VEHICLE',           'start or stop a vehicle'],
-    93 : ['CMD_MASS_START_STOP',              'start/stop all vehicles (in a depot)'],
-    94 : ['CMD_AUTOREPLACE_VEHICLE',          'replace/renew a vehicle while it is in a depot'],
-    95 : ['CMD_DEPOT_SELL_ALL_VEHICLES',      'sell all vehicles which are in a given depot'],
-    96 : ['CMD_DEPOT_MASS_AUTOREPLACE',       'force the autoreplace to take action in a given depot'],
-
-    97 : ['CMD_CREATE_GROUP',                 'create a new group'],
-    98 : ['CMD_DELETE_GROUP',                 'delete a group'],
-    99 : ['CMD_RENAME_GROUP',                 'rename a group'],
-    100 : ['CMD_ADD_VEHICLE_GROUP',            'add a vehicle to a group'],
-    101 : ['CMD_ADD_SHARED_VEHICLE_GROUP',     'add all other shared vehicles to a group which are missing'],
-    102 : ['CMD_REMOVE_ALL_VEHICLES_GROUP',    'remove all vehicles from a group'],
-    103 : ['CMD_SET_GROUP_REPLACE_PROTECTION', 'set the autoreplace-protection for a group'],
-
-    104 : ['CMD_MOVE_ORDER',                   'move an order'],
-    105 : ['CMD_CHANGE_TIMETABLE',             'change the timetable for a vehicle'],
-    106 : ['CMD_SET_VEHICLE_ON_TIME',          'set the vehicle on time feature (timetable)'],
-    107 : ['CMD_AUTOFILL_TIMETABLE',           'autofill the timetable']
-}
 NETWORK_ACTION_JOIN=0
 NETWORK_ACTION_LEAVE=1
 NETWORK_ACTION_SERVER_MESSAGE=2
