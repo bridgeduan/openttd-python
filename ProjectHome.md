@@ -1,0 +1,1 @@
+this library will provide access to certain game aspects via the python scripting language.
